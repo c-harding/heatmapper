@@ -6,7 +6,7 @@ cd "$(dirname "$0")/.." &&
 
 # On the server, start the docker process, clear old docker images and then set up port forwarding
 # (assuming the server is set up as in this gist:
-# https://gist.github.com/xsanda/59686990f42f4dddae01dffa56618ea4, if not then this stage is
+# https://gist.github.com/c-harding/59686990f42f4dddae01dffa56618ea4, if not then this stage is
 # simply skipped).
 (
   RAW_DOMAIN="${DOMAIN/#*\/\//}"
