@@ -50,7 +50,7 @@ export default class App extends Vue {
     this.activities = this.activities
       .filter((activity) => !newIDs.has(activity.id))
       .concat(activities)
-      .sort((a, b) => b.id - a.id);
+      .sort((a, b) => b.date - a.date);
   }
 
   addActivityMaps(maps: never): void {
