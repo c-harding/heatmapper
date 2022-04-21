@@ -6,6 +6,7 @@
     "build-deploy": "scripts/build-deploy",
     "build-container": "scripts/build-container",
     "deploy": "scripts/deploy",
+    "connect": "scripts/connect",
     "container": "scripts/container",
     "build": "scripts/build",
     "serve": "scripts/serve",
