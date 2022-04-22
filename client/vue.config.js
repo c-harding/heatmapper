@@ -3,6 +3,12 @@ const Webpack = require('webpack');
 
 const { VUE_DEV_PORT, SERVER_DOMAIN } = require('@strava-heatmapper/shared/config/dotenv');
 
+if (process.env.NODE_ENV === 'production') {
+  const { gitDescribeSync } = require('git-describe');
+
+  process.env.VUE_APP_GIT_HASH = gitDescribeSync().hash;
+}
+
 module.exports = {
   chainWebpack(config) {
     config.plugin('html').tap((args) => {

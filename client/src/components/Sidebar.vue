@@ -36,6 +36,19 @@
           @dblclick="forceSelect"
         />
       </ul>
+      <p class="credits">
+        Made by Charlie{{ nbsp }}Harding
+        <a class="icon strava" href="https://www.strava.com/athletes/13013632"
+          ><img src="@/assets/strava.png"
+        /></a>
+        <a class="icon github" href="https://github.com/c-harding/heatmapper"
+          ><img src="@/assets/github.png"
+        /></a>
+        <br />
+        <span v-if="gitHash" class="credits">
+          Build <code>{{ gitHash }}</code>
+        </span>
+      </p>
     </div>
 
     <div class="overlay" @click="minimised = !minimised" @wheel="minimised = true" />
@@ -93,6 +106,10 @@ export default class Sidebar extends Vue {
   minimised = false;
 
   isTouchScreen = false;
+
+  readonly gitHash = process.env.VUE_APP_GIT_HASH ?? null;
+
+  readonly nbsp = '\xa0';
 
   private toggleInArray<T>(array: T[], item: T): T[] {
     if (array.includes(item)) return array.filter((x) => x !== item);
@@ -183,10 +200,44 @@ $max-size-to-minimise: 600px;
     padding: 0 0 1em;
     background-color: var(--background);
     transition: margin var(--transition-speed);
+    display: flex;
+    flex-direction: column;
 
     > ul {
       padding: 0;
       margin: 0;
+    }
+
+    .credits {
+      font-size: 14px;
+      padding: 1em;
+      text-align: center;
+      margin: 0;
+      margin-top: auto;
+
+      .icon {
+        img {
+          height: 1.5em;
+          vertical-align: middle;
+        }
+
+        &.github {
+          font-size: 0.8em;
+        }
+
+        &.strava:not(:hover) {
+          filter: grayscale(1);
+        }
+
+        &.github:not(:hover) {
+          opacity: 0.6;
+        }
+      }
+
+      code {
+        font-family: 'SF Mono', SFMono-Regular, ui-monospace, 'DejaVu Sans Mono', Menlo, Consolas,
+          monospace;
+      }
     }
   }
 

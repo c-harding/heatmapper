@@ -11,8 +11,7 @@
     </div>
     <div class="date" v-text="activity.dateString.join('\n')" />
     <a :href="url" target="_blank" class="strava-link" @click="$event.stopPropagation()">
-      <img src="@/assets/strava_symbol_gray.png" />
-      <img src="@/assets/strava_symbol_orange.png" />
+      <img src="@/assets/strava.png" />
     </a>
   </li>
 </template>
@@ -82,12 +81,8 @@ export default class ActivityItem extends Vue {
       height: $size;
     }
 
-    &:hover > img:first-child {
-      display: none;
-    }
-
-    &:not(:hover) > img:last-child {
-      display: none;
+    &:not(:hover) > img {
+      filter: grayscale(100%);
     }
   }
 
