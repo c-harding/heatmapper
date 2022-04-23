@@ -3,8 +3,8 @@ import { $ref } from 'vue/macros';
 
 import Icon from './Icon.vue';
 
-const { modelValue, name = undefined } = defineProps<{
-  modelValue: Date;
+const { modelValue = null, name = undefined } = defineProps<{
+  modelValue?: Date | null;
   name: string;
 }>();
 

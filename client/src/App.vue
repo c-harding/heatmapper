@@ -8,7 +8,7 @@
       @add-activities="addActivities"
       @add-activity-maps="addActivityMaps"
     />
-    <MapComponent
+    <MapView
       ref="map"
       v-model:center="location"
       v-model:zoom="zoom"
@@ -18,53 +18,46 @@
   </div>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
 import type { Activity } from '@strava-heatmapper/shared/interfaces';
 import { defineAsyncComponent } from 'vue';
-import { Options, Ref, Vue } from 'vue-property-decorator';
+import { $ref } from 'vue/macros';
 
-import MapComponent from './components/Map.vue';
+import MapView from './components/MapView.vue';
 
-@Options({
-  components: {
-    Sidebar: defineAsyncComponent(() => import('./components/Sidebar.vue')),
-    MapComponent,
-  },
-})
-export default class App extends Vue {
-  @Ref() map!: Vue & { zoomToSelection(): void };
+const Sidebar = defineAsyncComponent(() => import('./components/Sidebar.vue'));
 
-  location = { lat: 51.45, lng: -2.6 };
+let map = $ref<MapView>();
 
-  zoom = 10;
+let location = $ref({ lat: 51.45, lng: -2.6 });
 
-  activities: Activity[] = [];
+let zoom = $ref(10);
 
-  selected: Activity[] = [];
+let activities: Activity[] = $ref([]);
 
-  clearActivities(): void {
-    this.activities = [];
-  }
+let selected: Activity[] = $ref([]);
 
-  addActivities(activities: Activity[]): void {
-    const newIDs = new Set(activities.map((activity) => activity.id));
-    this.activities = this.activities
-      .filter((activity) => !newIDs.has(activity.id))
-      .concat(activities)
-      .sort((a, b) => b.date - a.date);
-  }
+function clearActivities(): void {
+  activities = [];
+}
+function addActivities(newActivities: Activity[]): void {
+  const newIDs = new Set(newActivities.map((activity) => activity.id));
+  activities = activities
+    .filter((activity) => !newIDs.has(activity.id))
+    .concat(newActivities)
+    .sort((a, b) => b.date - a.date);
+}
 
-  addActivityMaps(maps: Record<string, string>): void {
-    Object.entries(maps).forEach(([activity, map]) => {
-      const i = this.activities.findIndex(({ id }) => id.toString() === activity);
-      this.activities[i] = { ...this.activities[i], map };
-    });
-  }
+function addActivityMaps(maps: Record<string, string>): void {
+  Object.entries(maps).forEach(([activity, map]) => {
+    const i = activities.findIndex(({ id }) => id.toString() === activity);
+    activities[i] = { ...activities[i], map };
+  });
+}
 
-  zoomToSelected(selection: Activity[]): void {
-    this.selected = selection;
-    this.map.zoomToSelection();
-  }
+function zoomToSelected(selection: Activity[]): void {
+  selected = selection;
+  map.zoomToSelection();
 }
 </script>
 
