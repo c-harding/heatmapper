@@ -1,9 +1,9 @@
 <template>
   <li
     :class="['activity-item', { selected }]"
-    @click="$emit('click', $event)"
-    @touchstart="$emit('touchstart')"
-    @dblclick="$emit('dblclick', $event)"
+    @click="emit('click', $event)"
+    @touchstart="emit('touchstart')"
+    @dblclick="emit('dblclick', $event)"
   >
     <div class="activity-name" v-text="activity.name" />
     <div v-if="!activity.map" class="spinner">
