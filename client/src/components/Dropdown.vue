@@ -8,13 +8,13 @@ const {
   modelValue = null,
   blankValue = null,
   blankLabel = null,
-  clearButton = null,
+  clearButton = false,
   options,
 } = defineProps<{
   modelValue: string;
   blankValue: string | null;
   blankLabel: string | null;
-  clearButton: boolean;
+  clearButton?: boolean;
   options: {
     value: string;
     label: string;

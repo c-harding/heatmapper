@@ -18,7 +18,6 @@
 
 <script setup lang="ts">
 import type { Activity, Route } from '@strava-heatmapper/shared/interfaces';
-import { defineProps } from 'vue';
 import { $computed } from 'vue/macros';
 
 import Spinner from './Spinner.vue';
