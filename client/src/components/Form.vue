@@ -47,7 +47,7 @@
 <script lang="ts">
 import type { Activity, ResponseMessage, Route } from '@strava-heatmapper/shared/interfaces';
 import { TimeRange } from '@strava-heatmapper/shared/interfaces';
-import { Component, Emit, Vue, Watch } from 'vue-property-decorator';
+import { Emit, Options, Vue, Watch } from 'vue-property-decorator';
 
 import activityTypes from '../activityTypes';
 import Socket from '../socket';
@@ -165,8 +165,9 @@ function filterRoutes(
   return routes.filter((route) => [!type || type.split(',').includes(route.type)].every(Boolean));
 }
 
-@Component({
+@Options({
   components: { DateInput, Dropdown },
+  emits: ['add-activities', 'clear-activities', 'add-activity-maps'],
 })
 export default class Form extends Vue {
   start: Date | null = null;

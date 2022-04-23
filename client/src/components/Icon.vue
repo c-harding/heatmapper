@@ -1,13 +1,12 @@
 <template>
-  <i class="material-icons" :class="{ inline, large, placeholder, bottom }" v-on="$listeners"
+  <i v-bind="$attrs" class="material-icons" :class="{ inline, large, placeholder, bottom }"
     >{{ generated }}<slot v-if="!generated"
   /></i>
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
-import { Component, Prop } from 'vue-property-decorator';
-@Component({
+import { Options, Prop, Vue } from 'vue-property-decorator';
+@Options({
   head: {
     link: [
       {

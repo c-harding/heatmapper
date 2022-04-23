@@ -1,10 +1,11 @@
 {
   "env": {
-    "node": true
+    "node": true,
+    "vue/setup-compiler-macros": true
   },
   "extends": [
-    "plugin:vue/recommended",
-    "prettier/vue"
+    "plugin:vue/vue3-recommended",
+    "prettier"
   ],
   "plugins": [
     "babel"
@@ -12,7 +13,10 @@
   "parser": "vue-eslint-parser",
   "parserOptions": {
     "parser": "@typescript-eslint/parser",
-    "ecmaVersion": 2020
+    "ecmaVersion": 2020,
+    "ecmaFeatures": {
+      "jsx": true
+    }
   },
   "rules": {
     "vue/html-self-closing": [
@@ -28,6 +32,7 @@
     "vue/max-attributes-per-line": "off",
     "vue/custom-event-name-casing": "off",
     "no-restricted-syntax": "off",
-    "class-methods-use-this": "off"
+    "class-methods-use-this": "off",
+    "vue/multi-word-component-names": "off"
   }
 }

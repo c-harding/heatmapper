@@ -23,8 +23,8 @@ export type SummaryRoute = {
   name: string;
   created_at: string;
   map: { summary_polyline: string };
-  type: string;
-  sub_type: number;
+  type: '1' | '2' | '3';
+  sub_type: '1' | '2' | '3' | '4' | '5';
 };
 
 interface OAuthCallbackResponse {

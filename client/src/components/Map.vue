@@ -4,7 +4,8 @@ import type Activity from '@strava-heatmapper/shared/interfaces/Activity';
 import type { GeoJSON } from 'geojson';
 import mapboxgl, { LngLatBounds } from 'mapbox-gl';
 import type { VNode } from 'vue';
-import { Component, Emit, Prop, PropSync, Ref, Vue, Watch } from 'vue-property-decorator';
+import { nextTick } from 'vue';
+import { Emit, Options, Prop, Ref, Vue, Watch } from 'vue-property-decorator';
 
 declare global {
   interface Window {
@@ -80,7 +81,7 @@ const buildLineLayer = (id: string, layer: LayerDef): mapboxgl.AnyLayer => ({
   },
 });
 
-@Component({
+@Options({
   head: {
     link: [
       {
@@ -92,6 +93,7 @@ const buildLineLayer = (id: string, layer: LayerDef): mapboxgl.AnyLayer => ({
 })
 export default class Map extends Vue {
   render(): VNode {
+    nextTick(() => this.addMapElement());
     return (
       <div class="map-container" ref="container">
         {!window.cachedMapComponent && <div id="map" ref="mapElem" />}
@@ -99,11 +101,29 @@ export default class Map extends Vue {
     );
   }
 
-  @PropSync('center', { required: true }) modelCenter!: mapboxgl.LngLatLike;
+  @Prop({ required: true }) center!: mapboxgl.LngLatLike;
+  get modelCenter(): mapboxgl.LngLatLike {
+    return this.center;
+  }
+  set modelCenter(value: mapboxgl.LngLatLike) {
+    this.$emit('update:center', value);
+  }
 
-  @PropSync('zoom', { default: 0 }) modelZoom!: number;
+  @Prop({ required: true }) zoom!: number;
+  get modelZoom(): number {
+    return this.zoom;
+  }
+  set modelZoom(value: number) {
+    this.$emit('update:zoom', value);
+  }
 
-  @PropSync('selected', { default: () => [] }) modelSelected!: number[];
+  @Prop({ default: () => [] }) selected!: number[];
+  get modelSelected(): number[] {
+    return this.selected;
+  }
+  set modelSelected(value: number[]) {
+    this.$emit('update:selected', value);
+  }
 
   @Prop({ required: true }) readonly activities!: Activity[];
 
@@ -193,7 +213,7 @@ export default class Map extends Vue {
     sources.forEach((id) => map.addSource(id, makeGeoJson()));
     Object.entries(layers).forEach(([id, layer]) => map.addLayer(buildLineLayer(id, layer)));
 
-    await this.$nextTick();
+    await nextTick();
     this.applyActivities(this.activities, 'lines');
     this.applyActivities(this.selectedActivities, 'selected');
   }
@@ -234,6 +254,15 @@ export default class Map extends Vue {
   }
 
   mounted(): void {
+    const map = this.addMapElement();
+
+    map.on('zoomend', () => window.cachedMapComponent?.zoomend(map));
+    map.on('moveend', () => window.cachedMapComponent?.moveend(map));
+    map.on('click', (ev) => window.cachedMapComponent?.click(map, ev));
+    map.on('load', () => window.cachedMapComponent?.mapLoaded(map));
+  }
+
+  addMapElement(): mapboxgl.Map {
     let map: mapboxgl.Map;
     const cachedMap = window.cachedMapComponent?.map;
     if (cachedMap) {
@@ -254,10 +283,7 @@ export default class Map extends Vue {
 
     // Always delegate to the correct instance
     window.cachedMapComponent = this;
-    this.map.on('zoomend', () => window.cachedMapComponent?.zoomend(map));
-    this.map.on('moveend', () => window.cachedMapComponent?.moveend(map));
-    this.map.on('click', (ev) => window.cachedMapComponent?.click(map, ev));
-    this.map.on('load', () => window.cachedMapComponent?.mapLoaded(map));
+    return map;
   }
 }
 </script>
@@ -266,6 +292,7 @@ export default class Map extends Vue {
 .map-container {
   display: contents;
 }
+
 #map {
   flex: 1;
   z-index: 0;

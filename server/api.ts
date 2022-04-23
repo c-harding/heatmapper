@@ -10,6 +10,7 @@ import type {
 import { TimeRange } from '@strava-heatmapper/shared/interfaces';
 import type { StatsMessage } from '@strava-heatmapper/shared/interfaces/ResponseMessage';
 import express from 'express';
+import type { Router } from 'express-ws';
 import { createReadStream } from 'fs';
 import moment from 'moment';
 
@@ -66,8 +67,8 @@ function convertRouteSummary(
     name,
     date: +new Date(date),
     map,
-    type: { 1: 'Ride', 2: 'Run', 3: 'Walk' }[type],
-    subType: { 1: 'Road', 2: 'MountainBike', 3: 'Cross', 4: 'Trail', 5: 'Mixed' }[subType],
+    type: ({ 1: 'Ride', 2: 'Run', 3: 'Walk' } as const)[type],
+    subType: ({ 1: 'Road', 2: 'MountainBike', 3: 'Cross', 4: 'Trail', 5: 'Mixed' } as const)[subType],
     dateString: formatDateWithLineBreak(date, locales),
   };
 }
@@ -102,7 +103,7 @@ function sortPromises<T>(promises: Promise<T>[]): Promise<T>[] {
 }
 
 export default function apiRouter(domain: string): express.Router {
-  const router = express.Router();
+  const router = express.Router() as Router;
 
   router.ws('/activities', (ws, req) => {
     let live = true;
