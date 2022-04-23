@@ -25,7 +25,7 @@
         @add-activities="$emit('add-activities', $event)"
         @add-activity-maps="$emit('add-activity-maps', $event)"
       />
-      <ul>
+      <ul ref="activityItemList">
         <ActivityItem
           v-for="activity of activities"
           :key="activity.id"
@@ -57,7 +57,8 @@
 
 <script lang="ts">
 import type Activity from '@strava-heatmapper/shared/interfaces/Activity';
-import { Component, Emit, Prop, Ref, Vue, Watch } from 'vue-property-decorator';
+import { nextTick } from 'vue';
+import { Emit, Options, Prop, Ref, Vue, Watch } from 'vue-property-decorator';
 
 import ActivityItem from './ActivityItem.vue';
 import FormComponent from './Form.vue';
@@ -89,8 +90,9 @@ function cancelTextSelection() {
   }
 }
 
-@Component({
+@Options({
   components: { FormComponent, ActivityItem, Icon },
+  emits: ['zoom-to-selected', 'add-activities', 'add-activity-maps', 'clear-activities'],
 })
 export default class Sidebar extends Vue {
   @Prop({ default: () => [] }) activities!: Activity[];
@@ -146,8 +148,8 @@ export default class Sidebar extends Vue {
       this.localSelected = selected;
       this.selectionBase = selected;
       if (selected.length !== 0) this.minimised = false;
-      await this.$nextTick();
-      const el = this.$el.querySelector('.selected');
+      await nextTick();
+      const el = (this.$refs.activityItemList as HTMLUListElement).querySelector('.selected');
       if (el) el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
     }
   }

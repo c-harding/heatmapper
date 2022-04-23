@@ -18,10 +18,11 @@
 
 <script lang="ts">
 import type { Activity, Route } from '@strava-heatmapper/shared/interfaces';
-import { Component, Prop, Vue } from 'vue-property-decorator';
-import Spinner from 'vue-simple-spinner';
+import { Options, Prop, Vue } from 'vue-property-decorator';
 
-@Component({
+import Spinner from './Spinner.vue';
+
+@Options({
   components: { Spinner },
 })
 export default class ActivityItem extends Vue {

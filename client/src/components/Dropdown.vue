@@ -18,13 +18,19 @@
 </template>
 
 <script lang="ts">
-import { Component, ModelSync, Prop, Vue } from 'vue-property-decorator';
+import { Options, Prop, Vue } from 'vue-property-decorator';
 
 import Icon from './Icon.vue';
 
-@Component({ components: { Icon } })
+@Options({ components: { Icon } })
 export default class Dropdown extends Vue {
-  @ModelSync('value', 'input') model!: string;
+  @Prop({ default: () => [] }) modelValue!: string;
+  get model(): string {
+    return this.modelValue;
+  }
+  set model(value: string) {
+    this.$emit('update:modelValue', value);
+  }
 
   @Prop({ default: null }) blankValue!: string | null;
 

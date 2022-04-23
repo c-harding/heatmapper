@@ -5,20 +5,20 @@
       ref="input"
       type="date"
       :name="name"
-      :value="dateToYYYYMMDD(value)"
+      :value="dateToYYYYMMDD(modelValue)"
       @change="updateValue"
     />
     <Icon class="icon"> expand_more </Icon>
   </div>
 </template>
 <script lang="ts">
-import { Component, Emit, Prop, Ref, Vue } from 'vue-property-decorator';
+import { Emit, Options, Prop, Ref, Vue } from 'vue-property-decorator';
 
 import Icon from './Icon.vue';
 
-@Component({ components: { Icon } })
+@Options({ components: { Icon } })
 export default class InputDate extends Vue {
-  @Prop({ default: null }) value!: Date;
+  @Prop({ default: null }) modelValue!: Date;
 
   @Prop({ default: undefined }) name?: string;
 
@@ -33,7 +33,7 @@ export default class InputDate extends Vue {
     );
   }
 
-  @Emit('input')
+  @Emit('modelValue')
   updateValue(): Date | null {
     const rawDate = this.input.valueAsDate;
     return rawDate && new Date(rawDate.getTime() + rawDate.getTimezoneOffset() * 60 * 1000);

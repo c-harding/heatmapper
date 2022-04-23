@@ -4,7 +4,7 @@ export default interface Route {
   name: string;
   date: number;
   map: string;
-  type: 'Ride' | 'Run';
+  type: 'Ride' | 'Run' | 'Walk';
   subType: 'Road' | 'MountainBike' | 'Cross' | 'Trail' | 'Mixed';
   dateString: string[];
 }

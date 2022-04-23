@@ -1,8 +1,8 @@
 <template>
   <div id="app">
     <Sidebar
+      v-model:selected="selected"
       :activities="activities"
-      :selected.sync="selected"
       @zoom-to-selected="zoomToSelected"
       @clear-activities="clearActivities"
       @add-activities="addActivities"
@@ -10,23 +10,24 @@
     />
     <MapComponent
       ref="map"
-      :center.sync="location"
-      :zoom.sync="zoom"
+      v-model:center="location"
+      v-model:zoom="zoom"
+      v-model:selected="selected"
       :activities="activities"
-      :selected.sync="selected"
     />
   </div>
 </template>
 
 <script lang="ts">
 import type { Activity } from '@strava-heatmapper/shared/interfaces';
-import { Component, Ref, Vue } from 'vue-property-decorator';
+import { defineAsyncComponent } from 'vue';
+import { Options, Ref, Vue } from 'vue-property-decorator';
 
 import MapComponent from './components/Map.vue';
 
-@Component({
+@Options({
   components: {
-    Sidebar: () => import('./components/Sidebar.vue'),
+    Sidebar: defineAsyncComponent(() => import('./components/Sidebar.vue')),
     MapComponent,
   },
 })
@@ -53,10 +54,10 @@ export default class App extends Vue {
       .sort((a, b) => b.date - a.date);
   }
 
-  addActivityMaps(maps: never): void {
+  addActivityMaps(maps: Record<string, string>): void {
     Object.entries(maps).forEach(([activity, map]) => {
       const i = this.activities.findIndex(({ id }) => id.toString() === activity);
-      this.$set(this.activities, i, { ...this.activities[i], map });
+      this.activities[i] = { ...this.activities[i], map };
     });
   }
 
