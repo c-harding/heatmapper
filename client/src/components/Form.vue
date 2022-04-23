@@ -1,53 +1,8 @@
-<template>
-  <aside>
-    <div class="controls">
-      <label>
-        <span>Start date</span>
-        <date-input v-model="start" name="start" />
-      </label>
-      <label>
-        <span>End date</span>
-        <date-input v-model="end" name="end" />
-      </label>
-      <label>
-        <span>Activity type</span>
-        <Dropdown
-          v-model="activityType"
-          :options="activityTypes"
-          blank-value=""
-          blank-label="All activities"
-        />
-      </label>
-    </div>
-    <div class="buttons">
-      <button @click="loadPartial">Load</button>
-      <button @click="loadRoutes">Routes</button>
-      <button @click="clearCache">Clear cache</button>
-    </div>
-    <div v-if="continueLogin" class="not-logged-in-container">
-      <div class="not-logged-in">
-        <p>You are not logged in. Click to continue to log in with Strava.</p>
-        <p class="centered">
-          <button @click="continueLogin && continueLogin()">Log in</button>
-        </p>
-        <p class="small">
-          This will use a cookie to remember who you are logged in as, which you can clear at any
-          time by clicking "Clear Cache". You may
-          <a href="#no-cookies" @click.prevent="continueLogin && continueLogin(false)"
-            >proceed without cookies</a
-          >
-          if you wish to log in every time.
-        </p>
-      </div>
-    </div>
-    <p v-else :class="[error && 'error']" v-text="statusMessage" />
-  </aside>
-</template>
-
-<script lang="ts">
+<script setup lang="ts">
 import type { Activity, ResponseMessage, Route } from '@strava-heatmapper/shared/interfaces';
 import { TimeRange } from '@strava-heatmapper/shared/interfaces';
-import { Emit, Options, Vue, Watch } from 'vue-property-decorator';
+import { watch } from 'vue';
+import { $computed, $ref } from 'vue/macros';
 
 import activityTypes from '../activityTypes';
 import Socket from '../socket';
@@ -72,8 +27,14 @@ function count(n: number, singular: string, plural?: string): string {
 
 const countActivities = (n: number) => count(n, 'activity', 'activities');
 
+const emit = defineEmits<{
+  (e: 'add-activities', value: Activity[] | Route[]): void;
+  (e: 'clear-activities'): void;
+  (e: 'add-activity-maps', value: Record<string, string>): void;
+}>();
+
 function findingString(
-  { started = false, finished = false, length = 0 }: Form['stats']['finding'] = {},
+  { started = false, finished = false, length = 0 }: LoadingStats['finding'] = {},
   inCache = false,
 ) {
   if (finished && inCache) return `found ${countActivities(length)} in cache`;
@@ -165,260 +126,289 @@ function filterRoutes(
   return routes.filter((route) => [!type || type.split(',').includes(route.type)].every(Boolean));
 }
 
-@Options({
-  components: { DateInput, Dropdown },
-  emits: ['add-activities', 'clear-activities', 'add-activity-maps'],
-})
-export default class Form extends Vue {
-  start: Date | null = null;
+let start: Date | null = $ref(null);
+let end: Date | null = $ref(null);
+let continueLogin: ((withCookies: boolean) => void) | null = $ref(null);
+let activityType = $ref('');
+const sortedActivityTypes = Object.entries(activityTypes)
+  .map(([value, label]) => ({ value, label }))
+  .sort((a, b) => a.label.localeCompare(b.label));
 
-  end: Date | null = null;
+interface LoadingStats {
+  status?: string;
+  finding?: { started?: boolean; finished?: boolean; length?: number };
+  cleared?: boolean;
+}
 
-  continueLogin: null | (() => void) = null;
+let stats = $ref<LoadingStats>({});
 
-  activityType = '';
+let clientStats = $ref({
+  mapsRequested: 0,
+  mapsLoaded: 0,
+  mapsNotCached: 0,
+  inCache: true,
+});
 
-  activityTypes = Object.entries(activityTypes)
-    .map(([value, label]) => ({ value, label }))
-    .sort((a, b) => a.label.localeCompare(b.label));
+let error: string | null = $ref(null);
 
-  stats: {
-    status?: string;
-    finding?: { started?: boolean; finished?: boolean; length?: number };
-    cleared?: boolean;
-  } = {};
+let starting = $ref(false);
 
+const statusMessage = $computed(() => {
+  return error || statsMessage();
+});
+
+function statsMessage(): string {
+  // TODO: lift finding up
+
+  if (stats.cleared) return 'Cleared cache';
+  return capitalise(
+    nonEmpties(
+      findingString(stats.finding, clientStats.inCache),
+      mapString(clientStats.mapsRequested, clientStats.mapsLoaded, clientStats.mapsNotCached),
+    ).join(', '),
+  );
+}
+
+function setError(message: string): void {
+  error = message;
+}
+
+function clearCache(): void {
+  localStorage.clear();
+  document.cookie = `token=;expires=${new Date(0).toUTCString()}`;
+  stats = { cleared: true };
+  emit('clear-activities');
+}
+
+function receiveMaps(maps: Record<string, string>): void {
+  clientStats.mapsLoaded += Object.keys(maps).length;
+  emit('add-activity-maps', maps);
+}
+
+watch(
+  () => activityType,
+  () => {
+    emit('clear-activities');
+    loadFromCache();
+  },
+);
+
+function requestMaps(ids: (number | string)[], socket?: Socket): void {
+  clientStats.mapsRequested += ids.length;
+  const { cached, notCached } = getCachedMaps(ids);
+  if (socket && notCached.length) {
+    socket.sendRequest({
+      maps: notCached,
+    });
+  }
+  receiveMaps(cached);
+  checkFinished(socket);
+}
+
+function receiveActivities(activities: Activity[], socket?: Socket): void {
+  const filteredActivities = filterActivities(activities, activityType, start, end);
+  emit('add-activities', filteredActivities);
+  requestMaps(
+    filteredActivities.map(({ id }) => id),
+    socket,
+  );
+}
+
+function receiveRoutes(routes: Route[], socket?: Socket): void {
+  const filteredRoutes = filterRoutes(routes, activityType);
+  emit('add-activities', filteredRoutes);
+  requestMaps(
+    filteredRoutes.map(({ id }) => id),
+    socket,
+  );
+}
+
+function checkFinished(socket?: Socket): void {
+  if (
+    socket &&
+    !starting &&
+    clientStats.mapsRequested === clientStats.mapsLoaded &&
+    stats.finding?.finished
+  ) {
+    socket.close();
+  }
+}
+
+function loadFromCache(partial = false): void {
+  const activities = getCachedActivities();
+  if (activities && activities.length) {
+    if (!partial) stats = { finding: { finished: true, length: activities.length } };
+    const cachedActivities = activities.filter(({ id }) => getCachedMap(id));
+    clientStats.mapsNotCached = activities.length - cachedActivities.length;
+    receiveActivities(cachedActivities);
+  }
+}
+
+function startLoading(socket: Socket, ranges: TimeRange[]): void {
+  socket.sendRequest({
+    activities: ranges,
+  });
+}
+
+function startLoadingRoutes(socket: Socket): void {
+  socket.sendRequest({
+    routes: true,
+  });
+}
+
+async function load(): Promise<void> {
+  await sockets();
+}
+
+async function loadPartial(): Promise<void> {
+  await sockets({ partial: true });
+}
+
+async function loadRoutes(): Promise<void> {
+  await sockets({ routes: true });
+}
+
+async function sockets({ partial = false, routes = false } = {}): Promise<void> {
+  emit('clear-activities');
+  if (partial) loadFromCache(partial);
   clientStats = {
     mapsRequested: 0,
     mapsLoaded: 0,
     mapsNotCached: 0,
-    inCache: true,
+    inCache: false,
   };
+  error = null;
 
-  error: string | null = null;
+  const startTimestamp = start ? start.getTime() / 1000 : 0;
+  const endTimestamp = (end ? end.getTime() : Date.now()) / 1000;
 
-  starting = false;
+  let latestActivityDate = startTimestamp;
 
-  get statusMessage(): string {
-    return this.error || this.statsMessage();
-  }
-
-  statsMessage(): string {
-    // TODO: lift finding up
-    const { finding = {}, cleared = false } = this.stats;
-    if (cleared) return 'Cleared cache';
-    return capitalise(
-      nonEmpties(
-        findingString(finding, this.clientStats.inCache),
-        mapString(
-          this.clientStats.mapsRequested,
-          this.clientStats.mapsLoaded,
-          this.clientStats.mapsNotCached,
-        ),
-      ).join(', '),
-    );
-  }
-
-  clearCache(): void {
-    localStorage.clear();
-    document.cookie = `token=;expires=${new Date(0).toUTCString()}`;
-    this.stats = { cleared: true };
-    this.$emit('clear-activities');
-  }
-
-  setError(message: string): void {
-    this.error = message;
-  }
-
-  @Emit('add-activity-maps')
-  receiveMaps(maps: Record<string, string>): Record<string, string> {
-    this.clientStats.mapsLoaded += Object.keys(maps).length;
-    return maps;
-  }
-
-  @Watch('activityType')
-  onActivityType(): void {
-    this.$emit('clear-activities', this);
-    this.loadFromCache();
-  }
-
-  requestMaps(ids: (number | string)[], socket?: Socket): void {
-    this.clientStats.mapsRequested += ids.length;
-    const { cached, notCached } = getCachedMaps(ids);
-    if (socket && notCached.length) {
-      socket.sendRequest({
-        maps: notCached,
-      });
-    }
-    this.receiveMaps(cached);
-    this.checkFinished(socket);
-  }
-
-  receiveActivities(activities: Activity[], socket?: Socket): void {
-    const filteredActivities = filterActivities(
-      activities,
-      this.activityType,
-      this.start,
-      this.end,
-    );
-    this.$emit('add-activities', filteredActivities);
-    this.requestMaps(
-      filteredActivities.map(({ id }) => id),
-      socket,
-    );
-  }
-
-  receiveRoutes(routes: Route[], socket?: Socket): void {
-    const filteredRoutes = filterRoutes(routes, this.activityType);
-    this.$emit('add-activities', filteredRoutes);
-    this.requestMaps(
-      filteredRoutes.map(({ id }) => id),
-      socket,
-    );
-  }
-
-  checkFinished(socket?: Socket): void {
-    if (
-      socket &&
-      !this.starting &&
-      this.clientStats.mapsRequested === this.clientStats.mapsLoaded &&
-      this.stats.finding?.finished
-    ) {
-      socket.close();
-    }
-  }
-
-  loadFromCache(partial = false): void {
-    const activities = getCachedActivities();
-    if (activities && activities.length) {
-      if (!partial) this.stats = { finding: { finished: true, length: activities.length } };
-      const cachedActivities = activities.filter(({ id }) => getCachedMap(id));
-      this.clientStats.mapsNotCached = activities.length - cachedActivities.length;
-      this.receiveActivities(cachedActivities);
-    }
-  }
-
-  startLoading(socket: Socket, ranges: TimeRange[]): void {
-    socket.sendRequest({
-      activities: ranges,
-    });
-  }
-
-  startLoadingRoutes(socket: Socket): void {
-    socket.sendRequest({
-      routes: true,
-    });
-  }
-
-  async load(): Promise<void> {
-    await this.sockets();
-  }
-
-  async loadPartial(): Promise<void> {
-    await this.sockets({ partial: true });
-  }
-
-  async loadRoutes(): Promise<void> {
-    await this.sockets({ routes: true });
-  }
-
-  async sockets({ partial = false, routes = false } = {}): Promise<void> {
-    this.$emit('clear-activities', this);
-    if (partial) this.loadFromCache(partial);
-    this.clientStats = {
-      mapsRequested: 0,
-      mapsLoaded: 0,
-      mapsNotCached: 0,
-      inCache: false,
-    };
-    this.error = null;
-
-    const start = this.start ? this.start.getTime() / 1000 : 0;
-    const end = (this.end ? this.end.getTime() : Date.now()) / 1000;
-
-    let latestActivityDate = start;
-
-    const protocol = window.location.protocol.includes('https') ? 'wss' : 'ws';
-    const socket = new Socket(
-      `${protocol}://${window.location.host}/api/activities`,
-      (message) => {
-        const data: ResponseMessage = JSON.parse(message.data);
-        switch (data.type) {
-          case 'stats': {
-            const oldStats = this.stats;
-            this.stats = data;
-            if (!oldStats?.finding?.finished && data.finding.finished) {
-              appendCachedActivities([], latestActivityDate, start);
-            }
-            break;
+  const protocol = window.location.protocol.includes('https') ? 'wss' : 'ws';
+  const socket = new Socket(
+    `${protocol}://${window.location.host}/api/activities`,
+    (message) => {
+      const data: ResponseMessage = JSON.parse(message.data);
+      switch (data.type) {
+        case 'stats': {
+          const oldStats = stats;
+          stats = data;
+          if (!oldStats?.finding?.finished && data.finding.finished) {
+            appendCachedActivities([], latestActivityDate, startTimestamp);
           }
-          case 'activities': {
-            const activityCount = data.activities.length;
-            if (activityCount === 0) break;
-            this.receiveActivities(data.activities, socket);
-
-            // API returns in descending order
-            const latestDate = new Date(data.activities[0].date).getTime() / 1000;
-            const earliestDate = new Date(data.activities[activityCount - 1].date).getTime() / 1000;
-            latestActivityDate = Math.max(latestActivityDate, latestDate);
-            appendCachedActivities(data.activities, latestDate, earliestDate);
-            break;
-          }
-          case 'routes': {
-            const routeCount = data.routes.length;
-            if (routeCount === 0) break;
-            this.receiveRoutes(data.routes, socket);
-            break;
-          }
-          case 'maps': {
-            saveCachedMaps(data.chunk);
-            this.receiveMaps(data.chunk);
-            break;
-          }
-          case 'login': {
-            this.continueLogin = (cookies = true) => {
-              if (cookies) document.cookie = `token=${data.cookie};max-age=31536000`;
-              this.continueLogin = null;
-              window.open(data.url, 'menubar=false,toolbar=false,width=300, height=300');
-            };
-            break;
-          }
-          default:
-            console.warn(`Unknown message ${data}`);
+          break;
         }
-        this.checkFinished(socket);
-      },
-      (errored) => {
-        if (errored) {
-          this.setError('Error fetching activities');
-        } else {
-          this.stats = { status: 'disconnected' };
+        case 'activities': {
+          const activityCount = data.activities.length;
+          if (activityCount === 0) break;
+          receiveActivities(data.activities, socket);
+
+          // API returns in descending order
+          const latestDate = new Date(data.activities[0].date).getTime() / 1000;
+          const earliestDate = new Date(data.activities[activityCount - 1].date).getTime() / 1000;
+          latestActivityDate = Math.max(latestActivityDate, latestDate);
+          appendCachedActivities(data.activities, latestDate, earliestDate);
+          break;
         }
-      },
-    );
-
-    if (routes) {
-      this.startLoadingRoutes(socket);
-    } else {
-      this.starting = true;
-
-      let ranges: TimeRange[];
-      if (partial) {
-        const { covered, activities } = getActivityStore();
-        ranges = TimeRange.cap(TimeRange.invert(covered), start ?? 0, end);
-        this.receiveActivities(activities, socket);
-      } else {
-        ranges = [{ start, end }];
+        case 'routes': {
+          const routeCount = data.routes.length;
+          if (routeCount === 0) break;
+          receiveRoutes(data.routes, socket);
+          break;
+        }
+        case 'maps': {
+          saveCachedMaps(data.chunk);
+          receiveMaps(data.chunk);
+          break;
+        }
+        case 'login': {
+          continueLogin = (cookies = true) => {
+            if (cookies) document.cookie = `token=${data.cookie};max-age=31536000`;
+            continueLogin = null;
+            window.open(data.url, 'menubar=false,toolbar=false,width=300, height=300');
+          };
+          break;
+        }
+        default:
+          console.warn(`Unknown message ${data}`);
       }
+      checkFinished(socket);
+    },
+    (errored) => {
+      if (errored) {
+        setError('Error fetching activities');
+      } else {
+        stats = { status: 'disconnected' };
+      }
+    },
+  );
 
-      this.startLoading(socket, ranges);
-      this.starting = false;
+  if (routes) {
+    startLoadingRoutes(socket);
+  } else {
+    starting = true;
+
+    let ranges: TimeRange[];
+    if (partial) {
+      const { covered, activities } = getActivityStore();
+      ranges = TimeRange.cap(TimeRange.invert(covered), startTimestamp ?? 0, endTimestamp);
+      receiveActivities(activities, socket);
+    } else {
+      ranges = [{ start: startTimestamp, end: endTimestamp }];
     }
+
+    startLoading(socket, ranges);
+    starting = false;
   }
 }
+
+defineExpose({ loadFromCache });
 </script>
 
-<!-- Add "scoped" attribute to limit CSS to this component only -->
+<template>
+  <aside>
+    <div class="controls">
+      <label>
+        <span>Start date</span>
+        <date-input v-model="start" name="start" />
+      </label>
+      <label>
+        <span>End date</span>
+        <date-input v-model="end" name="end" />
+      </label>
+      <label>
+        <span>Activity type</span>
+        <Dropdown
+          v-model="activityType"
+          :options="sortedActivityTypes"
+          blank-value=""
+          blank-label="All activities"
+        />
+      </label>
+    </div>
+    <div class="buttons">
+      <button @click="loadPartial">Load</button>
+      <button @click="loadRoutes">Routes</button>
+      <button @click="clearCache">Clear cache</button>
+    </div>
+    <div v-if="continueLogin" class="not-logged-in-container">
+      <div class="not-logged-in">
+        <p>You are not logged in. Click to continue to log in with Strava.</p>
+        <p class="centered">
+          <button @click="continueLogin(true)">Log in</button>
+        </p>
+        <p class="small">
+          This will use a cookie to remember who you are logged in as, which you can clear at any
+          time by clicking "Clear Cache". You may
+          <a href="#no-cookies" @click.prevent="continueLogin(false)">proceed without cookies</a>
+          if you wish to log in every time.
+        </p>
+      </div>
+    </div>
+    <p v-else :class="[error && 'error']" v-text="statusMessage" />
+  </aside>
+</template>
+
 <style scoped lang="scss">
 .controls {
   padding: 1em;

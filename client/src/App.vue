@@ -27,7 +27,7 @@ import MapView from './components/MapView.vue';
 
 const Sidebar = defineAsyncComponent(() => import('./components/Sidebar.vue'));
 
-let map = $ref<MapView>();
+let map = $ref<typeof MapView>();
 
 let location = $ref({ lat: 51.45, lng: -2.6 });
 
@@ -35,7 +35,7 @@ let zoom = $ref(10);
 
 let activities: Activity[] = $ref([]);
 
-let selected: Activity[] = $ref([]);
+let selected: number[] = $ref([]);
 
 function clearActivities(): void {
   activities = [];
@@ -55,7 +55,7 @@ function addActivityMaps(maps: Record<string, string>): void {
   });
 }
 
-function zoomToSelected(selection: Activity[]): void {
+function zoomToSelected(selection: number[]): void {
   selected = selection;
   map.zoomToSelection();
 }

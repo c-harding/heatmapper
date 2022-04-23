@@ -296,6 +296,8 @@ function render(): VNode {
   nextTick(() => addMapElement());
   return <div class="map-container">{!window.cachedMapElement && <div id="mapbox" />}</div>;
 }
+
+defineExpose({ zoomToSelection });
 </script>
 
 <template>

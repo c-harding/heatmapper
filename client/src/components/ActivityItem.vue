@@ -28,9 +28,9 @@ const { activity, selected = false } = defineProps<{
 }>();
 
 const emit = defineEmits<{
-  (e: 'click', value: Event): void;
+  (e: 'click', value: MouseEvent): void;
   (e: 'touchstart'): void;
-  (e: 'dblclick', value: Event): void;
+  (e: 'dblclick', value: MouseEvent): void;
 }>();
 
 const url: string = $computed(() => {
