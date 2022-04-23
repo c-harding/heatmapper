@@ -1,64 +1,7 @@
-<template>
-  <div class="sidebar" :class="{ minimised }">
-    <div class="top-box">
-      <div class="header">
-        <svg viewBox="0 0 110 36">
-          <text x="55" text-anchor="middle" font-weight="bold">
-            <tspan x="55" y="13">Strava</tspan>
-            <tspan x="55" dy="18">Heatmapper</tspan>
-          </text>
-        </svg>
-      </div>
-    </div>
-    <div class="minimised-message map">
-      <p><Icon>map</Icon></p>
-      <p>Map</p>
-    </div>
-    <div class="minimised-message">
-      <p><Icon>arrow_back</Icon></p>
-      <p>Back</p>
-    </div>
-    <div class="scrollable">
-      <FormComponent
-        ref="form"
-        @clear-activities="$emit('clear-activities')"
-        @add-activities="$emit('add-activities', $event)"
-        @add-activity-maps="$emit('add-activity-maps', $event)"
-      />
-      <ul ref="activityItemList">
-        <ActivityItem
-          v-for="activity of activities"
-          :key="activity.id"
-          :activity="activity"
-          :selected="selected.includes(activity.id)"
-          @touchstart="isTouchScreen = true"
-          @click="click(activity.id, $event)"
-          @dblclick="forceSelect"
-        />
-      </ul>
-      <p class="credits">
-        Made by Charlie{{ nbsp }}Harding
-        <a class="icon strava" href="https://www.strava.com/athletes/13013632"
-          ><img src="@/assets/strava.png"
-        /></a>
-        <a class="icon github" href="https://github.com/c-harding/heatmapper"
-          ><img src="@/assets/github.png"
-        /></a>
-        <br />
-        <span v-if="gitHash" class="credits">
-          Build <code>{{ gitHash }}</code>
-        </span>
-      </p>
-    </div>
-
-    <div class="overlay" @click="minimised = !minimised" @wheel="minimised = true" />
-  </div>
-</template>
-
-<script lang="ts">
-import type Activity from '@strava-heatmapper/shared/interfaces/Activity';
-import { nextTick } from 'vue';
-import { Emit, Options, Prop, Ref, Vue, Watch } from 'vue-property-decorator';
+<script setup lang="ts">
+import type { Activity, Route } from '@strava-heatmapper/shared/interfaces';
+import { nextTick, onMounted, watch } from 'vue';
+import { $$, $ref } from 'vue/macros';
 
 import ActivityItem from './ActivityItem.vue';
 import FormComponent from './Form.vue';
@@ -90,77 +33,138 @@ function cancelTextSelection() {
   }
 }
 
-@Options({
-  components: { FormComponent, ActivityItem, Icon },
-  emits: ['zoom-to-selected', 'add-activities', 'add-activity-maps', 'clear-activities'],
-})
-export default class Sidebar extends Vue {
-  @Prop({ default: () => [] }) activities!: Activity[];
+const emit = defineEmits<{
+  (e: 'zoom-to-selected'): void;
+  (e: 'add-activities', value: Activity[] | Route[]): void;
+  (e: 'add-activity-maps', value: Record<string, string>): void;
+  (e: 'clear-activities'): void;
+  (e: 'update:selected', value: number[]): void;
+  (e: 'zoom-to-selected', value: number[]): void;
+}>();
 
-  @Prop({ default: () => [] }) selected!: number[];
+const { activities = [], selected = [] } = defineProps<{
+  activities: Activity[];
+  selected?: number[];
+}>();
 
-  @Ref() form!: Vue & { loadFromCache(): void };
+const form = $ref<typeof FormComponent>();
 
-  localSelected?: number[] = undefined;
+let localSelected: number[] | undefined = $ref();
 
-  selectionBase?: number[] = undefined;
+let selectionBase: number[] | undefined = $ref();
 
-  minimised = false;
+let minimised = $ref(false);
 
-  isTouchScreen = false;
+let isTouchScreen = $ref(false);
 
-  readonly gitHash = process.env.VUE_APP_GIT_HASH ?? null;
+const gitHash = process.env.VUE_APP_GIT_HASH ?? null;
 
-  readonly nbsp = '\xa0';
+const nbsp = '\xa0';
 
-  private toggleInArray<T>(array: T[], item: T): T[] {
-    if (array.includes(item)) return array.filter((x) => x !== item);
-    else return [...array, item];
-  }
+const activityItemList: HTMLUListElement = $ref();
 
-  getSelection(id: number, e: MouseEvent): number[] {
-    if (e.metaKey || e.ctrlKey) return this.toggleInArray(this.selected, id);
-    if (e.shiftKey) return getRange(this.activities, id, this.selectionBase);
-    return [id];
-  }
-
-  click(id: number, e: MouseEvent): void {
-    if (e.detail === 1) this.select(id, e);
-  }
-
-  @Emit('update:selected')
-  select(id: number, e: MouseEvent): number[] {
-    if (e.shiftKey) cancelTextSelection();
-    const newSelected = this.getSelection(id, e);
-    if (newSelected.length === 1) this.selectionBase = newSelected;
-    this.localSelected = newSelected;
-    return newSelected;
-  }
-
-  @Emit('zoom-to-selected')
-  forceSelect(): number[] {
-    cancelTextSelection();
-    return this.selected;
-  }
-
-  @Watch('selected') async onSelected(selected: number[]): Promise<void> {
-    if (selected !== this.localSelected) {
-      this.localSelected = selected;
-      this.selectionBase = selected;
-      if (selected.length !== 0) this.minimised = false;
-      await nextTick();
-      const el = (this.$refs.activityItemList as HTMLUListElement).querySelector('.selected');
-      if (el) el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-    }
-  }
-
-  mounted(): void {
-    if (!this.activities || this.activities.length === 0) {
-      this.form.loadFromCache();
-    }
-  }
+function toggleInArray<T>(array: T[], item: T): T[] {
+  if (array.includes(item)) return array.filter((x) => x !== item);
+  else return [...array, item];
 }
+
+function getSelection(id: number, e: MouseEvent): number[] {
+  if (e.metaKey || e.ctrlKey) return toggleInArray(selected, id);
+  if (e.shiftKey) return getRange(activities, id, selectionBase);
+  return [id];
+}
+
+function click(id: number, e: MouseEvent): void {
+  if (e.detail === 1) select(id, e);
+}
+
+function select(id: number, e: MouseEvent): void {
+  if (e.shiftKey) cancelTextSelection();
+  const newSelected = getSelection(id, e);
+  if (newSelected.length === 1) selectionBase = newSelected;
+  localSelected = newSelected;
+  emit('update:selected', newSelected);
+}
+
+function forceSelect(): void {
+  cancelTextSelection();
+  emit('zoom-to-selected', selected);
+}
+
+watch($$(selected), async (selected: number[]) => {
+  if (selected !== localSelected) {
+    localSelected = selected;
+    selectionBase = selected;
+    if (selected.length !== 0) minimised = false;
+    await nextTick();
+    const el = activityItemList.querySelector('.selected');
+    if (el) el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }
+});
+
+onMounted(() => {
+  if (!activities || activities.length === 0) {
+    form.loadFromCache();
+  }
+});
 </script>
+
+<template>
+  <div class="sidebar" :class="{ minimised }">
+    <div class="top-box">
+      <div class="header">
+        <svg viewBox="0 0 110 36">
+          <text x="55" text-anchor="middle" font-weight="bold">
+            <tspan x="55" y="13">Strava</tspan>
+            <tspan x="55" dy="18">Heatmapper</tspan>
+          </text>
+        </svg>
+      </div>
+    </div>
+    <div class="minimised-message map">
+      <p><Icon>map</Icon></p>
+      <p>Map</p>
+    </div>
+    <div class="minimised-message">
+      <p><Icon>arrow_back</Icon></p>
+      <p>Back</p>
+    </div>
+    <div class="scrollable">
+      <FormComponent
+        ref="form"
+        @clear-activities="emit('clear-activities')"
+        @add-activities="emit('add-activities', $event)"
+        @add-activity-maps="emit('add-activity-maps', $event)"
+      />
+      <ul ref="activityItemList">
+        <ActivityItem
+          v-for="activity of activities"
+          :key="activity.id"
+          :activity="activity"
+          :selected="selected.includes(activity.id)"
+          @touchstart="isTouchScreen = true"
+          @click="click(activity.id, $event)"
+          @dblclick="forceSelect"
+        />
+      </ul>
+      <p class="credits">
+        Made by Charlie{{ nbsp }}Harding
+        <a class="icon strava" href="https://www.strava.com/athletes/13013632"
+          ><img src="@/assets/strava.png"
+        /></a>
+        <a class="icon github" href="https://github.com/c-harding/heatmapper"
+          ><img src="@/assets/github.png"
+        /></a>
+        <br />
+        <span v-if="gitHash" class="credits">
+          Build <code>{{ gitHash }}</code>
+        </span>
+      </p>
+    </div>
+
+    <div class="overlay" @click="minimised = !minimised" @wheel="minimised = true" />
+  </div>
+</template>
 
 <style lang="scss">
 $max-sidebar-width: calc(100vw - 6rem);

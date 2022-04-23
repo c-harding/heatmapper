@@ -110,25 +110,24 @@ const textFontSize = $computed(() => {
   }
   return isNumber(props.fontSize) ? props.fontSize : 13;
 });
-const spinnerStyle = $computed(() => {
-  return {
-    margin: '0 auto',
-    'border-radius': '100%',
-    border: lineSizePx + 'px solid ' + props.lineBgColor,
-    'border-top': lineSizePx + 'px solid ' + props.lineFgColor,
-    width: sizePx + 'px',
-    height: sizePx + 'px',
-    animation: 'vue-simple-spinner-spin ' + props.speed + 's linear infinite',
-  };
-});
-const textStyle = $computed(() => {
-  return {
-    'margin-top': textMarginTop + 'px',
-    color: props.textFgColor,
-    'font-size': textFontSize + 'px',
-    'text-align': 'center',
-  };
-});
+const spinnerStyle = $computed(() => ({
+  margin: '0 auto',
+  'border-radius': '100%',
+  border: lineSizePx + 'px solid ' + props.lineBgColor,
+  'border-top': lineSizePx + 'px solid ' + props.lineFgColor,
+  width: sizePx + 'px',
+  height: sizePx + 'px',
+  animation: 'vue-simple-spinner-spin ' + props.speed + 's linear infinite',
+}));
+const textStyle = $computed(
+  () =>
+    ({
+      'margin-top': textMarginTop + 'px',
+      color: props.textFgColor,
+      'font-size': textFontSize + 'px',
+      'text-align': 'center',
+    } as const),
+);
 </script>
 
 <template>
