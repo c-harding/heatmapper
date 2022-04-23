@@ -3,16 +3,11 @@ import type { Activity, Route } from '@strava-heatmapper/shared/interfaces';
 import { nextTick, onMounted, watch } from 'vue';
 import { $$, $ref } from 'vue/macros';
 
+import { findLastIndex } from '../utils/arrays';
+import { cancelTextSelection } from '../utils/ui';
 import ActivityItem from './ActivityItem.vue';
 import FormComponent from './Form.vue';
 import Icon from './Icon.vue';
-
-function findLastIndex<T>(xs: T[], p: (x: T) => boolean): number {
-  for (let i = xs.length - 1; i >= 0; i -= 1) {
-    if (p(xs[i])) return i;
-  }
-  return -1;
-}
 
 function getRange(activities: Activity[], to: number, from?: number | number[]): number[] {
   if (to === undefined) return [];
@@ -24,13 +19,6 @@ function getRange(activities: Activity[], to: number, from?: number | number[]):
   if (start === -1) return [to, ...fromArray];
   const end = findLastIndex(activities, ({ id }) => to === id || fromArray.includes(id));
   return activities.slice(start, end + 1).map(({ id }) => id);
-}
-
-function cancelTextSelection() {
-  if (window.getSelection) {
-    const selection = window.getSelection();
-    if (selection) selection.removeAllRanges();
-  }
 }
 
 const emit = defineEmits<{
@@ -54,8 +42,6 @@ let localSelected: number[] | undefined = $ref();
 let selectionBase: number[] | undefined = $ref();
 
 let minimised = $ref(false);
-
-let isTouchScreen = $ref(false);
 
 const gitHash = process.env.VUE_APP_GIT_HASH ?? null;
 
@@ -142,7 +128,6 @@ onMounted(() => {
           :key="activity.id"
           :activity="activity"
           :selected="selected.includes(activity.id)"
-          @touchstart="isTouchScreen = true"
           @click="click(activity.id, $event)"
           @dblclick="forceSelect"
         />

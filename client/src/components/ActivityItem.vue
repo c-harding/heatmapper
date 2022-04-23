@@ -1,21 +1,3 @@
-<template>
-  <li
-    :class="['activity-item', { selected }]"
-    @click="emit('click', $event)"
-    @touchstart="emit('touchstart')"
-    @dblclick="emit('dblclick', $event)"
-  >
-    <div class="activity-name" v-text="activity.name" />
-    <div v-if="!activity.map" class="spinner">
-      <Spinner size="tiny" line-fg-color="#888" />
-    </div>
-    <div class="date" v-text="activity.dateString.join('\n')" />
-    <a :href="url" target="_blank" class="strava-link" @click="$event.stopPropagation()">
-      <img src="@/assets/strava.png" />
-    </a>
-  </li>
-</template>
-
 <script setup lang="ts">
 import type { Activity, Route } from '@strava-heatmapper/shared/interfaces';
 import { $computed } from 'vue/macros';
@@ -38,6 +20,24 @@ const url: string = $computed(() => {
   return `https://www.strava.com/activities/${activity.id}`;
 });
 </script>
+
+<template>
+  <li
+    :class="['activity-item', { selected }]"
+    @click="emit('click', $event)"
+    @touchstart="emit('touchstart')"
+    @dblclick="emit('dblclick', $event)"
+  >
+    <div class="activity-name" v-text="activity.name" />
+    <div v-if="!activity.map" class="spinner">
+      <Spinner size="tiny" line-fg-color="#888" />
+    </div>
+    <div class="date" v-text="activity.dateString.join('\n')" />
+    <a :href="url" target="_blank" class="strava-link" @click="$event.stopPropagation()">
+      <img src="@/assets/strava.png" />
+    </a>
+  </li>
+</template>
 
 <style lang="scss">
 .activity-item {
