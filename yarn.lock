@@ -11849,10 +11849,6 @@ vue-eslint-parser@^9.0.0-alpha.0:
     lodash "^4.17.21"
     semver "^7.3.6"
 
-"vue-head@github:MKGaru/vue-head#vue3":
-  version "2.2.0"
-  resolved "https://codeload.github.com/MKGaru/vue-head/tar.gz/48f32a8132b7eb8f9c0ef6613227d01991650d5b"
-
 vue-hot-reload-api@^2.3.0:
   version "2.3.4"
   resolved "https://registry.yarnpkg.com/vue-hot-reload-api/-/vue-hot-reload-api-2.3.4.tgz#532955cc1eb208a3d990b3a9f9a70574657e08f2"
