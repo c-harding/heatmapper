@@ -1,3 +1,46 @@
+<script setup lang="ts">
+import { computed } from 'vue';
+import { $computed } from 'vue/macros';
+
+import Icon from './Icon.vue';
+
+const {
+  modelValue = null,
+  blankValue = null,
+  blankLabel = null,
+  clearButton = null,
+  options,
+} = defineProps<{
+  modelValue: string;
+  blankValue: string | null;
+  blankLabel: string | null;
+  clearButton: boolean;
+  options: {
+    value: string;
+    label: string;
+  }[];
+}>();
+
+const emit = defineEmits<{
+  (e: 'update:modelValue', id: string): void;
+}>();
+
+const selectedLabel = computed(
+  () => options.find((option) => option.value === model)?.label ?? blankLabel ?? '',
+);
+
+const model = $computed<string | null>({
+  get() {
+    return modelValue;
+  },
+  set(value) {
+    if (value !== null) {
+      emit('update:modelValue', value);
+    }
+  },
+});
+</script>
+
 <template>
   <div class="dropdown">
     <select v-model="model">
@@ -16,40 +59,6 @@
     <Icon v-else class="down-arrow" inline large> expand_more </Icon>
   </div>
 </template>
-
-<script lang="ts">
-import { Options, Prop, Vue } from 'vue-property-decorator';
-
-import Icon from './Icon.vue';
-
-@Options({ components: { Icon } })
-export default class Dropdown extends Vue {
-  @Prop({ default: () => [] }) modelValue!: string;
-  get model(): string {
-    return this.modelValue;
-  }
-  set model(value: string) {
-    this.$emit('update:modelValue', value);
-  }
-
-  @Prop({ default: null }) blankValue!: string | null;
-
-  @Prop({ default: null }) blankLabel!: string | null;
-
-  @Prop(Boolean) clearButton!: boolean;
-
-  @Prop({ type: Array, required: true }) options!: {
-    value: string;
-    label: string;
-  }[];
-
-  get selectedLabel(): string {
-    return (
-      this.options.find((option) => option.value === this.model)?.label ?? this.blankLabel ?? ''
-    );
-  }
-}
-</script>
 
 <style lang="scss">
 .dropdown {
