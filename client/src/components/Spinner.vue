@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { computed } from 'vue';
+import { $computed } from 'vue/macros';
 
 var isNumber = (n: number | string): n is number => !isNaN(parseFloat(`${n}`)) && isFinite(+n);
 
@@ -44,7 +44,7 @@ const props = defineProps({
   },
 });
 
-const sizePx = computed(() => {
+const sizePx = $computed(() => {
   switch (props.size) {
     case 'tiny':
       return 12;
@@ -64,7 +64,7 @@ const sizePx = computed(() => {
   return isNumber(props.size) ? props.size : 32;
 });
 
-const lineSizePx = computed(() => {
+const lineSizePx = $computed(() => {
   switch (props.size) {
     case 'tiny':
       return 1;
@@ -84,7 +84,7 @@ const lineSizePx = computed(() => {
   return isNumber(props.lineSize) ? props.lineSize : 4;
 });
 
-const textMarginTop = computed(() => {
+const textMarginTop = $computed(() => {
   switch (props.size) {
     case 'tiny':
     case 'small':
@@ -93,11 +93,11 @@ const textMarginTop = computed(() => {
     case 'big':
     case 'huge':
     case 'massive':
-      return Math.min(Math.max(Math.ceil(sizePx.value / 8), 3), 12);
+      return Math.min(Math.max(Math.ceil(sizePx / 8), 3), 12);
   }
   return isNumber(props.spacing) ? props.spacing : 4;
 });
-const textFontSize = computed(() => {
+const textFontSize = $computed(() => {
   switch (props.size) {
     case 'tiny':
     case 'small':
@@ -106,26 +106,26 @@ const textFontSize = computed(() => {
     case 'big':
     case 'huge':
     case 'massive':
-      return Math.min(Math.max(Math.ceil(sizePx.value * 0.4), 11), 32);
+      return Math.min(Math.max(Math.ceil(sizePx * 0.4), 11), 32);
   }
   return isNumber(props.fontSize) ? props.fontSize : 13;
 });
-const spinnerStyle = computed(() => {
+const spinnerStyle = $computed(() => {
   return {
     margin: '0 auto',
     'border-radius': '100%',
-    border: lineSizePx.value + 'px solid ' + props.lineBgColor,
-    'border-top': lineSizePx.value + 'px solid ' + props.lineFgColor,
-    width: sizePx.value + 'px',
-    height: sizePx.value + 'px',
+    border: lineSizePx + 'px solid ' + props.lineBgColor,
+    'border-top': lineSizePx + 'px solid ' + props.lineFgColor,
+    width: sizePx + 'px',
+    height: sizePx + 'px',
     animation: 'vue-simple-spinner-spin ' + props.speed + 's linear infinite',
   };
 });
-const textStyle = computed(() => {
+const textStyle = $computed(() => {
   return {
-    'margin-top': textMarginTop.value + 'px',
+    'margin-top': textMarginTop + 'px',
     color: props.textFgColor,
-    'font-size': textFontSize.value + 'px',
+    'font-size': textFontSize + 'px',
     'text-align': 'center',
   };
 });

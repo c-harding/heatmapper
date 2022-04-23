@@ -1,3 +1,37 @@
+<script setup lang="ts">
+import { $ref } from 'vue/macros';
+
+import Icon from './Icon.vue';
+
+const { modelValue, name = undefined } = defineProps<{
+  modelValue: Date;
+  name: string;
+}>();
+
+const emit = defineEmits<{
+  (e: 'update:modelValue', value: Date | null): void;
+}>();
+
+// Set to the start of the day provided, in local time
+function dateToYYYYMMDD(date: Date | null): string | null {
+  // alternative implementations in https://stackoverflow.com/q/23593052/1850609
+  return (
+    date &&
+    new Date(date.getTime() - date.getTimezoneOffset() * 60 * 1000).toISOString().split('T')[0]
+  );
+}
+
+const input = $ref<HTMLInputElement>();
+
+function updateValue(): void {
+  const rawDate = input.valueAsDate;
+  emit(
+    'update:modelValue',
+    rawDate && new Date(rawDate.getTime() + rawDate.getTimezoneOffset() * 60 * 1000),
+  );
+}
+</script>
+
 <!-- From https://acdcjunior.github.io/how-bind-date-object-to-input-date-vue.js-v-model.html -->
 <template>
   <div class="date-input">
@@ -11,35 +45,6 @@
     <Icon class="icon"> expand_more </Icon>
   </div>
 </template>
-<script lang="ts">
-import { Emit, Options, Prop, Ref, Vue } from 'vue-property-decorator';
-
-import Icon from './Icon.vue';
-
-@Options({ components: { Icon } })
-export default class InputDate extends Vue {
-  @Prop({ default: null }) modelValue!: Date;
-
-  @Prop({ default: undefined }) name?: string;
-
-  @Ref() input!: HTMLInputElement;
-
-  // Set to the start of the day provided, in local time
-  dateToYYYYMMDD(date: Date | null): string | null {
-    // alternative implementations in https://stackoverflow.com/q/23593052/1850609
-    return (
-      date &&
-      new Date(date.getTime() - date.getTimezoneOffset() * 60 * 1000).toISOString().split('T')[0]
-    );
-  }
-
-  @Emit('modelValue')
-  updateValue(): Date | null {
-    const rawDate = this.input.valueAsDate;
-    return rawDate && new Date(rawDate.getTime() + rawDate.getTimezoneOffset() * 60 * 1000);
-  }
-}
-</script>
 
 <style lang="scss" scoped>
 .date-input {

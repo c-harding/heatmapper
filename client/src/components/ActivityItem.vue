@@ -16,25 +16,28 @@
   </li>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
 import type { Activity, Route } from '@strava-heatmapper/shared/interfaces';
-import { Options, Prop, Vue } from 'vue-property-decorator';
+import { defineProps } from 'vue';
+import { $computed } from 'vue/macros';
 
 import Spinner from './Spinner.vue';
 
-@Options({
-  components: { Spinner },
-})
-export default class ActivityItem extends Vue {
-  @Prop({ required: true }) activity!: Activity | Route;
+const { activity, selected = false } = defineProps<{
+  activity: Activity | Route;
+  selected?: boolean;
+}>();
 
-  @Prop({ default: false }) selected!: boolean;
+const emit = defineEmits<{
+  (e: 'click', value: Event): void;
+  (e: 'touchstart'): void;
+  (e: 'dblclick', value: Event): void;
+}>();
 
-  get url(): string {
-    if ((this.activity as Route).route) return `https://www.strava.com/routes/${this.activity.id}`;
-    return `https://www.strava.com/activities/${this.activity.id}`;
-  }
-}
+const url: string = $computed(() => {
+  if ((activity as Route).route) return `https://www.strava.com/routes/${activity.id}`;
+  return `https://www.strava.com/activities/${activity.id}`;
+});
 </script>
 
 <style lang="scss">

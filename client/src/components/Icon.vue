@@ -1,33 +1,40 @@
+<script setup lang="ts">
+import { useHead } from '@vueuse/head';
+import { $computed } from 'vue/macros';
+
+const {
+  inline = false,
+  large = false,
+  placeholder = false,
+  bottom = false,
+} = defineProps<{
+  inline?: boolean;
+  large?: boolean;
+  placeholder?: boolean;
+  bottom?: boolean;
+}>();
+
+const generated = $computed(() => {
+  if (placeholder) return 'crop_square';
+  return '';
+});
+
+useHead({
+  link: [
+    {
+      href: 'https://fonts.googleapis.com/icon?family=Material+Icons',
+      rel: 'stylesheet',
+      undo: false,
+    },
+  ],
+});
+</script>
+
 <template>
   <i v-bind="$attrs" class="material-icons" :class="{ inline, large, placeholder, bottom }"
     >{{ generated }}<slot v-if="!generated"
   /></i>
 </template>
-
-<script lang="ts">
-import { Options, Prop, Vue } from 'vue-property-decorator';
-@Options({
-  head: {
-    link: [
-      {
-        href: 'https://fonts.googleapis.com/icon?family=Material+Icons',
-        rel: 'stylesheet',
-        undo: false,
-      },
-    ],
-  },
-})
-export default class Icon extends Vue {
-  @Prop([Boolean]) inline!: boolean;
-  @Prop([Boolean]) large!: boolean;
-  @Prop([Boolean]) placeholder!: boolean;
-  @Prop([Boolean]) bottom!: boolean;
-  get generated(): string {
-    if (this.placeholder) return 'crop_square';
-    return '';
-  }
-}
-</script>
 
 <style lang="scss">
 .material-icons {

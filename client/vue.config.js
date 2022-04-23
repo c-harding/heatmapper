@@ -15,6 +15,16 @@ module.exports = {
       const [arg, rest] = args;
       return [{ ...arg, title: 'Heatmapper' }, rest];
     });
+
+    config.module
+      .rule('vue')
+      .use('vue-loader')
+      .tap((options) => {
+        return {
+          ...options,
+          reactivityTransform: true,
+        };
+      });
   },
   configureWebpack: {
     resolve: { extensions: ['*', '.vue', '.js'] },
