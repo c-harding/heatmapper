@@ -2,30 +2,21 @@
 import type { Activity, ResponseMessage, Route } from '@strava-heatmapper/shared/interfaces';
 import { TimeRange } from '@strava-heatmapper/shared/interfaces';
 import { watch } from 'vue';
-import { $computed, $ref } from 'vue/macros';
+import { $$, $computed, $ref } from 'vue/macros';
 
 import activityTypes from '../activityTypes';
 import Socket from '../socket';
+import {
+  appendCachedActivities,
+  getCachedActivities,
+  getCachedMap,
+  getCachedMaps,
+} from '../utils/storage';
+import { getActivityStore, saveCachedMaps } from '../utils/storage';
+import { capitalise, count, countActivities, nonEmpties } from '../utils/strings';
 import DateInput from './DateInput.vue';
 import Dropdown from './Dropdown.vue';
-
-interface ActivityStore {
-  covered: TimeRange[];
-  activities: Activity[];
-}
-
-function count(n: number, singular: string, plural?: string): string {
-  switch (n) {
-    case 0:
-      return `no ${plural || `${singular}s`}`;
-    case 1:
-      return `1 ${singular}`;
-    default:
-      return `${n} ${plural || `${singular}s`}`;
-  }
-}
-
-const countActivities = (n: number) => count(n, 'activity', 'activities');
+import Login from './Login.vue';
 
 const emit = defineEmits<{
   (e: 'add-activities', value: Activity[] | Route[]): void;
@@ -53,61 +44,12 @@ function mapString(requested = 0, length = 0, uncached = 0) {
   return '';
 }
 
-function saveCachedMap(id: number | string, map: string) {
-  localStorage.setItem(`map:summary:${id}`, map);
-}
-
-function saveCachedMaps(mappings: Record<string, string>) {
-  Object.entries(mappings).map(([id, map]) => saveCachedMap(id, map));
-}
-
-function getCachedMap(id: number | string) {
-  return localStorage.getItem(`map:summary:${id}`);
-}
-
-function getActivityStore(): ActivityStore {
-  const cache = localStorage.getItem('activities');
-  return cache ? JSON.parse(cache) : { covered: [], activities: [] };
-}
-
-function getCachedActivities(): Activity[] {
-  return getActivityStore().activities;
-}
-
-function appendCachedActivities(activities: Activity[], end: number, start?: number) {
-  const existingStore = getActivityStore();
-  const ids = new Set(activities.map((activity) => activity.id));
-  const newStore: ActivityStore = {
-    covered: TimeRange.merge((existingStore.covered || []).concat({ start, end })),
-    activities: (existingStore.activities || [])
-      .filter((existingActivity) => !ids.has(existingActivity.id))
-      .concat(activities)
-      .sort((a, b) => b.id - a.id),
-  };
-  localStorage.setItem('activities', JSON.stringify(newStore));
-}
-
-function getCachedMaps(ids: (string | number)[]) {
-  const notCached: string[] = [];
-
-  const cached: Record<string, string> = {};
-  for (const id of ids) {
-    const fromCache = getCachedMap(id);
-    if (fromCache) cached[id] = fromCache;
-    else notCached.push(id.toString());
-  }
-  return { cached, notCached };
-}
-
-const nonEmpties = (...args: string[]) => args.filter(Boolean);
-const capitalise = (string: string) => string.slice(0, 1).toUpperCase() + string.slice(1);
-
-function filterActivities(
-  activities: Activity[],
+function filterActivities<ActivityOrRoute extends Activity | Route>(
+  activities: ActivityOrRoute[],
   type?: string,
   start?: Date | null,
   end?: Date | null,
-): Activity[] {
+): ActivityOrRoute[] {
   return activities.filter((activity) =>
     [
       !type || type.split(',').includes(activity.type),
@@ -115,15 +57,6 @@ function filterActivities(
       !end || activity.date <= +end,
     ].every(Boolean),
   );
-}
-
-function filterRoutes(
-  routes: Route[],
-  type?: string,
-  start?: Date | null,
-  end?: Date | null,
-): Route[] {
-  return routes.filter((route) => [!type || type.split(',').includes(route.type)].every(Boolean));
 }
 
 let start: Date | null = $ref(null);
@@ -185,13 +118,10 @@ function receiveMaps(maps: Record<string, string>): void {
   emit('add-activity-maps', maps);
 }
 
-watch(
-  () => activityType,
-  () => {
-    emit('clear-activities');
-    loadFromCache();
-  },
-);
+watch($$(activityType), () => {
+  emit('clear-activities');
+  loadFromCache();
+});
 
 function requestMaps(ids: (number | string)[], socket?: Socket): void {
   clientStats.mapsRequested += ids.length;
@@ -215,7 +145,7 @@ function receiveActivities(activities: Activity[], socket?: Socket): void {
 }
 
 function receiveRoutes(routes: Route[], socket?: Socket): void {
-  const filteredRoutes = filterRoutes(routes, activityType);
+  const filteredRoutes = filterActivities(routes, activityType, start, end);
   emit('add-activities', filteredRoutes);
   requestMaps(
     filteredRoutes.map(({ id }) => id),
@@ -370,11 +300,11 @@ defineExpose({ loadFromCache });
     <div class="controls">
       <label>
         <span>Start date</span>
-        <date-input v-model="start" name="start" />
+        <DateInput v-model="start" name="start" />
       </label>
       <label>
         <span>End date</span>
-        <date-input v-model="end" name="end" />
+        <DateInput v-model="end" name="end" />
       </label>
       <label>
         <span>Activity type</span>
@@ -391,20 +321,11 @@ defineExpose({ loadFromCache });
       <button @click="loadRoutes">Routes</button>
       <button @click="clearCache">Clear cache</button>
     </div>
-    <div v-if="continueLogin" class="not-logged-in-container">
-      <div class="not-logged-in">
-        <p>You are not logged in. Click to continue to log in with Strava.</p>
-        <p class="centered">
-          <button @click="continueLogin(true)">Log in</button>
-        </p>
-        <p class="small">
-          This will use a cookie to remember who you are logged in as, which you can clear at any
-          time by clicking "Clear Cache". You may
-          <a href="#no-cookies" @click.prevent="continueLogin(false)">proceed without cookies</a>
-          if you wish to log in every time.
-        </p>
-      </div>
-    </div>
+    <Login
+      v-if="continueLogin"
+      @login="continueLogin(true)"
+      @login-without-cookies="continueLogin(false)"
+    />
     <p v-else :class="[error && 'error']" v-text="statusMessage" />
   </aside>
 </template>
@@ -433,27 +354,6 @@ aside > .buttons {
 
 .error {
   color: red;
-}
-
-.not-logged-in-container {
-  background-color: var(--background);
-  padding: 1em;
-  position: sticky;
-  bottom: 1em;
-
-  .not-logged-in {
-    background-color: var(--background-strong);
-    border-radius: 1em;
-    padding: 1em;
-  }
-
-  p {
-    margin-top: 0;
-  }
-
-  .centered {
-    text-align: center;
-  }
 }
 
 p.small {

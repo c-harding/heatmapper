@@ -3,14 +3,16 @@ import { $ref } from 'vue/macros';
 
 import Icon from './Icon.vue';
 
-const { modelValue = null, name = undefined } = defineProps<{
+const { modelValue = null, name } = defineProps<{
   modelValue?: Date | null;
-  name: string;
+  name?: string;
 }>();
 
 const emit = defineEmits<{
   (e: 'update:modelValue', value: Date | null): void;
 }>();
+
+const input = $ref<HTMLInputElement>();
 
 // Set to the start of the day provided, in local time
 function dateToYYYYMMDD(date: Date | null): string | null {
@@ -20,8 +22,6 @@ function dateToYYYYMMDD(date: Date | null): string | null {
     new Date(date.getTime() - date.getTimezoneOffset() * 60 * 1000).toISOString().split('T')[0]
   );
 }
-
-const input = $ref<HTMLInputElement>();
 
 function updateValue(): void {
   const rawDate = input.valueAsDate;
