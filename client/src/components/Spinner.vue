@@ -119,15 +119,12 @@ const spinnerStyle = $computed(() => ({
   height: sizePx + 'px',
   animation: 'vue-simple-spinner-spin ' + props.speed + 's linear infinite',
 }));
-const textStyle = $computed(
-  () =>
-    ({
-      'margin-top': textMarginTop + 'px',
-      color: props.textFgColor,
-      'font-size': textFontSize + 'px',
-      'text-align': 'center',
-    } as const),
-);
+const textStyle = $computed(() => ({
+  'margin-top': textMarginTop + 'px',
+  color: props.textFgColor,
+  'font-size': textFontSize + 'px',
+  'text-align': 'center' as const,
+}));
 </script>
 
 <template>

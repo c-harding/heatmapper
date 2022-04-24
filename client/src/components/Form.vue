@@ -323,8 +323,8 @@ defineExpose({ loadFromCache });
     </div>
     <Login
       v-if="continueLogin"
-      @login="continueLogin(true)"
-      @login-without-cookies="continueLogin(false)"
+      @login="continueLogin?.(true)"
+      @login-without-cookies="continueLogin?.(false)"
     />
     <p v-else :class="[error && 'error']" v-text="statusMessage" />
   </aside>

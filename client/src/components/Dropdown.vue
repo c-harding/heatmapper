@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { computed } from 'vue';
 import { $computed } from 'vue/macros';
 
 import Icon from './Icon.vue';
@@ -24,10 +23,6 @@ const {
 const emit = defineEmits<{
   (e: 'update:modelValue', id: string): void;
 }>();
-
-const selectedLabel = computed(
-  () => options.find((option) => option.value === model)?.label ?? blankLabel ?? '',
-);
 
 const model = $computed<string | null>({
   get() {
