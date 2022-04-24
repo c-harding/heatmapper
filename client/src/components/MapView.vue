@@ -106,7 +106,7 @@ const token = $ref(
 const mapStyle = $ref('mapbox://styles/charding/ckbfof39h4b2t1ildduhwlm15');
 
 const selectedActivities: Activity[] = $computed(() => {
-  return activities.filter((activity) => modelSelected.includes(activity.id));
+  return activities.filter((activity) => selected.includes(activity.id));
 });
 
 let localSelected: number[] = $ref([]);
@@ -129,33 +129,6 @@ const emit = defineEmits<{
   (e: 'update:selected', value: number[]): void;
 }>();
 
-let modelZoom = $computed<number>({
-  get() {
-    return zoom;
-  },
-  set(value) {
-    emit('update:zoom', value);
-  },
-});
-
-let modelSelected = $computed<number[]>({
-  get() {
-    return selected;
-  },
-  set(value) {
-    emit('update:selected', value);
-  },
-});
-
-let modelCenter = $computed<mapboxgl.LngLatLike>({
-  get() {
-    return center;
-  },
-  set(value) {
-    emit('update:center', value);
-  },
-});
-
 watch($$(mapStyle), (style) => {
   map?.setStyle(style);
 });
@@ -170,8 +143,8 @@ watch($$(selectedActivities), (selectedActivities) => {
 
 watch($$(selected), () => {
   nextTick(() => {
-    if (modelSelected !== localSelected) {
-      localSelected = modelSelected;
+    if (selected !== localSelected) {
+      localSelected = selected;
       flyTo(selectedActivities);
     }
   });
@@ -249,11 +222,11 @@ function click(map: mapboxgl.Map, e: mapboxgl.MapMouseEvent): void {
 function select(id?: number): void {
   const selected = id !== undefined ? [id] : [];
   localSelected = selected;
-  modelSelected = selected;
+  emit('update:selected', selected);
 }
 
 function zoomend(map: mapboxgl.Map): void {
-  modelZoom = map.getZoom();
+  emit('update:zoom', map.getZoom());
 }
 
 function moveend(map: mapboxgl.Map) {
@@ -280,8 +253,8 @@ function addMapElement(): mapboxgl.Map {
       accessToken: token,
       container: 'mapbox',
       style: mapStyle,
-      center: modelCenter,
-      zoom: modelZoom,
+      center,
+      zoom,
     });
     newMap.addControl(new mapboxgl.FullscreenControl(), 'top-right');
     newMap.addControl(new mapboxgl.ScaleControl(), 'bottom-left');
