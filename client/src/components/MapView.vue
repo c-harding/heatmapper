@@ -18,6 +18,8 @@ import type { VNode } from 'vue';
 import { nextTick, onMounted, watch } from 'vue';
 import { $$, $computed, $ref } from 'vue/macros';
 
+import { Style } from '../style';
+
 const fromZoom = (...pairs: [number, number][]): mapboxgl.Expression => [
   'interpolate',
   ['linear'],
@@ -45,22 +47,22 @@ const makeGeoJson = (activities = []): mapboxgl.GeoJSONSourceRaw => ({
 const sources = ['lines', 'selected'];
 const width = fromZoom([5, 1], [14, 4], [22, 8]);
 const selectedWidth = fromZoom([5, 4], [14, 8]);
-const layers = {
+const layers = (style: Style) => ({
   lines: {
     source: 'lines',
-    color: '#00F',
+    color: style === Style.STRAVA ? '#00F' : '#FFF',
     opacity: fromZoom([5, 0.75], [10, 0.35]),
     width,
   },
   medium: {
     source: 'lines',
-    color: '#F00',
+    color: style === Style.STRAVA ? '#F00' : '#FFF',
     opacity: fromZoom([5, 0.2], [10, 0.08]),
     width,
   },
   hot: {
     source: 'lines',
-    color: '#FF0',
+    color: style === Style.STRAVA ? '#FF0' : '#FFF',
     opacity: fromZoom([5, 0.1], [10, 0.04]),
     width,
   },
@@ -70,9 +72,10 @@ const layers = {
     opacity: 1,
     width: selectedWidth,
   },
-};
+});
 
-type LayerDef = typeof layers[keyof typeof layers];
+type LayerDefs = ReturnType<typeof layers>;
+type LayerDef = LayerDefs[keyof LayerDefs];
 
 const buildLineLayer = (id: string, layer: LayerDef): mapboxgl.AnyLayer => ({
   id,
@@ -103,24 +106,40 @@ const token = $ref(
   'pk.eyJ1IjoiY2hhcmRpbmciLCJhIjoiY2tiYWp0cndkMDc0ZjJybXhlcHdoM2Z3biJ9.XUwOLV17ZBXE8dhp198dqg',
 );
 
-const mapStyle = $ref('mapbox://styles/charding/ckbfof39h4b2t1ildduhwlm15');
-
 const selectedActivities: Activity[] = $computed(() => {
   return activities.filter((activity) => selected.includes(activity.id));
 });
 
 let localSelected: number[] = $ref([]);
 
+const onTerrain = () => {
+  if (terrain) {
+    if (!map?.getSource('mapbox-dem')) {
+      map?.addSource('mapbox-dem', {
+        type: 'raster-dem',
+        url: 'mapbox://mapbox.mapbox-terrain-dem-v1',
+      });
+    }
+    map?.setTerrain({ source: 'mapbox-dem' });
+  } else {
+    map?.setTerrain(null);
+  }
+};
+
 const {
   center,
   zoom,
   selected = [],
   activities,
+  terrain = false,
+  mapStyle,
 } = defineProps<{
   center: mapboxgl.LngLatLike;
   zoom: number;
   selected?: number[];
   activities: Activity[];
+  terrain?: boolean;
+  mapStyle: Style;
 }>();
 
 const emit = defineEmits<{
@@ -130,8 +149,18 @@ const emit = defineEmits<{
 }>();
 
 watch($$(mapStyle), (style) => {
-  map?.setStyle(style);
+  if (map) {
+    map.setStyle(style);
+    const loadedMap = map;
+
+    map.once('styledata', () => {
+      mapLoaded(loadedMap);
+      return onTerrain();
+    });
+  }
 });
+
+watch($$(terrain), onTerrain);
 
 watch($$(activities), (activities) => {
   applyActivities(activities, 'lines');
@@ -192,7 +221,10 @@ async function mapLoaded(map: mapboxgl.Map): Promise<void> {
   map.resize();
 
   sources.forEach((id) => map.addSource(id, makeGeoJson()));
-  Object.entries(layers).forEach(([id, layer]) => map.addLayer(buildLineLayer(id, layer)));
+  Object.entries(layers(mapStyle)).forEach(([id, layer]) =>
+    map.addLayer(buildLineLayer(id, layer)),
+  );
+  onTerrain();
 
   await nextTick();
   applyActivities(activities, 'lines');
@@ -239,7 +271,7 @@ onMounted(() => {
   map.on('zoomend', () => zoomend(map));
   map.on('moveend', () => moveend(map));
   map.on('click', (ev) => click(map, ev));
-  map.on('load', () => mapLoaded(map));
+  map.once('idle', () => mapLoaded(map));
 });
 
 function addMapElement(): mapboxgl.Map {

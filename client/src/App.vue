@@ -1,11 +1,10 @@
 <script setup lang="ts">
 import type { Activity } from '@strava-heatmapper/shared/interfaces';
-import { defineAsyncComponent } from 'vue';
 import { $ref } from 'vue/macros';
 
 import MapView from './components/MapView.vue';
-
-const Sidebar = defineAsyncComponent(() => import('./components/Sidebar.vue'));
+import Sidebar from './components/Sidebar.vue';
+import { Style } from './style';
 
 let map = $ref<typeof MapView>();
 
@@ -16,6 +15,10 @@ let zoom = $ref(10);
 let activities: Activity[] = $ref([]);
 
 let selected: number[] = $ref([]);
+
+let terrain = $ref(false);
+
+let mapStyle = $ref(Style.STRAVA);
 
 function clearActivities(): void {
   activities = [];
@@ -44,7 +47,9 @@ function zoomToSelected(selection: number[]): void {
 <template>
   <div id="app">
     <Sidebar
+      v-model:map-style="mapStyle"
       v-model:selected="selected"
+      v-model:terrain="terrain"
       :activities="activities"
       @zoom-to-selected="zoomToSelected"
       @clear-activities="clearActivities"
@@ -53,9 +58,11 @@ function zoomToSelected(selection: number[]): void {
     />
     <MapView
       ref="map"
+      v-model:map-style="mapStyle"
       v-model:center="location"
       v-model:zoom="zoom"
       v-model:selected="selected"
+      :terrain="terrain"
       :activities="activities"
     />
   </div>

@@ -6,6 +6,7 @@ import { $$, $computed, $ref } from 'vue/macros';
 
 import activityTypes from '../activityTypes';
 import Socket from '../socket';
+import { Style } from '../style';
 import {
   appendCachedActivities,
   getCachedActivities,
@@ -18,11 +19,27 @@ import DateInput from './DateInput.vue';
 import Dropdown from './Dropdown.vue';
 import Login from './Login.vue';
 
+const { terrain = false, mapStyle = Style.STRAVA } = defineProps<{
+  terrain?: boolean;
+  mapStyle?: Style;
+}>();
+
 const emit = defineEmits<{
   (e: 'add-activities', value: Activity[] | Route[]): void;
   (e: 'clear-activities'): void;
   (e: 'add-activity-maps', value: Record<string, string>): void;
+  (e: 'update:terrain', value: boolean): void;
+  (e: 'update:mapStyle', value: Style): void;
 }>();
+
+const mapStyleModel = $computed<Style>({
+  get() {
+    return mapStyle;
+  },
+  set(value) {
+    emit('update:mapStyle', value);
+  },
+});
 
 function findingString(
   { started = false, finished = false, length = 0 }: LoadingStats['finding'] = {},
@@ -320,6 +337,15 @@ defineExpose({ loadFromCache });
       <button @click="loadPartial">Load</button>
       <button @click="loadRoutes">Routes</button>
       <button @click="clearCache">Clear cache</button>
+    </div>
+    <div class="buttons">
+      <button v-if="terrain" @click="emit('update:terrain', false)">Disable 3D</button>
+      <button v-else @click="emit('update:terrain', true)">Enable 3D</button>
+      <select v-model="mapStyleModel">
+        <option :value="Style.STRAVA">Strava style</option>
+        <option :value="Style.HYBRID">Hybrid</option>
+        <option :value="Style.SATELLITE">Satellite</option>
+      </select>
     </div>
     <Login
       v-if="continueLogin"
