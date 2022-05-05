@@ -30,15 +30,11 @@ export default function calendarRouter(domain: string): express.Router {
   });
 
   router.get('/:token.ics', async (req: express.Request, res: express.Response) => {
-    async function requestLogin() {
-      res.status(404).send();
-    }
-
-    const strava = new Strava(domain, req.params.token, requestLogin);
+    const strava = new Strava(domain, req.params.token, mkRequestLogin(res));
 
     res.type('text/calendar; charset=UTF-8');
 
-    const cal = ical({ name: 'Strava Calendar' });
+    const cal = ical({ name: 'Strava activities' });
 
     for await (const activity of eagerIterator(strava.getStravaActivities())) {
       const startTime = moment(activity.start_date).tz(activity.timezone.split(' ')[1]);
