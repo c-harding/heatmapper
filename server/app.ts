@@ -17,6 +17,7 @@ import expressWs from 'express-ws';
 import { join } from 'path';
 
 import apiRouter from './api';
+import calendarRouter from './calendar';
 import mockStravaRouter from './mock-strava';
 import { WebhookRelay } from './webhook-relay';
 
@@ -53,6 +54,8 @@ app.use('/api', apiRouter(SERVER_DOMAIN, wsInstance, relay));
 
 // Before the history fallback, which would answer the consent form with the app
 if (MOCK_STRAVA) app.use('/mock-strava', mockStravaRouter());
+
+app.use('/calendar', calendarRouter(SERVER_DOMAIN));
 
 // Support history api
 app.use(

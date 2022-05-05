@@ -84,7 +84,7 @@ export default defineConfig(({ mode }) => {
       // pointing at whatever holds it
       strictPort: true,
       proxy: {
-        '^/api/': { target: `http://localhost:${SERVER_PORT}`, ws: true },
+        '^/(api/|calendar(/|\\?|$))': { target: `http://localhost:${SERVER_PORT}`, ws: true },
         // Only answered when the backend runs with MOCK_STRAVA
         '^/mock-strava/': { target: `http://localhost:${SERVER_PORT}` },
       },
