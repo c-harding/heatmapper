@@ -3,7 +3,7 @@ import type { Activity, Route } from '@strava-heatmapper/shared/interfaces';
 import { nextTick, onMounted, watch } from 'vue';
 import { $$, $computed, $ref } from 'vue/macros';
 
-import { Style } from '../style';
+import { MapStyle } from '../MapStyle';
 import { findLastIndex } from '../utils/arrays';
 import { cancelTextSelection } from '../utils/ui';
 import ActivityItem from './ActivityItem.vue';
@@ -26,12 +26,12 @@ const {
   activities = [],
   selected = [],
   terrain = false,
-  mapStyle = Style.STRAVA,
+  mapStyle = MapStyle.STRAVA,
 } = defineProps<{
   activities: Activity[];
   selected?: number[];
   terrain?: boolean;
-  mapStyle?: Style;
+  mapStyle?: MapStyle;
 }>();
 
 const emit = defineEmits<{
@@ -41,11 +41,11 @@ const emit = defineEmits<{
   (e: 'clear-activities'): void;
   (e: 'update:selected', value: number[]): void;
   (e: 'zoom-to-selected', value: number[]): void;
-  (e: 'update:mapStyle', value: Style): void;
+  (e: 'update:mapStyle', value: MapStyle): void;
   (e: 'update:terrain', value: boolean): void;
 }>();
 
-const mapStyleModel = $computed<Style>({
+const mapStyleModel = $computed<MapStyle>({
   get() {
     return mapStyle;
   },
