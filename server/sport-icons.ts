@@ -1,0 +1,80 @@
+import { type SummaryActivity } from './strava/model';
+
+export function getSportIcon(source: SummaryActivity): string {
+  switch (source.sport_type) {
+    case 'Run':
+    case 'VirtualRun':
+    case 'TrailRun':
+      return '🏃';
+    case 'Walk':
+      return '🚶';
+    case 'Ride':
+    case 'EBikeRide':
+    case 'VirtualRide':
+    case 'Handcycle':
+    case 'Velomobile':
+      return '🚲';
+    case 'Swim':
+      return '🏊';
+    case 'AlpineSki':
+    case 'BackcountrySki':
+    case 'NordicSki':
+      return '⛷️';
+    case 'Snowboard':
+      return '🏂';
+    case 'IceSkate':
+    case 'Snowshoe':
+      return '⛸️';
+    case 'Skateboard':
+      return '🛹';
+    case 'RockClimbing':
+      return '🧗';
+    case 'Surfing':
+    case 'Windsurf':
+    case 'Kitesurf':
+    case 'StandUpPaddling':
+      return '🏄';
+    case 'Canoeing':
+    case 'Kayaking':
+    case 'Rowing':
+    case 'VirtualRow':
+      return '🛶';
+    case 'Sail':
+      return '⛵';
+    case 'Golf':
+      return '🏌';
+    case 'Soccer':
+      return '⚽';
+    case 'Crossfit':
+    case 'Elliptical':
+    case 'WeightTraining':
+    case 'HighIntensityIntervalTraining':
+    case 'Pilates':
+    case 'StairStepper':
+      return '🏋';
+    case 'Yoga':
+      return '🧘';
+    case 'Wheelchair':
+      return '🧑‍🦽';
+    case 'Hike':
+      return '🥾';
+    case 'Badminton':
+      return '🏸';
+    case 'Tennis':
+      return '🎾';
+    case 'EMountainBikeRide':
+    case 'MountainBikeRide':
+    case 'GravelRide':
+      return '🚵';
+    case 'InlineSkate':
+      return '🛼';
+    case 'TableTennis':
+    case 'Pickleball':
+    case 'Racquetball':
+    case 'Squash':
+      return '🏓';
+    case 'Workout':
+    default:
+      return '';
+  }
+}

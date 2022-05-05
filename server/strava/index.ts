@@ -58,7 +58,7 @@ export class Strava {
   /**
    * Fetches your data from the Strava API
    */
-  async *getStravaActivities(start?: number, end?: number): AsyncGenerator<unknown, void, undefined> {
+  async *getStravaActivities(start?: number, end?: number): AsyncGenerator<SummaryActivity, void, undefined> {
     for await (const page of this.getStravaActivitiesPages(start, end)) {
       yield* page;
     }
@@ -97,6 +97,10 @@ export class Strava {
 
   async getActivity(id: number | string): Promise<SummaryActivity> {
     return await this.rawApi.get(`/activities/${id}`);
+  }
+
+  hasToken(): Promise<boolean> {
+    return this.rawApi.hasToken();
   }
 
   async logout(global?: boolean);
