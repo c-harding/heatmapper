@@ -76,7 +76,7 @@ export default function calendarRouter(domain: string): express.Router {
       });
     }
 
-    res.send(cal.toString());
+    cal.serve(res);
   });
 
   return router;
