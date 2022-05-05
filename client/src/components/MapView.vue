@@ -44,10 +44,17 @@ const makeGeoJson = (activities = []): mapboxgl.GeoJSONSourceRaw => ({
   data: makeGeoJsonData(activities),
 });
 
+interface LayerDef {
+  source: string;
+  color: string;
+  opacity: mapboxgl.Expression | number;
+  width: mapboxgl.Expression | number;
+}
+
 const sources = ['lines', 'selected'];
 const width = fromZoom([5, 1], [14, 4], [22, 8]);
 const selectedWidth = fromZoom([5, 4], [14, 8]);
-const layers = (style: Style) => ({
+const layers = (style: Style): Record<'lines' | 'medium' | 'hot' | 'selected', LayerDef> => ({
   lines: {
     source: 'lines',
     color: style === Style.STRAVA ? '#00F' : '#FFF',
@@ -73,9 +80,6 @@ const layers = (style: Style) => ({
     width: selectedWidth,
   },
 });
-
-type LayerDefs = ReturnType<typeof layers>;
-type LayerDef = LayerDefs[keyof LayerDefs];
 
 const buildLineLayer = (id: string, layer: LayerDef): mapboxgl.AnyLayer => ({
   id,
