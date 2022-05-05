@@ -25,10 +25,8 @@ function dateToYYYYMMDD(date: Date | null): string | null {
 
 function updateValue(): void {
   const rawDate = input.valueAsDate;
-  emit(
-    'update:modelValue',
-    rawDate && new Date(rawDate.getTime() + rawDate.getTimezoneOffset() * 60 * 1000),
-  );
+  const date = rawDate && new Date(rawDate.getTime() + rawDate.getTimezoneOffset() * 60 * 1000);
+  emit('update:modelValue', date);
 }
 </script>
 
