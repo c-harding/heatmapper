@@ -35,7 +35,7 @@ export function appendCachedActivities(activities: Activity[], end: number, star
     activities: (existingStore.activities || [])
       .filter((existingActivity) => !ids.has(existingActivity.id))
       .concat(activities)
-      .sort((a, b) => b.id - a.id),
+      .sort((a, b) => b.date - a.date),
   };
   localStorage.setItem('activities', JSON.stringify(newStore));
 }
