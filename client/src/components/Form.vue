@@ -6,7 +6,7 @@ import { $$, $computed, $ref } from 'vue/macros';
 
 import activityTypes from '../activityTypes';
 import Socket from '../socket';
-import { Style } from '../style';
+import { MapStyle } from '../style';
 import {
   appendCachedActivities,
   getCachedActivities,
@@ -19,9 +19,9 @@ import DateInput from './DateInput.vue';
 import Dropdown from './Dropdown.vue';
 import Login from './Login.vue';
 
-const { terrain = false, mapStyle = Style.STRAVA } = defineProps<{
+const { terrain = false, mapStyle = MapStyle.STRAVA } = defineProps<{
   terrain?: boolean;
-  mapStyle?: Style;
+  mapStyle?: MapStyle;
 }>();
 
 const emit = defineEmits<{
@@ -29,10 +29,10 @@ const emit = defineEmits<{
   (e: 'clear-activities'): void;
   (e: 'add-activity-maps', value: Record<string, string>): void;
   (e: 'update:terrain', value: boolean): void;
-  (e: 'update:mapStyle', value: Style): void;
+  (e: 'update:mapStyle', value: MapStyle): void;
 }>();
 
-const mapStyleModel = $computed<Style>({
+const mapStyleModel = $computed<MapStyle>({
   get() {
     return mapStyle;
   },
@@ -342,9 +342,9 @@ defineExpose({ loadFromCache });
       <button v-if="terrain" @click="emit('update:terrain', false)">Disable 3D</button>
       <button v-else @click="emit('update:terrain', true)">Enable 3D</button>
       <select v-model="mapStyleModel">
-        <option :value="Style.STRAVA">Strava style</option>
-        <option :value="Style.HYBRID">Hybrid</option>
-        <option :value="Style.SATELLITE">Satellite</option>
+        <option :value="MapStyle.STRAVA">Strava style</option>
+        <option :value="MapStyle.HYBRID">Hybrid</option>
+        <option :value="MapStyle.SATELLITE">Satellite</option>
       </select>
     </div>
     <Login

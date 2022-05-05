@@ -18,7 +18,7 @@ import type { VNode } from 'vue';
 import { nextTick, onMounted, watch } from 'vue';
 import { $$, $computed, $ref } from 'vue/macros';
 
-import { Style } from '../style';
+import { MapStyle } from '../style';
 
 const fromZoom = (...pairs: [number, number][]): mapboxgl.Expression => [
   'interpolate',
@@ -54,22 +54,22 @@ interface LayerDef {
 const sources = ['lines', 'selected'];
 const width = fromZoom([5, 1], [14, 4], [22, 8]);
 const selectedWidth = fromZoom([5, 4], [14, 8]);
-const layers = (style: Style): Record<'lines' | 'medium' | 'hot' | 'selected', LayerDef> => ({
+const layers = (style: MapStyle): Record<'lines' | 'medium' | 'hot' | 'selected', LayerDef> => ({
   lines: {
     source: 'lines',
-    color: style === Style.STRAVA ? '#00F' : '#FFF',
+    color: style === MapStyle.STRAVA ? '#00F' : '#FFF',
     opacity: fromZoom([5, 0.75], [10, 0.35]),
     width,
   },
   medium: {
     source: 'lines',
-    color: style === Style.STRAVA ? '#F00' : '#FFF',
+    color: style === MapStyle.STRAVA ? '#F00' : '#FFF',
     opacity: fromZoom([5, 0.2], [10, 0.08]),
     width,
   },
   hot: {
     source: 'lines',
-    color: style === Style.STRAVA ? '#FF0' : '#FFF',
+    color: style === MapStyle.STRAVA ? '#FF0' : '#FFF',
     opacity: fromZoom([5, 0.1], [10, 0.04]),
     width,
   },
@@ -143,7 +143,7 @@ const {
   selected?: number[];
   activities: Activity[];
   terrain?: boolean;
-  mapStyle: Style;
+  mapStyle: MapStyle;
 }>();
 
 const emit = defineEmits<{

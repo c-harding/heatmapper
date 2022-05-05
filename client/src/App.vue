@@ -4,7 +4,7 @@ import { $ref } from 'vue/macros';
 
 import MapView from './components/MapView.vue';
 import Sidebar from './components/Sidebar.vue';
-import { Style } from './style';
+import { MapStyle } from './style';
 
 let map = $ref<typeof MapView>();
 
@@ -18,7 +18,7 @@ let selected: number[] = $ref([]);
 
 let terrain = $ref(false);
 
-let mapStyle = $ref(Style.STRAVA);
+let mapStyle = $ref(MapStyle.STRAVA);
 
 function clearActivities(): void {
   activities = [];
