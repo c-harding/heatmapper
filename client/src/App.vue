@@ -1,23 +1,3 @@
-<template>
-  <div id="app">
-    <Sidebar
-      v-model:selected="selected"
-      :activities="activities"
-      @zoom-to-selected="zoomToSelected"
-      @clear-activities="clearActivities"
-      @add-activities="addActivities"
-      @add-activity-maps="addActivityMaps"
-    />
-    <MapView
-      ref="map"
-      v-model:center="location"
-      v-model:zoom="zoom"
-      v-model:selected="selected"
-      :activities="activities"
-    />
-  </div>
-</template>
-
 <script setup lang="ts">
 import type { Activity } from '@strava-heatmapper/shared/interfaces';
 import { defineAsyncComponent } from 'vue';
@@ -60,6 +40,26 @@ function zoomToSelected(selection: number[]): void {
   map.zoomToSelection();
 }
 </script>
+
+<template>
+  <div id="app">
+    <Sidebar
+      v-model:selected="selected"
+      :activities="activities"
+      @zoom-to-selected="zoomToSelected"
+      @clear-activities="clearActivities"
+      @add-activities="addActivities"
+      @add-activity-maps="addActivityMaps"
+    />
+    <MapView
+      ref="map"
+      v-model:center="location"
+      v-model:zoom="zoom"
+      v-model:selected="selected"
+      :activities="activities"
+    />
+  </div>
+</template>
 
 <style>
 html,
