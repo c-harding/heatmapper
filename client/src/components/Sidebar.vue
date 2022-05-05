@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import type { Activity, Route } from '@strava-heatmapper/shared/interfaces';
 import { nextTick, onMounted, watch } from 'vue';
-import { $$, $ref } from 'vue/macros';
+import { $$, $computed, $ref } from 'vue/macros';
 
+import { Style } from '../style';
 import { findLastIndex } from '../utils/arrays';
 import { cancelTextSelection } from '../utils/ui';
 import ActivityItem from './ActivityItem.vue';
@@ -21,6 +22,18 @@ function getRange(activities: Activity[], to: number, from?: number | number[]):
   return activities.slice(start, end + 1).map(({ id }) => id);
 }
 
+const {
+  activities = [],
+  selected = [],
+  terrain = false,
+  mapStyle = Style.STRAVA,
+} = defineProps<{
+  activities: Activity[];
+  selected?: number[];
+  terrain?: boolean;
+  mapStyle?: Style;
+}>();
+
 const emit = defineEmits<{
   (e: 'zoom-to-selected'): void;
   (e: 'add-activities', value: Activity[] | Route[]): void;
@@ -28,12 +41,27 @@ const emit = defineEmits<{
   (e: 'clear-activities'): void;
   (e: 'update:selected', value: number[]): void;
   (e: 'zoom-to-selected', value: number[]): void;
+  (e: 'update:mapStyle', value: Style): void;
+  (e: 'update:terrain', value: boolean): void;
 }>();
 
-const { activities = [], selected = [] } = defineProps<{
-  activities: Activity[];
-  selected?: number[];
-}>();
+const mapStyleModel = $computed<Style>({
+  get() {
+    return mapStyle;
+  },
+  set(value) {
+    emit('update:mapStyle', value);
+  },
+});
+
+const terrainModel = $computed<boolean>({
+  get() {
+    return terrain;
+  },
+  set(value) {
+    emit('update:terrain', value);
+  },
+});
 
 const form = $ref<typeof FormComponent>();
 
@@ -118,6 +146,8 @@ onMounted(() => {
     <div class="scrollable">
       <FormComponent
         ref="form"
+        v-model:terrain="terrainModel"
+        v-model:map-style="mapStyleModel"
         @clear-activities="emit('clear-activities')"
         @add-activities="emit('add-activities', $event)"
         @add-activity-maps="emit('add-activity-maps', $event)"
