@@ -39,7 +39,7 @@ export default defineConfig(({ mode }) => {
     server: {
       port: VITE_DEV_PORT,
       proxy: {
-        '^/api/': { target: `http://localhost:${SERVER_PORT}`, ws: true },
+        '^/(api|calendar)/': { target: `http://localhost:${SERVER_PORT}`, ws: true },
       },
     },
     build: {
