@@ -51,7 +51,7 @@ function addActivities(newActivities: Activity[]): void {
 function addActivityMaps(maps: Record<string, string>): void {
   Object.entries(maps).forEach(([activity, map]) => {
     const i = activities.findIndex(({ id }) => id.toString() === activity);
-    activities[i] = { ...activities[i], map };
+    activities[i].map = map;
   });
 }
 
