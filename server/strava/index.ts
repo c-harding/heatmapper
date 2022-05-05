@@ -87,6 +87,10 @@ export class Strava {
     return await this.rawApi.get(`/activities/${id}`);
   }
 
+  hasToken(): Promise<boolean> {
+    return this.rawApi.hasToken();
+  }
+
   async logout(global = false) {
     if (global) {
       await this.rawApi.logoutGlobal();
