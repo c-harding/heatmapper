@@ -55,15 +55,15 @@ export default function calendarRouter(domain: string): express.Router {
 
       const descriptionFields = {
         Distance: activity.distance && `${(activity.distance / 1000).toFixed(2)} km`,
-        'Elevation Gain': activity.total_elevation_gain && `${activity.total_elevation_gain.toFixed(0)} m`,
+        'Elevation gain': activity.total_elevation_gain && `${activity.total_elevation_gain.toFixed(0)} m`,
         'Average speed':
           activity.average_speed &&
           activity.sport_type !== 'Run' &&
           `${(activity.average_speed * 3.6).toFixed(1)} km/h`,
         'Average pace':
           activity.average_speed && activity.sport_type === 'Run' && `${toHms(1000 / activity.average_speed)}/km`,
-        'Average Heart Rate': activity.has_heartrate && `${activity.average_heartrate?.toFixed(0)} bpm`,
-        'Max Heart Rate': activity.has_heartrate && `${activity.max_heartrate?.toFixed(0)} bpm`,
+        'Average heart rate': activity.has_heartrate && `${activity.average_heartrate?.toFixed(0)} bpm`,
+        'Max heart rate': activity.has_heartrate && `${activity.max_heartrate?.toFixed(0)} bpm`,
       };
       const descriptionData = Object.entries(descriptionFields)
         .filter(([, value]) => value)
