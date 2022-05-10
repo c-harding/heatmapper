@@ -60,6 +60,8 @@ export default function calendarRouter(domain: string): express.Router {
       const isRun = runTypes.has(activity.sport_type);
 
       const descriptionFields = {
+        'Elapsed time': activity.elapsed_time && `${toHms(activity.elapsed_time)}`,
+        'Moving time': activity.moving_time && `${toHms(activity.moving_time)}`,
         Distance: activity.distance && `${(activity.distance / 1000).toFixed(2)} km`,
         'Elevation gain': activity.total_elevation_gain && `${activity.total_elevation_gain.toFixed(0)} m`,
         'Average speed': activity.average_speed && !isRun && `${(activity.average_speed * 3.6).toFixed(1)} km/h`,
