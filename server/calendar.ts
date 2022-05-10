@@ -71,6 +71,7 @@ export default function calendarRouter(domain: string): express.Router {
       cal.createEvent({
         summary: `${activity.name} ${getSportIcon(activity)}`,
         location: location,
+        timezone: startTime.tz(),
         start: startTime,
         end: moment(startTime).add(activity.elapsed_time, 'seconds'),
         url: `https://strava.com/activities/${activity.id}`,
