@@ -16,8 +16,8 @@ wrapper() {
     # If wasn’t sigint, stay open
     [ $exit_code -ne 130 ] && (
         if [ $exit_code -eq 0 ]
-        then echo "[Process completed successfully, press any key to close]"
-        else echo "[Process exited with code $exit_code, press any key to quit]"
+        then echo "[Process completed successfully, press enter to close]"
+        else echo "[Process exited with code $exit_code, press enter to quit]"
         fi
         read
         close_all
@@ -40,10 +40,9 @@ cd "$(dirname "$0")/.." &&
 
 # Replace any special characters with hyphens
 SESSION_NAME="serve@${PWD//[^[:alnum:]\/]/-}" &&
-
 (
-    tmux kill-session -t $SESSION_NAME 2>/dev/null;
+    tmux kill-session -t "$SESSION_NAME" 2>/dev/null;
 
-    tmux new-session -s "$SESSION_NAME" -c client "$(wrap yarn serve)" \;\
-         split-window -v                -c server "$(wrap yarn serve)"
+    tmux new-session -s "$SESSION_NAME" -c "$PWD/client" "$(wrap yarn serve)" \;\
+         split-window -v                -c "$PWD/server" "$(wrap yarn serve)"
 )

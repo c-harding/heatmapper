@@ -184,9 +184,12 @@ watch($$(mapStyle), (style) => {
 
 watch($$(terrain), onTerrain);
 
-watch($$(activities), (activities) => {
-  applyActivities(activities, 'lines');
-});
+watch(
+  () => activities,
+  (activities) => {
+    applyActivities(activities, 'lines');
+  },
+);
 
 watch($$(selectedActivities), (selectedActivities) => {
   applyActivities(selectedActivities, 'selected');

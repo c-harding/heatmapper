@@ -36,6 +36,8 @@ function addActivityMaps(maps: Record<string, string>): void {
     const i = activities.findIndex(({ id }) => id.toString() === activity);
     activities[i].map = map;
   });
+  // Trigger the activities array watcher, so the new maps are correctly shown
+  activities = activities.slice();
 }
 
 function zoomToSelected(selection: number[]): void {
