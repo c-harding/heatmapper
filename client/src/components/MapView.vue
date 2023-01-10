@@ -20,7 +20,13 @@ import { $$, $computed, $ref } from 'vue/macros';
 
 import { MapStyle } from '../MapStyle';
 
-const fromZoom = (...pairs: [number, number][]): mapboxgl.Expression => [
+const colorOpacityFromZoom = (
+  [r, g, b]: [r: number, g: number, b: number],
+  ...pairs: [zoom: number, opacity: number][]
+): mapboxgl.Expression =>
+  fromZoom(...pairs.map(([zoom, a]) => [zoom, ['rgba', r, g, b, a]] as const));
+
+const fromZoom = (...pairs: (readonly [zoom: number, value: unknown])[]): mapboxgl.Expression => [
   'interpolate',
   ['linear'],
   ['zoom'],
@@ -46,37 +52,48 @@ const makeGeoJson = (activities = []): mapboxgl.GeoJSONSourceRaw => ({
 
 interface LayerDef {
   source: string;
-  color: string;
-  opacity: mapboxgl.Expression | number;
+  color: mapboxgl.Expression | string;
   width: mapboxgl.Expression | number;
 }
 
 const sources = ['lines', 'selected'];
 const width = fromZoom([5, 1], [14, 4], [22, 8]);
 const selectedWidth = fromZoom([5, 4], [14, 8]);
+const F = 255;
 const layers = (style: MapStyle): Record<'lines' | 'medium' | 'hot' | 'selected', LayerDef> => ({
   lines: {
     source: 'lines',
-    color: style === MapStyle.STRAVA ? '#00F' : '#FFF',
-    opacity: fromZoom([5, 0.75], [10, 0.35]),
+
+    color: colorOpacityFromZoom(
+      style === MapStyle.STRAVA ? [0, 0, F] : [F, F, F],
+      [5, 0.75],
+      [10, 0.35],
+    ),
+
     width,
   },
   medium: {
     source: 'lines',
-    color: style === MapStyle.STRAVA ? '#F00' : '#FFF',
-    opacity: fromZoom([5, 0.2], [10, 0.08]),
+    color: colorOpacityFromZoom(
+      style === MapStyle.STRAVA ? [F, 0, 0] : [F, F, F],
+      [5, 0.2],
+      [10, 0.08],
+    ),
     width,
   },
   hot: {
     source: 'lines',
-    color: style === MapStyle.STRAVA ? '#FF0' : '#FFF',
-    opacity: fromZoom([5, 0.1], [10, 0.04]),
+    color: colorOpacityFromZoom(
+      style === MapStyle.STRAVA ? [F, F, 0] : [F, F, F],
+      [5, 0.1],
+      [10, 0.04],
+    ),
+
     width,
   },
   selected: {
     source: 'selected',
     color: '#0CF',
-    opacity: 1,
     width: selectedWidth,
   },
 });
@@ -88,7 +105,6 @@ const buildLineLayer = (id: string, layer: LayerDef): mapboxgl.AnyLayer => ({
   layout: { 'line-join': 'round', 'line-cap': 'round' },
   paint: {
     'line-color': layer.color,
-    'line-opacity': layer.opacity,
     'line-width': layer.width,
   },
 });
@@ -125,8 +141,10 @@ const onTerrain = () => {
       });
     }
     map?.setTerrain({ source: 'mapbox-dem' });
+    map?.setProjection('globe');
   } else {
     map?.setTerrain(null);
+    map?.setProjection('mercator');
   }
 };
 
