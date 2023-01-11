@@ -65,7 +65,7 @@ const layers = (style: MapStyle): Record<'lines' | 'medium' | 'hot' | 'selected'
     source: 'lines',
 
     color: colorOpacityFromZoom(
-      style === MapStyle.STRAVA ? [0, 0, F] : [F, F, F],
+      style === MapStyle.STRAVA ? [0, 0, F] : [F, 0, F],
       [5, 0.75],
       [10, 0.35],
     ),
@@ -75,7 +75,7 @@ const layers = (style: MapStyle): Record<'lines' | 'medium' | 'hot' | 'selected'
   medium: {
     source: 'lines',
     color: colorOpacityFromZoom(
-      style === MapStyle.STRAVA ? [F, 0, 0] : [F, F, F],
+      style === MapStyle.STRAVA ? [F, 0, 0] : [F, 0, F],
       [5, 0.2],
       [10, 0.08],
     ),
@@ -84,7 +84,7 @@ const layers = (style: MapStyle): Record<'lines' | 'medium' | 'hot' | 'selected'
   hot: {
     source: 'lines',
     color: colorOpacityFromZoom(
-      style === MapStyle.STRAVA ? [F, F, 0] : [F, F, F],
+      style === MapStyle.STRAVA ? [F, F, 0] : [F, 0, F],
       [5, 0.1],
       [10, 0.04],
     ),
