@@ -1,4 +1,5 @@
 import type Activity from './Activity';
+import type Gear from './Gear';
 import type Route from './Route';
 
 interface ActivitiesMessage {
@@ -25,11 +26,18 @@ export interface StatsMessage {
   finding: { started: boolean; finished: boolean; length: number };
 }
 
+export interface GearMessage {
+  type: 'gear';
+  id: string;
+  gear: Gear;
+}
+
 type ResponseMessage =
   | ActivitiesMessage
   | MapsMessage
   | StatsMessage
   | RoutesMessage
-  | LoginMessage;
+  | LoginMessage
+  | GearMessage;
 
 export default ResponseMessage;

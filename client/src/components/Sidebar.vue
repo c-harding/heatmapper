@@ -63,7 +63,7 @@ const terrainModel = $computed<boolean>({
   },
 });
 
-const form = $ref<typeof FormComponent>();
+const form = $ref<InstanceType<typeof FormComponent>>();
 
 let localSelected: number[] | undefined = $ref();
 
@@ -75,7 +75,7 @@ const gitHash = process.env.VUE_APP_GIT_HASH ?? null;
 
 const nbsp = '\xa0';
 
-const activityItemList: HTMLUListElement = $ref();
+const activityItemList = $ref<HTMLUListElement>();
 
 function toggleInArray<T>(array: T[], item: T): T[] {
   if (array.includes(item)) return array.filter((x) => x !== item);
@@ -111,14 +111,14 @@ watch($$(selected), async (selected: number[]) => {
     selectionBase = selected;
     if (selected.length !== 0) minimised = false;
     await nextTick();
-    const el = activityItemList.querySelector('.selected');
+    const el = activityItemList?.querySelector('.selected');
     if (el) el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
   }
 });
 
 onMounted(() => {
   if (!activities || activities.length === 0) {
-    form.loadFromCache();
+    form?.loadFromCache();
   }
 });
 </script>

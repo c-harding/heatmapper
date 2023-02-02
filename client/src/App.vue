@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Activity } from '@strava-heatmapper/shared/interfaces';
-import { $ref } from 'vue/macros';
+import { $$, $ref } from 'vue/macros';
 
 import MapView from './components/MapView.vue';
 import Sidebar from './components/Sidebar.vue';
@@ -42,8 +42,10 @@ function addActivityMaps(maps: Record<string, string>): void {
 
 function zoomToSelected(selection: number[]): void {
   selected = selection;
-  map.zoomToSelection();
+  map?.zoomToSelection();
 }
+
+defineExpose({ activities: $$(activities) });
 </script>
 
 <template>

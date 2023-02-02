@@ -1,4 +1,4 @@
-import type { Activity } from '@strava-heatmapper/shared/interfaces';
+import type { Activity, Gear } from '@strava-heatmapper/shared/interfaces';
 import { TimeRange } from '@strava-heatmapper/shared/interfaces';
 
 export interface ActivityStore {
@@ -16,6 +16,15 @@ export function saveCachedMaps(mappings: Record<string, string>) {
 
 export function getCachedMap(id: number | string) {
   return localStorage.getItem(`map:summary:${id}`);
+}
+
+export function saveCachedGear(id: string, gear: Gear) {
+  localStorage.setItem(`gear:${id}`, JSON.stringify(gear));
+}
+
+export function getCachedGear(id: string): Gear | undefined {
+  const json = localStorage.getItem(`gear:${id}`);
+  if (json) return JSON.parse(json);
 }
 
 export function getActivityStore(): ActivityStore {
@@ -48,6 +57,18 @@ export function getCachedMaps(ids: (string | number)[]) {
     const fromCache = getCachedMap(id);
     if (fromCache) cached[id] = fromCache;
     else notCached.push(id.toString());
+  }
+  return { cached, notCached };
+}
+
+export function getCachedGears(ids: string[]) {
+  const notCached: string[] = [];
+
+  const cached: Record<string, Gear> = {};
+  for (const id of ids) {
+    const fromCache = getCachedGear(id);
+    if (fromCache) cached[id] = fromCache;
+    else notCached.push(id);
   }
   return { cached, notCached };
 }

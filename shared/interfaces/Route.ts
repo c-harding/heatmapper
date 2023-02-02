@@ -7,4 +7,5 @@ export default interface Route {
   type: 'Ride' | 'Run' | 'Walk';
   subType: 'Road' | 'MountainBike' | 'Cross' | 'Trail' | 'Mixed';
   dateString: string[];
+  starred: boolean;
 }
