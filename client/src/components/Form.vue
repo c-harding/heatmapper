@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import type { Activity, ResponseMessage, Route } from '@strava-heatmapper/shared/interfaces';
+import type { Activity, Gear, ResponseMessage, Route } from '@strava-heatmapper/shared/interfaces';
 import { TimeRange } from '@strava-heatmapper/shared/interfaces';
-import { watch } from 'vue';
+import { reactive, watch } from 'vue';
 import { $$, $computed, $ref } from 'vue/macros';
 
 import activityTypes from '../activityTypes';
@@ -10,8 +10,10 @@ import Socket from '../socket';
 import {
   appendCachedActivities,
   getCachedActivities,
+  getCachedGear,
   getCachedMap,
   getCachedMaps,
+  saveCachedGear,
 } from '../utils/storage';
 import { getActivityStore, saveCachedMaps } from '../utils/storage';
 import { capitalise, count, countActivities, nonEmpties } from '../utils/strings';
@@ -23,6 +25,9 @@ const { terrain = false, mapStyle = MapStyle.STRAVA } = defineProps<{
   terrain?: boolean;
   mapStyle?: MapStyle;
 }>();
+
+/** A map of all gear, where null represents gear that is not yet fetched */
+const gear = reactive(new Map<string, Gear | null>());
 
 const emit = defineEmits<{
   (e: 'add-activities', value: Activity[] | Route[]): void;
@@ -158,8 +163,28 @@ function requestMaps(ids: (number | string)[], socket?: Socket): void {
   checkFinished(socket);
 }
 
+function requestGear(ids: (string | undefined)[], socket?: Socket) {
+  const validIds = ids.filter((id?: string): id is string => !!id);
+
+  for (const gearId of validIds) {
+    if (gear.has(gearId)) continue;
+    if (socket) {
+      gear.set(gearId, null);
+      socket.sendRequest({
+        gear: gearId,
+      });
+    } else {
+      gear.set(gearId, getCachedGear(gearId) ?? null);
+    }
+  }
+}
+
 function receiveActivities(activities: Activity[], socket?: Socket): void {
   const filteredActivities = filterActivities(activities, activityType, start, end);
+  requestGear(
+    filteredActivities.map(({ gear }) => gear),
+    socket,
+  );
   emit('add-activities', filteredActivities);
   requestMaps(
     filteredActivities.map(({ id }) => id),
@@ -280,6 +305,11 @@ async function sockets({ partial = false, routes = false } = {}): Promise<void> 
           receiveMaps(data.chunk);
           break;
         }
+        case 'gear': {
+          gear.set(data.id, data.gear);
+          saveCachedGear(data.id, data.gear);
+          break;
+        }
         case 'login': {
           continueLogin = (cookies = true) => {
             if (cookies) document.cookie = `token=${data.cookie};max-age=31536000`;
@@ -321,7 +351,7 @@ async function sockets({ partial = false, routes = false } = {}): Promise<void> 
   }
 }
 
-defineExpose({ loadFromCache });
+defineExpose({ loadFromCache, gear });
 </script>
 
 <template>

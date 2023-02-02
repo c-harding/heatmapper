@@ -3,6 +3,7 @@ import 'moment/min/locales';
 import type {
   Activity,
   ActivityMap,
+  Gear,
   RequestMessage,
   ResponseMessage,
   Route,
@@ -16,8 +17,9 @@ import moment from 'moment';
 
 import eagerIterator from './eager-iterator';
 import { completeInOrder, memoize } from './stateful-functions';
-import type { SummaryActivity, SummaryRoute } from './strava';
-import { Strava, tokenExchange, validTokenCallback } from './strava';
+import { Strava } from './strava';
+import type { DetailedGear, SummaryActivity, SummaryRoute } from './strava/model';
+import { tokenExchange, validTokenCallback } from './strava/token';
 
 async function* chunkAsync<T>(array: Promise<T>[], n = 10): AsyncGenerator<T[]> {
   for (let i = 0; i < array.length; i += n) {
@@ -44,33 +46,67 @@ function formatDateWithLineBreak(date: moment.MomentInput, locales: string | str
 }
 
 function convertActivitySummary(
-  { id, name, start_date_local: date, map: { summary_polyline: map }, type }: SummaryActivity,
+  {
+    id,
+    name,
+    start_date: startDate,
+    start_date_local: startDateLocal,
+    map: { summary_polyline: map },
+    type,
+    distance,
+    gear_id: gear,
+    elapsed_time: duration,
+  }: SummaryActivity,
   locales: string | string[] = ['en'],
 ): Activity {
+  const date = +new Date(startDate);
   return {
     id,
     name,
-    date: +new Date(date),
+    date,
+    end: date + duration * 1000,
     map,
+    distance,
     type,
-    dateString: formatDateWithLineBreak(date, locales),
+    dateString: formatDateWithLineBreak(startDateLocal, locales),
+    gear,
   };
 }
 
 function convertRouteSummary(
-  { id_str, name, created_at: date, map: { summary_polyline: map }, type, sub_type: subType }: SummaryRoute,
+  {
+    id_str: id,
+    name,
+    created_at: date,
+    map: { summary_polyline: map },
+    type,
+    sub_type: subType,
+    starred,
+  }: SummaryRoute,
   locales: string | string[] = ['en'],
 ): Route {
   return {
     route: true,
-    id: id_str,
+    id,
     name,
     date: +new Date(date),
     map,
+    starred,
     type: ({ 1: 'Ride', 2: 'Run', 3: 'Walk' } as const)[type],
     subType: ({ 1: 'Road', 2: 'MountainBike', 3: 'Cross', 4: 'Trail', 5: 'Mixed' } as const)[subType],
     dateString: formatDateWithLineBreak(date, locales),
   };
+}
+
+function convertGear({
+  name,
+  description,
+  distance,
+  primary,
+  brand_name: brand,
+  model_name: model,
+}: DetailedGear): Gear {
+  return { name, description, distance, primary, brand, model };
 }
 
 function convertActivity({ id, map }, highDetail = false): ActivityMap {
@@ -126,9 +162,13 @@ export default function apiRouter(domain: string): express.Router {
       type: 'stats',
       finding: { started: false, finished: false, length: 0 },
     };
-    const sendStats = () => {
-      send(stats as ResponseMessage);
-    };
+    const sendStats = () => send(stats);
+    const sendGear = (gear: DetailedGear) =>
+      send({
+        type: 'gear',
+        id: gear.id,
+        gear: convertGear(gear),
+      });
 
     ws.on('close', () => {
       live = false;
@@ -244,6 +284,10 @@ export default function apiRouter(domain: string): express.Router {
 
       if (message.maps) {
         sendMaps(message.maps);
+      }
+
+      if (message.gear) {
+        sendGear(await strava.getGearById(message.gear));
       }
     });
   });
