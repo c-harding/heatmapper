@@ -1,5 +1,5 @@
 const activityTypes: { [name: string]: string } = {
-  'Hike,Run,Walk': 'All on foot',
+  'Hike,Snowshoe,Run,Walk': 'All on foot',
   'AlpineSki,BackcountrySki,IceSkate,Snowboard,Snowshoe,NordicSki': 'All winter sports',
   AlpineSki: 'Downhill skiing',
   BackcountrySki: 'Off-piste skiing',
