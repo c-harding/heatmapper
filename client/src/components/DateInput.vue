@@ -14,19 +14,9 @@ const emit = defineEmits<{
 
 const input = $ref<HTMLInputElement>();
 
-// Set to the start of the day provided, in local time
+// Set to the start of the UTC day provided
 function dateToYYYYMMDD(date: Date | null): string | null {
-  // alternative implementations in https://stackoverflow.com/q/23593052/1850609
-  return (
-    date &&
-    new Date(date.getTime() - date.getTimezoneOffset() * 60 * 1000).toISOString().split('T')[0]
-  );
-}
-
-function updateValue(): void {
-  const rawDate = input.valueAsDate;
-  const date = rawDate && new Date(rawDate.getTime() + rawDate.getTimezoneOffset() * 60 * 1000);
-  emit('update:modelValue', date);
+  return date && date.toISOString().split('T', 1)[0];
 }
 </script>
 
@@ -38,7 +28,7 @@ function updateValue(): void {
       type="date"
       :name="name"
       :value="dateToYYYYMMDD(modelValue)"
-      @change="updateValue"
+      @change="emit('update:modelValue', input.valueAsDate)"
     />
     <Icon class="icon"> expand_more </Icon>
   </div>

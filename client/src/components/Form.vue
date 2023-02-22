@@ -32,6 +32,12 @@ const emit = defineEmits<{
   (e: 'update:mapStyle', value: MapStyle): void;
 }>();
 
+/** One day in milliseconds */
+const DAY = 24 * 60 * 60 * 1000;
+
+const MIN_TIMEZONE_ADJUSTMENT = 14 * 60 * 60 * 1000;
+const MAX_TIMEZONE_ADJUSTMENT = -12 * 60 * 60 * 1000;
+
 const mapStyleModel = $computed<MapStyle>({
   get() {
     return mapStyle;
@@ -71,7 +77,7 @@ function filterActivities<ActivityOrRoute extends Activity | Route>(
     [
       !type || type.split(',').includes(activity.type),
       !start || activity.date >= +start,
-      !end || activity.date <= +end,
+      !end || activity.date <= +end + DAY,
     ].every(Boolean),
   );
 }
@@ -226,8 +232,14 @@ async function sockets({ partial = false, routes = false } = {}): Promise<void> 
   };
   error = null;
 
-  const startTimestamp = start ? start.getTime() / 1000 : 0;
-  const endTimestamp = (end ? end.getTime() : Date.now()) / 1000;
+  // The dates shown in the UI are formatted in event-local time.
+  // In order to ensure that all events are correctly shown, we need to ensure that the start
+  // timestamp represents the earliest point that this date is reached anywhere on Earth, and that
+  // the end timestamp represents the latest point that this date ends anywhere on Earth.
+  // Note that the dates are then filtered in the frontend to ensure that only those which were
+  // started on the correct day according to activity-local time are shown.
+  const startTimestamp = start ? (start.getTime() - MIN_TIMEZONE_ADJUSTMENT) / 1000 : 0;
+  const endTimestamp = (end ? end.getTime() + DAY - MAX_TIMEZONE_ADJUSTMENT : Date.now()) / 1000;
 
   let latestActivityDate = startTimestamp;
 
@@ -250,7 +262,7 @@ async function sockets({ partial = false, routes = false } = {}): Promise<void> 
           if (activityCount === 0) break;
           receiveActivities(data.activities, socket);
 
-          // API returns in descending order
+          // API returns roughly in descending order
           const latestDate = new Date(data.activities[0].date).getTime() / 1000;
           const earliestDate = new Date(data.activities[activityCount - 1].date).getTime() / 1000;
           latestActivityDate = Math.max(latestActivityDate, latestDate);
