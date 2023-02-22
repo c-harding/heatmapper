@@ -9,7 +9,7 @@ cd "$(dirname "$0")/.." &&
 # https://gist.github.com/c-harding/59686990f42f4dddae01dffa56618ea4, if not then this stage is
 # simply skipped).
 (
-  RAW_DOMAIN="${DOMAIN/#*\/\//}"
+  RAW_DOMAIN="${SERVER_DOMAIN/#*\/\//}"
   DEPLOY_COMMAND="$(printf "
     docker-compose -f%q/docker-compose.yml up --build -d &&
     docker system prune -f &&
