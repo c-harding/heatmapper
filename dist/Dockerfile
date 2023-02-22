@@ -12,6 +12,4 @@ RUN yarn --prod --frozen-lockfile
 
 COPY . /usr/src/app/dist/
 
-EXPOSE 8080
-
 CMD ["pm2-runtime","app.js"]
