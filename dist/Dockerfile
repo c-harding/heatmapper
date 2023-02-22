@@ -1,12 +1,16 @@
 FROM node:16
 
-COPY . /usr/src/app/dist/
+RUN yarn global add pm2
+
+COPY package.json yarn.lock /usr/src/app/dist/
+COPY server/package.json /usr/src/app/dist/server/
+COPY shared/package.json /usr/src/app/dist/shared/
 
 WORKDIR /usr/src/app/dist/server
 
-RUN yarn global add pm2
-
 RUN yarn --prod --frozen-lockfile
+
+COPY . /usr/src/app/dist/
 
 EXPOSE 8080
 
