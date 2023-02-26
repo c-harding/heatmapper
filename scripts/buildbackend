@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+cd "$(dirname "$0")/.." &&
+
+(echo "building shared"; yarn --cwd shared build) &&
+
+(echo "building server"; yarn --cwd server build) &&
+
+(echo "copying install info"; cp package.json yarn.lock dist)

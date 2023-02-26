@@ -4,11 +4,13 @@
   "scripts": {
     "install-all": "scripts/install",
     "build-deploy": "scripts/build-deploy",
+    "buildbackend-deploy": "scripts/buildbackend-deploy",
     "build-container": "scripts/build-container",
     "deploy": "scripts/deploy",
     "connect": "scripts/connect",
     "container": "scripts/container",
     "build": "scripts/build",
+    "buildbackend": "scripts/buildbackend",
     "serve": "scripts/serve",
     "lint": "yarn --cwd=shared lint && yarn --cwd=client lint && yarn --cwd=server lint"
   },
