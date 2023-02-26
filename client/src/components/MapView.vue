@@ -63,7 +63,7 @@ interface LayerDef {
 }
 
 const sources = ['lines', 'selected'];
-const width = fromZoom([5, 1], [14, 4], [22, 8]);
+const lineWidth = fromZoom([5, 1], [14, 4], [22, 8]);
 const selectedWidth = fromZoom([5, 4], [14, 8]);
 const F = 255;
 const layers = (style: MapStyle): Record<'lines' | 'medium' | 'hot' | 'selected', LayerDef> => ({
@@ -76,7 +76,7 @@ const layers = (style: MapStyle): Record<'lines' | 'medium' | 'hot' | 'selected'
       [10, 0.35],
     ),
 
-    width,
+    width: lineWidth,
   },
   medium: {
     source: 'lines',
@@ -85,7 +85,7 @@ const layers = (style: MapStyle): Record<'lines' | 'medium' | 'hot' | 'selected'
       [5, 0.2],
       [10, 0.08],
     ),
-    width,
+    width: lineWidth,
   },
   hot: {
     source: 'lines',
@@ -94,8 +94,7 @@ const layers = (style: MapStyle): Record<'lines' | 'medium' | 'hot' | 'selected'
       [5, 0.1],
       [10, 0.04],
     ),
-
-    width,
+    width: lineWidth,
   },
   selected: {
     source: 'selected',
@@ -217,6 +216,63 @@ watch(
   },
 );
 
+/**
+ * Calculate best way of zooming to fit the activity while avoiding the controls in the corners.
+ *
+ * This works by considering the visual aspect ratio of the route, and for each corner control,
+ * considering either placing the route strictly horizontally offset from the control or strictly
+ * vertically offset from the control.
+ *
+ * It compares the area of the bounding box of the activity in each case.
+ */
+function optimiseViewport(map: mapboxgl.Map, bounds: LngLatBounds) {
+  const padding = 10;
+
+  const { width, height } = map.getCanvas().getBoundingClientRect();
+
+  const northWest = mapboxgl.MercatorCoordinate.fromLngLat(bounds.getNorthWest());
+  const southEast = mapboxgl.MercatorCoordinate.fromLngLat(bounds.getSouthEast());
+
+  const aspectRatio = (northWest.y - southEast.y) / (northWest.x - southEast.x);
+
+  const topLeft = props.sidebarOverlaySize;
+  const topRight = container.value?.querySelector('.mapboxgl-ctrl-top-right');
+  const bottomLeft = container.value?.querySelector('.mapboxgl-ctrl-bottom-left');
+  const bottomRight = container.value?.querySelector('.mapboxgl-ctrl-bottom-right');
+
+  const viewports = [
+    // Padding is given here as well as at the end so that 2 × padding is maintained from the edges,
+    // and 1 × padding is maintained from the controls
+    new Viewport(width, height, { left: padding, top: padding, bottom: padding, right: padding }),
+  ]
+    .flatMap((viewport) =>
+      [{ top: topLeft?.height }, { left: topLeft?.width ?? 0 }].map((offset) =>
+        viewport.withOffset(offset),
+      ),
+    )
+    .flatMap((viewport) =>
+      [{ bottom: bottomLeft?.clientHeight }, { left: bottomLeft?.clientWidth ?? 0 }].map((offset) =>
+        viewport.withOffset(offset),
+      ),
+    )
+    .flatMap((viewport) =>
+      [{ top: topRight?.clientHeight }, { right: topRight?.clientWidth ?? 0 }].map((offset) =>
+        viewport.withOffset(offset),
+      ),
+    )
+    .flatMap((viewport) =>
+      [{ bottom: bottomRight?.clientHeight }, { right: bottomRight?.clientWidth ?? 0 }].map(
+        (offset) =>
+          // Add padding once for every entry, after applying the bottom right offset
+          viewport.withOffset(offset).withPadding(padding),
+      ),
+    );
+
+  return viewports.reduce((best, current) =>
+    best.screenArea(aspectRatio) > current.screenArea(aspectRatio) ? best : current,
+  );
+}
+
 function flyTo(mapItems: MapItem[], zoom = false): void {
   const padding = 20;
 
@@ -228,24 +284,17 @@ function flyTo(mapItems: MapItem[], zoom = false): void {
     (acc, coord) => acc.extend(coord),
     new LngLatBounds(coordinates[0], coordinates[0]),
   );
-  const { width, height } = map.value.getCanvas().getBoundingClientRect();
 
-  const overlayWidth = Math.max(props.sidebarOverlaySize?.width ?? 0, padding);
-  const overlayHeight = Math.max(props.sidebarOverlaySize?.height ?? 0, padding);
+  const viewport = optimiseViewport(map.value, bounds);
 
-  const aspectRatio =
-    (bounds.getNorth() - bounds.getSouth()) / (bounds.getEast() - bounds.getWest());
-
-  const tallViewport = new Viewport(width, height, overlayWidth, padding, padding, padding);
-  const wideViewport = new Viewport(width, height, padding, padding, overlayHeight, padding);
-
-  const viewport =
-    tallViewport.proportion(aspectRatio) > wideViewport.proportion(aspectRatio)
-      ? tallViewport
-      : wideViewport;
-
-  const screenNorthEast = map.value.unproject([width - padding, padding]);
-  const screenSouthWest = map.value.unproject([padding, height - padding]);
+  const screenNorthEast = map.value.unproject([
+    viewport.width - viewport.offsets.right,
+    viewport.offsets.top,
+  ]);
+  const screenSouthWest = map.value.unproject([
+    viewport.offsets.left,
+    viewport.height - viewport.offsets.bottom,
+  ]);
   const screenBounds = new LngLatBounds(screenSouthWest, screenNorthEast);
 
   if (
@@ -255,7 +304,7 @@ function flyTo(mapItems: MapItem[], zoom = false): void {
   ) {
     const maxZoom = zoom ? 30 : map.value.getZoom();
     map.value.fitBounds(bounds, {
-      padding: viewport,
+      padding: viewport.offsets,
       linear: true,
       maxZoom,
     });
