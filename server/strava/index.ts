@@ -1,6 +1,8 @@
 import type { DetailedGear, SummaryActivity, SummaryRoute } from './model';
 import RawStravaApi from './raw-api';
 
+console.log('initialising Strava class');
+
 export class Strava {
   private rawApi: RawStravaApi;
 
@@ -9,6 +11,8 @@ export class Strava {
     tokenCookie: string | undefined,
     requestLogin: (token: string, url: string) => Promise<void>,
   ) {
+    console.log('initialising Strava object');
+
     this.rawApi = new RawStravaApi(domain, tokenCookie, requestLogin);
   }
 

@@ -9,6 +9,8 @@ import NeedsLogin from '../needs-login';
 import { updateFile } from './file';
 import { addCallback } from './token';
 
+console.log('INITIALISING RAW_API');
+
 const { STRAVA_CLIENT_ID: stravaClientId, STRAVA_CLIENT_SECRET: stravaClientSecret } = process.env;
 
 const SESSIONS_DIR = 'sessions';
@@ -113,9 +115,10 @@ export default class RawStravaApi {
   private async getAccessTokenFromBrowser(): Promise<void> {
     const athleteInfoPromise = addCallback(this.token);
 
+    console.log(`Generating login link for ${this.token}`);
     await this.requestLogin(
       this.token,
-      `http://www.strava.com/oauth/authorize?client_id=${stravaClientId}&response_type=code&redirect_uri=${this.domain}/api/token&state=${this.token}&approval_prompt=auto&scope=read_all,activity:read_all`,
+      `https://www.strava.com/oauth/authorize?client_id=${stravaClientId}&response_type=code&redirect_uri=${this.domain}/api/token&state=${this.token}&approval_prompt=auto&scope=read_all,activity:read_all`,
     );
 
     await athleteInfoPromise.then(
