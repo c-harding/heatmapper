@@ -46,31 +46,42 @@ const minimisedOverlay = ref<HTMLElement>();
         </svg>
       </div>
     </div>
-    <div class="minimised-message map">
-      <p><Icon>map</Icon></p>
-      <p>Map</p>
-    </div>
-    <div class="minimised-message">
-      <p><Icon>arrow_back</Icon></p>
-      <p>Back</p>
+    <div class="tabs">
+      <div class="tab-curve top" />
+      <div class="tab map">
+        <p><Icon>map</Icon></p>
+        <p>Map</p>
+      </div>
+      <div class="tab back">
+        <p><Icon>arrow_back</Icon></p>
+        <p>Back</p>
+      </div>
+      <div class="tab-curve bottom" />
     </div>
 
     <section class="scrollable">
       <slot />
     </section>
 
-    <div class="overlay" @click="minimisedModel = !minimisedModel" @wheel="minimisedModel = true" />
+    <div class="overlays" @click="minimisedModel = !minimisedModel" @wheel="minimisedModel = true">
+      <div class="expanded overlay" />
+      <div ref="minimisedOverlay" class="minimised overlay" />
+    </div>
   </div>
 </template>
 
 <style lang="scss">
 $max-sidebar-width: calc(100vw - 6rem);
 $sidebar-width: 20rem;
-$minimised-width: 5rem;
+$minimised-width: 0rem;
+$corner-radius: 1rem;
+$scaled-corner-radius: min($corner-radius, 50%);
+$pseudo-scaled-corner-radius: min($corner-radius, 100%);
 $tab-width: 5rem;
 $tab-height: 5rem;
 $logo-height: 5rem;
 $max-size-to-minimise: 600px;
+$padding-top: 0.5rem;
 
 .sidebar {
   flex: 0 $sidebar-width;
@@ -89,7 +100,8 @@ $max-size-to-minimise: 600px;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 0.5em 0 0;
+    padding-top: $padding-top;
+    background-color: var(--background);
 
     transition:
       margin var(--transition-speed),
@@ -118,68 +130,182 @@ $max-size-to-minimise: 600px;
 
 .overlay {
   display: none;
+  pointer-events: none;
   cursor: pointer;
 }
 
-.minimised-message {
+.tabs {
+  position: relative;
+  z-index: -2;
   height: $tab-height;
-  background: var(--background);
   width: $tab-width;
+  margin-left: auto;
+  margin-bottom: -$tab-height;
+  background: var(--background);
+  border-bottom-right-radius: $corner-radius;
+  border-top-right-radius: $corner-radius;
+  transition:
+    margin var(--transition-speed),
+    width var(--transition-speed);
+
+  &::after {
+    content: '';
+    position: absolute;
+    width: $tab-width;
+    right: 100%;
+    top: 0;
+    bottom: 0;
+    background-color: var(--background);
+  }
+}
+
+.tab-curve {
+  width: 0;
+  position: relative;
+  margin-left: auto;
+  transition: width var(--transition-speed);
+}
+
+.tab-curve.bottom {
+  margin-top: $tab-height;
+}
+
+.tab-curve::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  left: 0;
+  height: 2em;
+  background-color: transparent;
+}
+
+.tab-curve.top::before {
+  bottom: 100%;
+  width: $scaled-corner-radius;
+  box-shadow: 0 $corner-radius 0 0 var(--background);
+  border-bottom-left-radius: $pseudo-scaled-corner-radius;
+  transition: left var(--transition-speed);
+}
+
+.tab-curve.bottom::before {
+  top: 100%;
+  width: $scaled-corner-radius;
+  box-shadow: 0 (-$corner-radius) 0 0 var(--background);
+  border-top-left-radius: $pseudo-scaled-corner-radius;
+  transition: left var(--transition-speed);
+}
+
+.tab {
+  position: relative;
+  height: 100%;
+  background: var(--background);
   display: flex;
   margin-bottom: -5rem;
   flex-direction: column;
+  align-items: end;
   justify-content: space-evenly;
   margin-left: auto;
   text-align: center;
-  transition: margin var(--transition-speed);
+  border-top-right-radius: $corner-radius;
+  border-bottom-right-radius: $corner-radius;
+  transition:
+    margin var(--transition-speed),
+    width var(--transition-speed);
 
   p {
-    margin: 0 1em;
+    margin: 0;
+    box-sizing: border-box;
+    padding: 0 1em;
+    width: $tab-width;
   }
 
   &.map {
-    border-radius: 0 1em 1em 0;
-    position: relative;
-    z-index: -1;
+    border-top-right-radius: $scaled-corner-radius;
 
-    &::before,
-    &::after {
-      position: absolute;
-      content: '';
-      height: 2em;
-      left: 0;
-      width: 1em;
-      background-color: transparent;
-    }
     &::before {
-      bottom: 100%;
-      box-shadow: 0 1em 0 0 var(--background);
-      border-bottom-left-radius: 1em;
+      content: '';
+      position: absolute;
+      z-index: -1;
+      background-color: inherit;
+      border-top-right-radius: $scaled-corner-radius;
+      height: 2 * $corner-radius;
+      width: 0;
+      top: 0;
+      right: 0;
+      transition:
+        margin var(--transition-speed),
+        width var(--transition-speed);
     }
+
     &::after {
-      top: 100%;
-      box-shadow: 0 -1em 0 0 var(--background);
-      border-top-left-radius: 1em;
+      content: '';
+      position: absolute;
+      z-index: -1;
+      background-color: inherit;
+      width: $corner-radius;
+      height: $corner-radius;
+      right: 0;
+      top: 0;
+      transition: right var(--transition-speed);
+    }
+  }
+  &.back {
+    &::before {
+      content: '';
+      position: absolute;
+      z-index: -1;
+      background-color: inherit;
+      border-bottom-right-radius: $scaled-corner-radius;
+      height: 2 * $corner-radius;
+      width: 0;
+      bottom: 0;
+      right: 0;
+      transition:
+        margin var(--transition-speed),
+        width var(--transition-speed);
+    }
+
+    &::after {
+      content: '';
+      position: absolute;
+      z-index: -1;
+      background-color: inherit;
+      width: $corner-radius;
+      height: $corner-radius;
+      right: 0;
+      bottom: 0;
+      transition: right var(--transition-speed);
     }
   }
 }
 
 @media screen and (max-width: $max-size-to-minimise) {
-  .overlay {
-    display: block;
-    position: absolute;
-    z-index: 2;
-    left: 100%;
-    top: 0;
-    bottom: 0;
-    width: 100vw;
-  }
-
   .sidebar {
     $sidebar-overlap-fallback: $minimised-width - $sidebar-width;
     $sidebar-overlap: calc(#{$minimised-width} - min(#{$sidebar-width}, #{$max-sidebar-width}));
     margin-right: $sidebar-overlap-fallback;
     margin-right: $sidebar-overlap;
+
+    .overlay {
+      display: block;
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+
+      &.expanded {
+        position: absolute;
+        z-index: 2;
+        left: 100%;
+        width: 100vw;
+      }
+
+      &.minimised {
+        left: $sidebar-width;
+        right: -$minimised-width - $tab-width;
+        height: $padding-top + $logo-height + $tab-height;
+      }
+    }
 
     &.minimised {
       margin-left: $sidebar-overlap-fallback;
@@ -196,19 +322,50 @@ $max-size-to-minimise: 600px;
         margin-right: $minimised-width;
       }
 
-      .overlay {
-        right: 0;
-        left: unset;
+      .header {
+        width: $minimised-width + $tab-width;
+        margin-right: -$minimised-width - $tab-width;
       }
 
-      .header {
-        width: $minimised-width;
-        margin-right: -$minimised-width;
+      .minimised.overlay {
+        pointer-events: all;
       }
     }
 
-    &:not(.minimised) .minimised-message.map {
+    &:not(.minimised) .expanded.overlay {
+      pointer-events: all;
+    }
+
+    .tabs {
       margin-right: -$tab-width;
+    }
+
+    &:not(.minimised) .tab.back {
+      margin-right: $tab-width;
+    }
+
+    &:not(.minimised) .tab.map::before {
+      width: $tab-width;
+    }
+
+    &:not(.minimised) .tab.map::after {
+      right: $tab-width;
+    }
+
+    &:not(.minimised) .tab-curve.top {
+      width: $tab-width;
+    }
+
+    .tab-curve.bottom {
+      width: $tab-width;
+    }
+
+    .tab.back::before {
+      width: $tab-width;
+    }
+
+    .tab.back::after {
+      right: $tab-width;
     }
   }
 }

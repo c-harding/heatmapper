@@ -23,6 +23,8 @@ const minimised = ref(false);
 
 const mapStyle = ref(MapStyle.STRAVA);
 
+const sidebarOverlaySize = ref<DOMRectReadOnly>();
+
 function clearMapItems(): void {
   mapItems.value = [];
 }
@@ -73,6 +75,7 @@ defineExpose({ mapItems });
       v-model:center="location"
       v-model:zoom="zoom"
       v-model:selected="selected"
+      :sidebar-overlay-size="sidebarOverlaySize"
       :terrain="terrain"
       :map-items="mapItems"
     />

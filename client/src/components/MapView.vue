@@ -21,6 +21,7 @@ import { computed, ref } from 'vue';
 import { nextTick, onMounted, watch } from 'vue';
 
 import { MapStyle } from '../MapStyle';
+import Viewport from '../Viewport';
 
 const colorOpacityFromZoom = (
   [r, g, b]: [r: number, g: number, b: number],
@@ -161,10 +162,12 @@ const props = withDefaults(
     mapItems: MapItem[];
     terrain?: boolean;
     mapStyle: MapStyle;
+    sidebarOverlaySize?: DOMRectReadOnly;
   }>(),
   {
     selected: () => [],
     terrain: false,
+    sidebarOverlaySize: undefined,
   },
 );
 
@@ -226,9 +229,25 @@ function flyTo(mapItems: MapItem[], zoom = false): void {
     new LngLatBounds(coordinates[0], coordinates[0]),
   );
   const { width, height } = map.value.getCanvas().getBoundingClientRect();
+
+  const overlayWidth = Math.max(props.sidebarOverlaySize?.width ?? 0, padding);
+  const overlayHeight = Math.max(props.sidebarOverlaySize?.height ?? 0, padding);
+
+  const aspectRatio =
+    (bounds.getNorth() - bounds.getSouth()) / (bounds.getEast() - bounds.getWest());
+
+  const tallViewport = new Viewport(width, height, overlayWidth, padding, padding, padding);
+  const wideViewport = new Viewport(width, height, padding, padding, overlayHeight, padding);
+
+  const viewport =
+    tallViewport.proportion(aspectRatio) > wideViewport.proportion(aspectRatio)
+      ? tallViewport
+      : wideViewport;
+
   const screenNorthEast = map.value.unproject([width - padding, padding]);
   const screenSouthWest = map.value.unproject([padding, height - padding]);
   const screenBounds = new LngLatBounds(screenSouthWest, screenNorthEast);
+
   if (
     zoom ||
     !screenBounds.contains(bounds.getSouthWest()) ||
@@ -236,7 +255,7 @@ function flyTo(mapItems: MapItem[], zoom = false): void {
   ) {
     const maxZoom = zoom ? 30 : map.value.getZoom();
     map.value.fitBounds(bounds, {
-      padding,
+      padding: viewport,
       linear: true,
       maxZoom,
     });
