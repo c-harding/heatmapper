@@ -5,8 +5,8 @@ import { computed, nextTick, onMounted, ref, watch } from 'vue';
 import { MapStyle } from '../MapStyle';
 import { findLastIndex } from '../utils/arrays';
 import { cancelTextSelection } from '../utils/ui';
+import CollapsibleSidebar from './CollapsibleSidebar.vue';
 import FormComponent from './Form.vue';
-import Icon from './Icon.vue';
 import SidebarItem from './SidebarItem.vue';
 
 function getRange(activities: MapItem[], to: string, from?: string | string[]): string[] {
@@ -129,26 +129,8 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="sidebar" :class="{ minimised }">
-    <div class="top-box">
-      <div class="header">
-        <svg viewBox="0 0 110 36">
-          <text x="55" text-anchor="middle" font-weight="bold">
-            <tspan x="55" y="13">Strava</tspan>
-            <tspan x="55" dy="18">Heatmapper</tspan>
-          </text>
-        </svg>
-      </div>
-    </div>
-    <div class="minimised-message map">
-      <p><Icon>map</Icon></p>
-      <p>Map</p>
-    </div>
-    <div class="minimised-message">
-      <p><Icon>arrow_back</Icon></p>
-      <p>Back</p>
-    </div>
-    <div class="scrollable">
+  <CollapsibleSidebar v-model:minimised="minimised">
+    <div class="sidebar-content">
       <FormComponent
         ref="form"
         v-model:terrain="terrainModel"
@@ -181,192 +163,50 @@ onMounted(() => {
         </span>
       </p>
     </div>
-
-    <div class="overlay" @click="minimised = !minimised" @wheel="minimised = true" />
-  </div>
+  </CollapsibleSidebar>
 </template>
 
-<style lang="scss">
-$max-sidebar-width: calc(100vw - 6rem);
-$sidebar-width: 20rem;
-$minimised-width: 5rem;
-$max-size-to-minimise: 600px;
-
-.sidebar {
-  flex: 0 $sidebar-width;
-  max-width: $max-sidebar-width;
+<style lang="scss" scoped>
+.sidebar-content {
+  flex: 1;
+  padding: 0 0 1em;
   display: flex;
   flex-direction: column;
-  color: var(--color);
-  background-color: var(--background);
-  transition: margin var(--transition-speed);
-  z-index: 1;
-  position: relative;
 
-  .header {
-    margin-left: auto;
-    width: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0.5em 0 0;
-
-    transition:
-      margin var(--transition-speed),
-      width var(--transition-speed);
-
-    svg {
-      height: $minimised-width;
-      fill: var(--color);
-      max-height: 100%;
-    }
+  > ul {
+    padding: 0;
+    margin: 0;
   }
 
-  > .scrollable {
-    flex: 1;
-    overflow: auto;
-    padding: 0 0 1em;
-    background-color: var(--background);
-    transition: margin var(--transition-speed);
-    display: flex;
-    flex-direction: column;
+  .credits {
+    font-size: 14px;
+    padding: 1em;
+    text-align: center;
+    margin: 0;
+    margin-top: auto;
 
-    > ul {
-      padding: 0;
-      margin: 0;
-    }
-
-    .credits {
-      font-size: 14px;
-      padding: 1em;
-      text-align: center;
-      margin: 0;
-      margin-top: auto;
-
-      .icon {
-        img {
-          height: 1.5em;
-          vertical-align: middle;
-        }
-
-        &.github {
-          font-size: 0.8em;
-        }
-
-        &.strava:not(:hover) {
-          filter: grayscale(1);
-        }
-
-        &.github:not(:hover) {
-          opacity: 0.6;
-        }
+    .icon {
+      img {
+        height: 1.5em;
+        vertical-align: middle;
       }
 
-      code {
-        font-family: 'SF Mono', SFMono-Regular, ui-monospace, 'DejaVu Sans Mono', Menlo, Consolas,
-          monospace;
-      }
-    }
-  }
-
-  .top-box {
-    transition: margin var(--transition-speed);
-  }
-}
-
-.overlay {
-  display: none;
-  cursor: pointer;
-}
-
-.minimised-message {
-  height: 5rem;
-  background: var(--background);
-  width: $minimised-width;
-  display: flex;
-  margin-bottom: -5rem;
-  flex-direction: column;
-  justify-content: space-evenly;
-  margin-left: auto;
-  text-align: center;
-  transition: margin var(--transition-speed);
-
-  p {
-    margin: 0 1em;
-  }
-
-  &.map {
-    border-radius: 0 1em 1em 0;
-    position: relative;
-    z-index: -1;
-
-    &::before,
-    &::after {
-      position: absolute;
-      content: '';
-      height: 2em;
-      left: 0;
-      width: 1em;
-      background-color: transparent;
-    }
-    &::before {
-      bottom: 100%;
-      box-shadow: 0 1em 0 0 var(--background);
-      border-bottom-left-radius: 1em;
-    }
-    &::after {
-      top: 100%;
-      box-shadow: 0 -1em 0 0 var(--background);
-      border-top-left-radius: 1em;
-    }
-  }
-}
-
-@media screen and (max-width: $max-size-to-minimise) {
-  .overlay {
-    display: block;
-    position: absolute;
-    z-index: 2;
-    left: 100%;
-    top: 0;
-    bottom: 0;
-    width: 100vw;
-  }
-
-  .sidebar {
-    $sidebar-overlap-fallback: $minimised-width - $sidebar-width;
-    $sidebar-overlap: calc(#{$minimised-width} - min(#{$sidebar-width}, #{$max-sidebar-width}));
-    margin-right: $sidebar-overlap-fallback;
-    margin-right: $sidebar-overlap;
-
-    &.minimised {
-      margin-left: $sidebar-overlap-fallback;
-      margin-left: $sidebar-overlap;
-      margin-right: 0;
-
-      > .scrollable {
-        margin-left: -$minimised-width;
-        margin-right: $minimised-width;
+      &.github {
+        font-size: 0.8em;
       }
 
-      .top-box {
-        margin-left: -$minimised-width;
-        margin-right: $minimised-width;
+      &.strava:not(:hover) {
+        filter: grayscale(1);
       }
 
-      .overlay {
-        right: 0;
-        left: unset;
-      }
-
-      .header {
-        width: $minimised-width;
-        margin-right: -$minimised-width;
+      &.github:not(:hover) {
+        opacity: 0.6;
       }
     }
 
-    &:not(.minimised) .minimised-message.map {
-      margin-right: -$minimised-width;
+    code {
+      font-family: 'SF Mono', SFMono-Regular, ui-monospace, 'DejaVu Sans Mono', Menlo, Consolas,
+        monospace;
     }
   }
 }
