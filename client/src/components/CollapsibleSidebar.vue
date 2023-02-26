@@ -301,7 +301,7 @@ $padding-top: 0.5rem;
       }
 
       &.minimised {
-        left: $sidebar-width;
+        left: 100%;
         right: -$minimised-width - $tab-width;
         height: $padding-top + $logo-height + $tab-height;
       }
