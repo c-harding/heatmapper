@@ -83,6 +83,13 @@ $logo-height: 5rem;
 $max-size-to-minimise: 600px;
 $padding-top: 0.5rem;
 
+@mixin pseudo-element {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  background-color: var(--background);
+}
+
 .sidebar {
   flex: 0 $sidebar-width;
   max-width: $max-sidebar-width;
@@ -148,14 +155,13 @@ $padding-top: 0.5rem;
     margin var(--transition-speed),
     width var(--transition-speed);
 
+  // Used for hiding the back button when the map button is shown
   &::after {
-    content: '';
-    position: absolute;
+    @include pseudo-element;
     width: $tab-width;
     right: 100%;
     top: 0;
     bottom: 0;
-    background-color: var(--background);
   }
 }
 
@@ -166,22 +172,25 @@ $padding-top: 0.5rem;
   transition: width var(--transition-speed);
 }
 
+.tab-curve.top {
+  width: calc($tab-width * var(--top-curve, 0));
+}
+
 .tab-curve.bottom {
   margin-top: $tab-height;
+  width: calc($tab-width * var(--bottom-curve, 0));
 }
 
 .tab-curve::before {
-  content: '';
-  position: absolute;
-  z-index: -1;
+  @include pseudo-element;
   left: 0;
   height: 2em;
   background-color: transparent;
+  width: $scaled-corner-radius;
 }
 
 .tab-curve.top::before {
   bottom: 100%;
-  width: $scaled-corner-radius;
   box-shadow: 0 $corner-radius 0 0 var(--background);
   border-bottom-left-radius: $pseudo-scaled-corner-radius;
   transition: left var(--transition-speed);
@@ -189,7 +198,6 @@ $padding-top: 0.5rem;
 
 .tab-curve.bottom::before {
   top: 100%;
-  width: $scaled-corner-radius;
   box-shadow: 0 (-$corner-radius) 0 0 var(--background);
   border-top-left-radius: $pseudo-scaled-corner-radius;
   transition: left var(--transition-speed);
@@ -219,62 +227,51 @@ $padding-top: 0.5rem;
     width: $tab-width;
   }
 
-  &.map {
-    border-top-right-radius: $scaled-corner-radius;
+  // The rounded corners for the folding buttons
+  &::before {
+    @include pseudo-element;
+    right: 0;
+    height: 2 * $corner-radius;
+    width: 0;
+    transition:
+      margin var(--transition-speed),
+      width var(--transition-speed);
+  }
 
+  // Used for filling in the gap when a rounded corner is reduced to zero width in the animation
+  &::after {
+    @include pseudo-element;
+    right: 0;
+    width: $corner-radius;
+    height: $corner-radius;
+    transition: right var(--transition-speed);
+  }
+
+  // The top right corner
+  &.map {
     &::before {
-      content: '';
-      position: absolute;
-      z-index: -1;
-      background-color: inherit;
-      border-top-right-radius: $scaled-corner-radius;
-      height: 2 * $corner-radius;
-      width: 0;
       top: 0;
-      right: 0;
-      transition:
-        margin var(--transition-speed),
-        width var(--transition-speed);
+      width: calc($tab-width * var(--top-curve, 0));
+      border-top-right-radius: $scaled-corner-radius;
     }
 
     &::after {
-      content: '';
-      position: absolute;
-      z-index: -1;
-      background-color: inherit;
-      width: $corner-radius;
-      height: $corner-radius;
-      right: 0;
       top: 0;
-      transition: right var(--transition-speed);
+      right: calc($tab-width * var(--top-curve, 0));
     }
   }
+
+  // The bottom right corner
   &.back {
     &::before {
-      content: '';
-      position: absolute;
-      z-index: -1;
-      background-color: inherit;
-      border-bottom-right-radius: $scaled-corner-radius;
-      height: 2 * $corner-radius;
-      width: 0;
       bottom: 0;
-      right: 0;
-      transition:
-        margin var(--transition-speed),
-        width var(--transition-speed);
+      width: calc($tab-width * var(--bottom-curve, 0));
+      border-bottom-right-radius: $scaled-corner-radius;
     }
 
     &::after {
-      content: '';
-      position: absolute;
-      z-index: -1;
-      background-color: inherit;
-      width: $corner-radius;
-      height: $corner-radius;
-      right: 0;
       bottom: 0;
-      transition: right var(--transition-speed);
+      right: calc($tab-width * var(--bottom-curve, 0));
     }
   }
 }
@@ -312,12 +309,8 @@ $padding-top: 0.5rem;
       margin-left: $sidebar-overlap;
       margin-right: 0;
 
+      > .top-box,
       > .scrollable {
-        margin-left: -$minimised-width;
-        margin-right: $minimised-width;
-      }
-
-      .top-box {
         margin-left: -$minimised-width;
         margin-right: $minimised-width;
       }
@@ -332,41 +325,23 @@ $padding-top: 0.5rem;
       }
     }
 
-    &:not(.minimised) .expanded.overlay {
-      pointer-events: all;
-    }
-
     .tabs {
       margin-right: -$tab-width;
     }
 
-    &:not(.minimised) .tab.back {
-      margin-right: $tab-width;
+    &:not(.minimised) {
+      .tab.back {
+        margin-right: $tab-width;
+      }
+
+      --top-curve: 1;
+
+      .expanded.overlay {
+        pointer-events: all;
+      }
     }
 
-    &:not(.minimised) .tab.map::before {
-      width: $tab-width;
-    }
-
-    &:not(.minimised) .tab.map::after {
-      right: $tab-width;
-    }
-
-    &:not(.minimised) .tab-curve.top {
-      width: $tab-width;
-    }
-
-    .tab-curve.bottom {
-      width: $tab-width;
-    }
-
-    .tab.back::before {
-      width: $tab-width;
-    }
-
-    .tab.back::after {
-      right: $tab-width;
-    }
+    --bottom-curve: 1;
   }
 }
 </style>
