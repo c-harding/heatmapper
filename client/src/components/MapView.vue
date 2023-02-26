@@ -313,7 +313,12 @@ function addMapElement(): mapboxgl.Map {
       center,
       zoom,
     });
+
     newMap.addControl(new mapboxgl.FullscreenControl(), 'top-right');
+    newMap.addControl(
+      new mapboxgl.NavigationControl({ showZoom: false, visualizePitch: true }),
+      'top-right',
+    );
     newMap.addControl(new mapboxgl.ScaleControl(), 'bottom-left');
   }
   map = newMap;
