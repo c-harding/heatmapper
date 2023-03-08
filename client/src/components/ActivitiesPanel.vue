@@ -73,8 +73,6 @@ const selectionBase = ref<string[]>();
 
 const gitHash = process.env.VUE_APP_GIT_HASH ?? null;
 
-const nbsp = '\xa0';
-
 const sidebarItemList = ref<HTMLUListElement>();
 
 function toggleInArray<T>(array: T[], item: T): T[] {
@@ -146,19 +144,23 @@ onMounted(() => {
         @dblclick="forceSelect"
       />
     </ul>
-    <p class="credits">
-      Made by Charlie{{ nbsp }}Harding
-      <a class="icon strava" href="https://www.strava.com/athletes/13013632"
-        ><img src="@/assets/strava.png"
-      /></a>
-      <a class="icon github" href="https://github.com/c-harding/heatmapper"
-        ><img src="@/assets/github.png"
-      /></a>
-      <br />
-      <span v-if="gitHash" class="credits">
+    <div class="credits">
+      <p>
+        Made by
+        <span class="keep-together">Charlie Harding</span>
+        <span class="keep-together">
+          <a class="icon strava" href="https://www.strava.com/athletes/13013632"
+            ><img src="@/assets/strava.png"
+          /></a>
+          <a class="icon github" href="https://github.com/c-harding/heatmapper"
+            ><img src="@/assets/github.png"
+          /></a>
+        </span>
+      </p>
+      <p v-if="gitHash">
         Build <code>{{ gitHash }}</code>
-      </span>
-    </p>
+      </p>
+    </div>
   </div>
 </template>
 
@@ -178,8 +180,11 @@ onMounted(() => {
     font-size: 14px;
     padding: 1em;
     text-align: center;
-    margin: 0;
     margin-top: auto;
+
+    p {
+      margin: 0;
+    }
 
     .icon {
       img {
@@ -204,6 +209,10 @@ onMounted(() => {
       font-family: 'SF Mono', SFMono-Regular, ui-monospace, 'DejaVu Sans Mono', Menlo, Consolas,
         monospace;
     }
+  }
+
+  .keep-together {
+    display: inline-block;
   }
 }
 </style>
