@@ -48,5 +48,5 @@ module.exports = {
     },
   },
   outputDir: '../dist/client',
-  productionSourceMap: false,
+  productionSourceMap: true,
 };

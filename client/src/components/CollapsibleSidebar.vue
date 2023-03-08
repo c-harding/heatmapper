@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref } from 'vue';
+import { ref } from 'vue';
 
 import { useModel } from '../utils/useModel';
 import Icon from './Icon.vue';
@@ -13,21 +13,7 @@ const props = withDefaults(
 
 const emit = defineEmits<{
   (e: 'update:minimised', value: boolean): void;
-  (e: 'sidebar-size', value: DOMRectReadOnly | undefined): void;
 }>();
-
-function emitPaddingDimensions() {
-  emit('sidebar-size', minimisedOverlay.value?.getBoundingClientRect());
-}
-
-onMounted(() => {
-  emitPaddingDimensions();
-  window.addEventListener('resize', emitPaddingDimensions, { passive: true });
-});
-
-onBeforeUnmount(() => {
-  window.removeEventListener('resize', emitPaddingDimensions);
-});
 
 const minimisedModel = useModel('minimised', props)(emit);
 
@@ -71,7 +57,6 @@ const minimisedOverlay = ref<HTMLElement>();
 </template>
 
 <style lang="scss">
-$max-sidebar-width: calc(100vw - 6rem);
 $sidebar-width: 20rem;
 $minimised-width: 0rem;
 $corner-radius: 1rem;
@@ -81,7 +66,7 @@ $tab-width: 5rem;
 $tab-height: 5rem;
 $logo-height: 5rem;
 $max-size-to-minimise: 600px;
-$padding-top: 0.5rem;
+$padding-top: calc(0.5rem + var(--top-safe-area));
 
 @mixin pseudo-element {
   content: '';
@@ -92,7 +77,6 @@ $padding-top: 0.5rem;
 
 .sidebar {
   flex: 0 $sidebar-width;
-  max-width: $max-sidebar-width;
   display: flex;
   flex-direction: column;
   color: var(--color);
@@ -100,6 +84,7 @@ $padding-top: 0.5rem;
   transition: margin var(--transition-speed);
   z-index: 1;
   position: relative;
+  padding-left: var(--left-safe-area);
 
   .header {
     margin-left: auto;
@@ -128,6 +113,7 @@ $padding-top: 0.5rem;
     overflow: auto;
     transition: margin var(--transition-speed);
     background-color: var(--background);
+    padding-bottom: var(--bottom-safe-area);
   }
 
   .top-box {
@@ -278,9 +264,10 @@ $padding-top: 0.5rem;
 
 @media screen and (max-width: $max-size-to-minimise) {
   .sidebar {
-    $sidebar-overlap-fallback: $minimised-width - $sidebar-width;
-    $sidebar-overlap: calc(#{$minimised-width} - min(#{$sidebar-width}, #{$max-sidebar-width}));
-    margin-right: $sidebar-overlap-fallback;
+    $sidebar-overlap: $minimised-width - $sidebar-width;
+    $sidebar-overlay-width: $minimised-width + $tab-width;
+    $sidebar-overlay-height: calc(#{$padding-top} + #{$logo-height} + #{$tab-height});
+
     margin-right: $sidebar-overlap;
 
     .overlay {
@@ -295,17 +282,17 @@ $padding-top: 0.5rem;
         z-index: 2;
         left: 100%;
         width: 100vw;
+        width: 100dvw;
       }
 
       &.minimised {
         left: 100%;
-        right: -$minimised-width - $tab-width;
-        height: $padding-top + $logo-height + $tab-height;
+        right: -$sidebar-overlay-width;
+        height: $sidebar-overlay-height;
       }
     }
 
     &.minimised {
-      margin-left: $sidebar-overlap-fallback;
       margin-left: $sidebar-overlap;
       margin-right: 0;
 
@@ -322,6 +309,11 @@ $padding-top: 0.5rem;
 
       .minimised.overlay {
         pointer-events: all;
+      }
+
+      + * {
+        --sidebar-overlay-width: #{$sidebar-overlay-width};
+        --sidebar-overlay-height: #{$sidebar-overlay-height};
       }
     }
 

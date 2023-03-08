@@ -23,8 +23,6 @@ const minimised = ref(false);
 
 const mapStyle = ref(MapStyle.STRAVA);
 
-const sidebarOverlaySize = ref<DOMRectReadOnly>();
-
 function clearMapItems(): void {
   mapItems.value = [];
 }
@@ -56,7 +54,7 @@ defineExpose({ mapItems });
 
 <template>
   <div id="app">
-    <CollapsibleSidebar v-model:minimised="minimised" @sidebar-size="sidebarOverlaySize = $event">
+    <CollapsibleSidebar v-model:minimised="minimised">
       <ActivitiesPanel
         v-model:map-style="mapStyle"
         v-model:selected="selected"
@@ -75,7 +73,6 @@ defineExpose({ mapItems });
       v-model:center="location"
       v-model:zoom="zoom"
       v-model:selected="selected"
-      :sidebar-overlay-size="sidebarOverlaySize"
       :terrain="terrain"
       :map-items="mapItems"
     />
@@ -111,6 +108,11 @@ a {
   --background-strong: #ccc;
   --transition-speed: 0.5s;
   --link-color: blue;
+
+  --left-safe-area: env(safe-area-inset-left);
+  --right-safe-area: env(safe-area-inset-right);
+  --top-safe-area: env(safe-area-inset-top);
+  --bottom-safe-area: env(safe-area-inset-bottom);
 }
 
 @media (prefers-color-scheme: dark) {

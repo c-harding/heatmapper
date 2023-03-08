@@ -17,7 +17,7 @@ import { useHead } from '@unhead/vue';
 import type { GeoJSON } from 'geojson';
 import { LngLatBounds } from 'mapbox-gl';
 import type { VNode } from 'vue';
-import { computed, ref } from 'vue';
+import { computed, onBeforeUnmount, ref } from 'vue';
 import { nextTick, onMounted, watch } from 'vue';
 
 import { MapStyle } from '../MapStyle';
@@ -161,12 +161,10 @@ const props = withDefaults(
     mapItems: MapItem[];
     terrain?: boolean;
     mapStyle: MapStyle;
-    sidebarOverlaySize?: DOMRectReadOnly;
   }>(),
   {
     selected: () => [],
     terrain: false,
-    sidebarOverlaySize: undefined,
   },
 );
 
@@ -235,7 +233,7 @@ function optimiseViewport(map: mapboxgl.Map, bounds: LngLatBounds) {
 
   const aspectRatio = (northWest.y - southEast.y) / (northWest.x - southEast.x);
 
-  const topLeft = props.sidebarOverlaySize;
+  const topLeft = container.value?.querySelector('.mapboxgl-ctrl-top-left');
   const topRight = container.value?.querySelector('.mapboxgl-ctrl-top-right');
   const bottomLeft = container.value?.querySelector('.mapboxgl-ctrl-bottom-left');
   const bottomRight = container.value?.querySelector('.mapboxgl-ctrl-bottom-right');
@@ -246,7 +244,7 @@ function optimiseViewport(map: mapboxgl.Map, bounds: LngLatBounds) {
     new Viewport(width, height, { left: padding, top: padding, bottom: padding, right: padding }),
   ]
     .flatMap((viewport) =>
-      [{ top: topLeft?.height }, { left: topLeft?.width ?? 0 }].map((offset) =>
+      [{ top: topLeft?.clientHeight }, { left: topLeft?.clientWidth ?? 0 }].map((offset) =>
         viewport.withOffset(offset),
       ),
     )
@@ -314,6 +312,16 @@ function flyTo(mapItems: MapItem[], zoom = false): void {
 function zoomToSelection(): void {
   flyTo(selectedMapItems.value, true);
 }
+
+const resizeHandler = () => map.value?.resize();
+
+onMounted(() => {
+  window.addEventListener('transitionend', resizeHandler, { passive: true });
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener('transitionend', resizeHandler);
+});
 
 function applyMapItems(next: MapItem[], sourceID: string): void {
   const source = map.value?.getSource(sourceID);
@@ -430,5 +438,32 @@ defineExpose({ zoomToSelection });
 .mapboxgl-canvas {
   cursor: pointer;
   outline: none;
+  left: 0;
+  right: 0;
+  margin-left: 50%;
+  transform: translateX(-50%);
+}
+
+.mapboxgl-ctrl-top-right {
+  padding-top: var(--top-safe-area);
+}
+
+.mapboxgl-ctrl-top-right {
+  padding-top: var(--top-safe-area);
+}
+
+.mapboxgl-ctrl-top-left {
+  padding-top: max(var(--top-safe-area), var(--sidebar-overlay-height, 0));
+  padding-left: var(--sidebar-overlay-width, 0);
+}
+
+.mapboxgl-ctrl-bottom-left,
+.mapboxgl-ctrl-bottom-right {
+  padding-bottom: var(--bottom-safe-area);
+}
+
+.mapboxgl-ctrl-top-right,
+.mapboxgl-ctrl-bottom-right {
+  padding-right: var(--right-safe-area);
 }
 </style>
