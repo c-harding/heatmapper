@@ -1,13 +1,18 @@
 <script setup lang="ts">
 import type { Activity, Route } from '@strava-heatmapper/shared/interfaces';
-import { $computed } from 'vue/macros';
+import { computed } from 'vue';
 
 import Spinner from './Spinner.vue';
 
-const { activity, selected = false } = defineProps<{
-  activity: Activity | Route;
-  selected?: boolean;
-}>();
+const props = withDefaults(
+  defineProps<{
+    activity: Activity | Route;
+    selected?: boolean;
+  }>(),
+  {
+    selected: false,
+  },
+);
 
 const emit = defineEmits<{
   (e: 'click', value: MouseEvent): void;
@@ -15,9 +20,9 @@ const emit = defineEmits<{
   (e: 'dblclick', value: MouseEvent): void;
 }>();
 
-const url: string = $computed(() => {
-  if ((activity as Route).route) return `https://www.strava.com/routes/${activity.id}`;
-  return `https://www.strava.com/activities/${activity.id}`;
+const url = computed<string>(() => {
+  if ((props.activity as Route).route) return `https://www.strava.com/routes/${props.activity.id}`;
+  return `https://www.strava.com/activities/${props.activity.id}`;
 });
 </script>
 

@@ -1,21 +1,24 @@
 <script setup lang="ts">
 import { useHead } from '@vueuse/head';
-import { $computed } from 'vue/macros';
+import { computed } from 'vue';
 
-const {
-  inline = false,
-  large = false,
-  placeholder = false,
-  bottom = false,
-} = defineProps<{
-  inline?: boolean;
-  large?: boolean;
-  placeholder?: boolean;
-  bottom?: boolean;
-}>();
+const props = withDefaults(
+  defineProps<{
+    inline?: boolean;
+    large?: boolean;
+    placeholder?: boolean;
+    bottom?: boolean;
+  }>(),
+  {
+    inline: false,
+    large: false,
+    placeholder: false,
+    bottom: false,
+  },
+);
 
-const generated = $computed(() => {
-  if (placeholder) return 'crop_square';
+const generated = computed(() => {
+  if (props.placeholder) return 'crop_square';
   return '';
 });
 

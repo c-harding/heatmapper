@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import type { Activity, Gear, ResponseMessage, Route } from '@strava-heatmapper/shared/interfaces';
 import { TimeRange } from '@strava-heatmapper/shared/interfaces';
-import { reactive, watch } from 'vue';
-import { $$, $computed, $ref } from 'vue/macros';
+import { computed, reactive, ref, watch } from 'vue';
 
 import activityTypes from '../activityTypes';
 import { MapStyle } from '../MapStyle';
@@ -21,10 +20,16 @@ import DateInput from './DateInput.vue';
 import Dropdown from './Dropdown.vue';
 import Login from './Login.vue';
 
-const { terrain = false, mapStyle = MapStyle.STRAVA } = defineProps<{
-  terrain?: boolean;
-  mapStyle?: MapStyle;
-}>();
+const props = withDefaults(
+  defineProps<{
+    terrain?: boolean;
+    mapStyle?: MapStyle;
+  }>(),
+  {
+    terrain: false,
+    mapStyle: MapStyle.STRAVA,
+  },
+);
 
 /** A map of all gear, where null represents gear that is not yet fetched */
 const gear = reactive(new Map<string, Gear | null>());
@@ -43,9 +48,9 @@ const DAY = 24 * 60 * 60 * 1000;
 const MIN_TIMEZONE_ADJUSTMENT = 14 * 60 * 60 * 1000;
 const MAX_TIMEZONE_ADJUSTMENT = -12 * 60 * 60 * 1000;
 
-const mapStyleModel = $computed<MapStyle>({
+const mapStyleModel = computed<MapStyle>({
   get() {
-    return mapStyle;
+    return props.mapStyle;
   },
   set(value) {
     emit('update:mapStyle', value);
@@ -87,10 +92,10 @@ function filterActivities<ActivityOrRoute extends Activity | Route>(
   );
 }
 
-let start: Date | null = $ref(null);
-let end: Date | null = $ref(null);
-let continueLogin: ((withCookies: boolean) => void) | null = $ref(null);
-let activityType = $ref('');
+const start = ref<Date | null>(null);
+const end = ref<Date | null>(null);
+const continueLogin = ref<((withCookies: boolean) => void) | null>(null);
+const activityType = ref('');
 const sortedActivityTypes = Object.entries(activityTypes)
   .map(([value, label]) => ({ value, label }))
   .sort((a, b) => a.label.localeCompare(b.label));
@@ -101,58 +106,62 @@ interface LoadingStats {
   cleared?: boolean;
 }
 
-let stats = $ref<LoadingStats>({});
+const stats = ref<LoadingStats>({});
 
-let clientStats = $ref({
+const clientStats = ref({
   mapsRequested: 0,
   mapsLoaded: 0,
   mapsNotCached: 0,
   inCache: true,
 });
 
-let error: string | null = $ref(null);
+const error = ref<string | null>(null);
 
-let starting = $ref(false);
+const starting = ref(false);
 
-const statusMessage = $computed(() => {
-  return error || statsMessage();
+const statusMessage = computed(() => {
+  return error.value || statsMessage();
 });
 
 function statsMessage(): string {
   // TODO: lift finding up
 
-  if (stats.cleared) return 'Cleared cache';
+  if (stats.value.cleared) return 'Cleared cache';
   return capitalise(
     nonEmpties(
-      findingString(stats.finding, clientStats.inCache),
-      mapString(clientStats.mapsRequested, clientStats.mapsLoaded, clientStats.mapsNotCached),
+      findingString(stats.value.finding, clientStats.value.inCache),
+      mapString(
+        clientStats.value.mapsRequested,
+        clientStats.value.mapsLoaded,
+        clientStats.value.mapsNotCached,
+      ),
     ).join(', '),
   );
 }
 
 function setError(message: string): void {
-  error = message;
+  error.value = message;
 }
 
 function clearCache(): void {
   localStorage.clear();
   document.cookie = `token=;expires=${new Date(0).toUTCString()}`;
-  stats = { cleared: true };
+  stats.value = { cleared: true };
   emit('clear-activities');
 }
 
 function receiveMaps(maps: Record<string, string>): void {
-  clientStats.mapsLoaded += Object.keys(maps).length;
+  clientStats.value.mapsLoaded += Object.keys(maps).length;
   emit('add-activity-maps', maps);
 }
 
-watch($$(activityType), () => {
+watch(activityType, () => {
   emit('clear-activities');
   loadFromCache();
 });
 
 function requestMaps(ids: (number | string)[], socket?: Socket): void {
-  clientStats.mapsRequested += ids.length;
+  clientStats.value.mapsRequested += ids.length;
   const { cached, notCached } = getCachedMaps(ids);
   if (socket && notCached.length) {
     socket.sendRequest({
@@ -180,7 +189,12 @@ function requestGear(ids: (string | undefined)[], socket?: Socket) {
 }
 
 function receiveActivities(activities: Activity[], socket?: Socket): void {
-  const filteredActivities = filterActivities(activities, activityType, start, end);
+  const filteredActivities = filterActivities(
+    activities,
+    activityType.value,
+    start.value,
+    end.value,
+  );
   requestGear(
     filteredActivities.map(({ gear }) => gear),
     socket,
@@ -193,7 +207,7 @@ function receiveActivities(activities: Activity[], socket?: Socket): void {
 }
 
 function receiveRoutes(routes: Route[], socket?: Socket): void {
-  const filteredRoutes = filterActivities(routes, activityType, start, end);
+  const filteredRoutes = filterActivities(routes, activityType.value, start.value, end.value);
   emit('add-activities', filteredRoutes);
   requestMaps(
     filteredRoutes.map(({ id }) => id),
@@ -204,9 +218,9 @@ function receiveRoutes(routes: Route[], socket?: Socket): void {
 function checkFinished(socket?: Socket): void {
   if (
     socket &&
-    !starting &&
-    clientStats.mapsRequested === clientStats.mapsLoaded &&
-    stats.finding?.finished
+    !starting.value &&
+    clientStats.value.mapsRequested === clientStats.value.mapsLoaded &&
+    stats.value.finding?.finished
   ) {
     socket.close();
   }
@@ -215,9 +229,9 @@ function checkFinished(socket?: Socket): void {
 function loadFromCache(partial = false): void {
   const activities = getCachedActivities();
   if (activities && activities.length) {
-    if (!partial) stats = { finding: { finished: true, length: activities.length } };
+    if (!partial) stats.value = { finding: { finished: true, length: activities.length } };
     const cachedActivities = activities.filter(({ id }) => getCachedMap(id));
-    clientStats.mapsNotCached = activities.length - cachedActivities.length;
+    clientStats.value.mapsNotCached = activities.length - cachedActivities.length;
     receiveActivities(cachedActivities);
   }
 }
@@ -249,13 +263,13 @@ async function loadRoutes(): Promise<void> {
 async function sockets({ partial = false, routes = false } = {}): Promise<void> {
   emit('clear-activities');
   if (partial) loadFromCache(partial);
-  clientStats = {
+  clientStats.value = {
     mapsRequested: 0,
     mapsLoaded: 0,
     mapsNotCached: 0,
     inCache: false,
   };
-  error = null;
+  error.value = null;
 
   // The dates shown in the UI are formatted in event-local time.
   // In order to ensure that all events are correctly shown, we need to ensure that the start
@@ -263,8 +277,9 @@ async function sockets({ partial = false, routes = false } = {}): Promise<void> 
   // the end timestamp represents the latest point that this date ends anywhere on Earth.
   // Note that the dates are then filtered in the frontend to ensure that only those which were
   // started on the correct day according to activity-local time are shown.
-  const startTimestamp = start ? (start.getTime() - MIN_TIMEZONE_ADJUSTMENT) / 1000 : 0;
-  const endTimestamp = (end ? end.getTime() + DAY - MAX_TIMEZONE_ADJUSTMENT : Date.now()) / 1000;
+  const startTimestamp = start.value ? (start.value.getTime() - MIN_TIMEZONE_ADJUSTMENT) / 1000 : 0;
+  const endTimestamp =
+    (end.value ? end.value.getTime() + DAY - MAX_TIMEZONE_ADJUSTMENT : Date.now()) / 1000;
 
   let latestActivityDate = startTimestamp;
 
@@ -275,8 +290,8 @@ async function sockets({ partial = false, routes = false } = {}): Promise<void> 
       const data: ResponseMessage = JSON.parse(message.data);
       switch (data.type) {
         case 'stats': {
-          const oldStats = stats;
-          stats = data;
+          const oldStats = stats.value;
+          stats.value = data;
           if (!oldStats?.finding?.finished && data.finding.finished) {
             appendCachedActivities([], latestActivityDate, startTimestamp);
           }
@@ -311,9 +326,9 @@ async function sockets({ partial = false, routes = false } = {}): Promise<void> 
           break;
         }
         case 'login': {
-          continueLogin = (cookies = true) => {
+          continueLogin.value = (cookies = true) => {
             if (cookies) document.cookie = `token=${data.cookie};max-age=31536000`;
-            continueLogin = null;
+            continueLogin.value = null;
             window.open(data.url, 'menubar=false,toolbar=false,width=300, height=300');
           };
           break;
@@ -327,7 +342,7 @@ async function sockets({ partial = false, routes = false } = {}): Promise<void> 
       if (errored) {
         setError('Error fetching activities');
       } else {
-        stats = { status: 'disconnected' };
+        stats.value = { status: 'disconnected' };
       }
     },
   );
@@ -335,7 +350,7 @@ async function sockets({ partial = false, routes = false } = {}): Promise<void> 
   if (routes) {
     startLoadingRoutes(socket);
   } else {
-    starting = true;
+    starting.value = true;
 
     let ranges: TimeRange[];
     if (partial) {
@@ -347,7 +362,7 @@ async function sockets({ partial = false, routes = false } = {}): Promise<void> 
     }
 
     startLoading(socket, ranges);
-    starting = false;
+    starting.value = false;
   }
 }
 

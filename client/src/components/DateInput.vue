@@ -1,18 +1,24 @@
 <script setup lang="ts">
-import { $ref } from 'vue/macros';
+import { ref } from 'vue';
 
 import Icon from './Icon.vue';
 
-const { modelValue = null, name } = defineProps<{
-  modelValue?: Date | null;
-  name?: string;
-}>();
+withDefaults(
+  defineProps<{
+    modelValue?: Date | null;
+    name?: string;
+  }>(),
+  {
+    modelValue: null,
+    name: undefined,
+  },
+);
 
 const emit = defineEmits<{
   (e: 'update:modelValue', value: Date | null): void;
 }>();
 
-const input = $ref<HTMLInputElement>();
+const input = ref<HTMLInputElement>();
 
 // Set to the start of the UTC day provided
 function dateToYYYYMMDD(date: Date | null): string | null {
@@ -28,7 +34,7 @@ function dateToYYYYMMDD(date: Date | null): string | null {
       type="date"
       :name="name"
       :value="dateToYYYYMMDD(modelValue)"
-      @change="emit('update:modelValue', input.valueAsDate)"
+      @change="emit('update:modelValue', input!.valueAsDate)"
     />
     <Icon class="icon"> expand_more </Icon>
   </div>

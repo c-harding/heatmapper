@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { Activity, Route } from '@strava-heatmapper/shared/interfaces';
-import { nextTick, onMounted, watch } from 'vue';
-import { $$, $computed, $ref } from 'vue/macros';
+import { computed, nextTick, onMounted, ref, watch } from 'vue';
 
 import { MapStyle } from '../MapStyle';
 import { findLastIndex } from '../utils/arrays';
@@ -22,17 +21,20 @@ function getRange(activities: Activity[], to: number, from?: number | number[]):
   return activities.slice(start, end + 1).map(({ id }) => id);
 }
 
-const {
-  activities = [],
-  selected = [],
-  terrain = false,
-  mapStyle = MapStyle.STRAVA,
-} = defineProps<{
-  activities: Activity[];
-  selected?: number[];
-  terrain?: boolean;
-  mapStyle?: MapStyle;
-}>();
+const props = withDefaults(
+  defineProps<{
+    activities: Activity[];
+    selected?: number[];
+    terrain?: boolean;
+    mapStyle?: MapStyle;
+  }>(),
+  {
+    activities: () => [],
+    selected: () => [],
+    terrain: false,
+    mapStyle: MapStyle.STRAVA,
+  },
+);
 
 const emit = defineEmits<{
   (e: 'zoom-to-selected'): void;
@@ -45,37 +47,37 @@ const emit = defineEmits<{
   (e: 'update:terrain', value: boolean): void;
 }>();
 
-const mapStyleModel = $computed<MapStyle>({
+const mapStyleModel = computed<MapStyle>({
   get() {
-    return mapStyle;
+    return props.mapStyle;
   },
   set(value) {
     emit('update:mapStyle', value);
   },
 });
 
-const terrainModel = $computed<boolean>({
+const terrainModel = computed<boolean>({
   get() {
-    return terrain;
+    return props.terrain;
   },
   set(value) {
     emit('update:terrain', value);
   },
 });
 
-const form = $ref<InstanceType<typeof FormComponent>>();
+const form = ref<InstanceType<typeof FormComponent>>();
 
-let localSelected: number[] | undefined = $ref();
+const localSelected = ref<number[]>();
 
-let selectionBase: number[] | undefined = $ref();
+const selectionBase = ref<number[]>();
 
-let minimised = $ref(false);
+const minimised = ref(false);
 
 const gitHash = process.env.VUE_APP_GIT_HASH ?? null;
 
 const nbsp = '\xa0';
 
-const activityItemList = $ref<HTMLUListElement>();
+const activityItemList = ref<HTMLUListElement>();
 
 function toggleInArray<T>(array: T[], item: T): T[] {
   if (array.includes(item)) return array.filter((x) => x !== item);
@@ -83,8 +85,8 @@ function toggleInArray<T>(array: T[], item: T): T[] {
 }
 
 function getSelection(id: number, e: MouseEvent): number[] {
-  if (e.metaKey || e.ctrlKey) return toggleInArray(selected, id);
-  if (e.shiftKey) return getRange(activities, id, selectionBase);
+  if (e.metaKey || e.ctrlKey) return toggleInArray(props.selected, id);
+  if (e.shiftKey) return getRange(props.activities, id, selectionBase.value);
   return [id];
 }
 
@@ -95,30 +97,33 @@ function click(id: number, e: MouseEvent): void {
 function select(id: number, e: MouseEvent): void {
   if (e.shiftKey) cancelTextSelection();
   const newSelected = getSelection(id, e);
-  if (newSelected.length === 1) selectionBase = newSelected;
-  localSelected = newSelected;
+  if (newSelected.length === 1) selectionBase.value = newSelected;
+  localSelected.value = newSelected;
   emit('update:selected', newSelected);
 }
 
 function forceSelect(): void {
   cancelTextSelection();
-  emit('zoom-to-selected', selected);
+  emit('zoom-to-selected', props.selected);
 }
 
-watch($$(selected), async (selected: number[]) => {
-  if (selected !== localSelected) {
-    localSelected = selected;
-    selectionBase = selected;
-    if (selected.length !== 0) minimised = false;
-    await nextTick();
-    const el = activityItemList?.querySelector('.selected');
-    if (el) el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-  }
-});
+watch(
+  () => props.selected,
+  async (selected: number[]) => {
+    if (selected !== localSelected.value) {
+      localSelected.value = selected;
+      selectionBase.value = selected;
+      if (selected.length !== 0) minimised.value = false;
+      await nextTick();
+      const el = activityItemList.value?.querySelector('.selected');
+      if (el) el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }
+  },
+);
 
 onMounted(() => {
-  if (!activities || activities.length === 0) {
-    form?.loadFromCache();
+  if (!props.activities || props.activities.length === 0) {
+    form.value?.loadFromCache();
   }
 });
 </script>

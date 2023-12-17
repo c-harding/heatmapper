@@ -15,8 +15,8 @@ import { useHead } from '@vueuse/head';
 import type { GeoJSON } from 'geojson';
 import { LngLatBounds } from 'mapbox-gl';
 import type { VNode } from 'vue';
+import { computed, ref } from 'vue';
 import { nextTick, onMounted, watch } from 'vue';
-import { $$, $computed, $ref } from 'vue/macros';
 
 import { MapStyle } from '../MapStyle';
 
@@ -118,51 +118,50 @@ useHead({
   ],
 });
 
-let map = $ref<mapboxgl.Map | undefined>();
+const map = ref<mapboxgl.Map | undefined>();
 
-const container = $ref<HTMLDivElement>();
+const container = ref<HTMLDivElement>();
 
-const token = $ref(
+const token = ref(
   'pk.eyJ1IjoiY2hhcmRpbmciLCJhIjoiY2tiYWp0cndkMDc0ZjJybXhlcHdoM2Z3biJ9.XUwOLV17ZBXE8dhp198dqg',
 );
 
-const selectedActivities: Activity[] = $computed(() => {
-  return activities.filter((activity) => selected.includes(activity.id));
+const selectedActivities = computed<Activity[]>(() => {
+  return props.activities.filter((activity) => props.selected.includes(activity.id));
 });
 
-let localSelected: number[] = $ref([]);
+const localSelected = ref<number[]>([]);
 
 const onTerrain = () => {
-  if (terrain) {
-    if (!map?.getSource('mapbox-dem')) {
-      map?.addSource('mapbox-dem', {
+  if (props.terrain) {
+    if (!map.value?.getSource('mapbox-dem')) {
+      map.value?.addSource('mapbox-dem', {
         type: 'raster-dem',
         url: 'mapbox://mapbox.mapbox-terrain-dem-v1',
       });
     }
-    map?.setTerrain({ source: 'mapbox-dem' });
-    map?.setProjection('globe');
+    map.value?.setTerrain({ source: 'mapbox-dem' });
+    map.value?.setProjection('globe');
   } else {
-    map?.setTerrain(null);
-    map?.setProjection('mercator');
+    map.value?.setTerrain(null);
+    map.value?.setProjection('mercator');
   }
 };
 
-const {
-  center,
-  zoom,
-  selected = [],
-  activities,
-  terrain = false,
-  mapStyle,
-} = defineProps<{
-  center: mapboxgl.LngLatLike;
-  zoom: number;
-  selected?: number[];
-  activities: Activity[];
-  terrain?: boolean;
-  mapStyle: MapStyle;
-}>();
+const props = withDefaults(
+  defineProps<{
+    center: mapboxgl.LngLatLike;
+    zoom: number;
+    selected?: number[];
+    activities: Activity[];
+    terrain?: boolean;
+    mapStyle: MapStyle;
+  }>(),
+  {
+    selected: () => [],
+    terrain: false,
+  },
+);
 
 const emit = defineEmits<{
   (e: 'update:center', value: mapboxgl.LngLatLike): void;
@@ -170,44 +169,50 @@ const emit = defineEmits<{
   (e: 'update:selected', value: number[]): void;
 }>();
 
-watch($$(mapStyle), (style) => {
-  if (map) {
-    map.setStyle(style);
-    const loadedMap = map;
+watch(
+  () => props.mapStyle,
+  (style) => {
+    if (map.value) {
+      const loadedMap = map.value;
+      loadedMap.setStyle(style);
 
-    map.once('styledata', () => {
-      mapLoaded(loadedMap);
-      return onTerrain();
-    });
-  }
-});
+      map.value.once('styledata', () => {
+        mapLoaded(loadedMap);
+        return onTerrain();
+      });
+    }
+  },
+);
 
-watch($$(terrain), onTerrain);
+watch(() => props.terrain, onTerrain);
 
 watch(
-  () => activities,
+  () => props.activities,
   (activities) => {
     applyActivities(activities, 'lines');
   },
 );
 
-watch($$(selectedActivities), (selectedActivities) => {
+watch(selectedActivities, (selectedActivities) => {
   applyActivities(selectedActivities, 'selected');
 });
 
-watch($$(selected), () => {
-  nextTick(() => {
-    if (selected !== localSelected) {
-      localSelected = selected;
-      flyTo(selectedActivities);
-    }
-  });
-});
+watch(
+  () => props.selected,
+  () => {
+    nextTick(() => {
+      if (props.selected !== localSelected.value) {
+        localSelected.value = props.selected;
+        flyTo(selectedActivities.value);
+      }
+    });
+  },
+);
 
 function flyTo(activities: Activity[], zoom = false): void {
   const padding = 20;
 
-  if (!map || activities.length === 0) return;
+  if (!map.value || activities.length === 0) return;
   const coordinates = activities.flatMap(({ map: line }) =>
     polyline.decode(line).map<[number, number]>(([y, x]) => [x, y]),
   );
@@ -215,17 +220,17 @@ function flyTo(activities: Activity[], zoom = false): void {
     (acc, coord) => acc.extend(coord),
     new LngLatBounds(coordinates[0], coordinates[0]),
   );
-  const { width, height } = map.getCanvas().getBoundingClientRect();
-  const screenNorthEast = map.unproject([width - padding, padding]);
-  const screenSouthWest = map.unproject([padding, height - padding]);
+  const { width, height } = map.value.getCanvas().getBoundingClientRect();
+  const screenNorthEast = map.value.unproject([width - padding, padding]);
+  const screenSouthWest = map.value.unproject([padding, height - padding]);
   const screenBounds = new LngLatBounds(screenSouthWest, screenNorthEast);
   if (
     zoom ||
     !screenBounds.contains(bounds.getSouthWest()) ||
     !screenBounds.contains(bounds.getNorthEast())
   ) {
-    const maxZoom = zoom ? 30 : map.getZoom();
-    map.fitBounds(bounds, {
+    const maxZoom = zoom ? 30 : map.value.getZoom();
+    map.value.fitBounds(bounds, {
       padding,
       linear: true,
       maxZoom,
@@ -234,11 +239,11 @@ function flyTo(activities: Activity[], zoom = false): void {
 }
 
 function zoomToSelection(): void {
-  flyTo(selectedActivities, true);
+  flyTo(selectedActivities.value, true);
 }
 
 function applyActivities(next: Activity[], sourceID: string): void {
-  const source = map?.getSource(sourceID);
+  const source = map.value?.getSource(sourceID);
   (source as mapboxgl.GeoJSONSource)?.setData(makeGeoJsonData(next));
 }
 
@@ -246,14 +251,14 @@ async function mapLoaded(map: mapboxgl.Map): Promise<void> {
   map.resize();
 
   sources.forEach((id) => map.addSource(id, makeGeoJson()));
-  Object.entries(layers(mapStyle)).forEach(([id, layer]) =>
+  Object.entries(layers(props.mapStyle)).forEach(([id, layer]) =>
     map.addLayer(buildLineLayer(id, layer)),
   );
   onTerrain();
 
   await nextTick();
-  applyActivities(activities, 'lines');
-  applyActivities(selectedActivities, 'selected');
+  applyActivities(props.activities, 'lines');
+  applyActivities(selectedActivities.value, 'selected');
 }
 
 function click(map: mapboxgl.Map, e: mapboxgl.MapMouseEvent): void {
@@ -278,7 +283,7 @@ function click(map: mapboxgl.Map, e: mapboxgl.MapMouseEvent): void {
 
 function select(id?: number): void {
   const selected = id !== undefined ? [id] : [];
-  localSelected = selected;
+  localSelected.value = selected;
   emit('update:selected', selected);
 }
 
@@ -303,15 +308,15 @@ function addMapElement(): mapboxgl.Map {
   let newMap: mapboxgl.Map;
   const cachedMap = window.cachedMapElement;
   if (cachedMap) {
-    container.appendChild(cachedMap.getContainer());
+    container.value?.appendChild(cachedMap.getContainer());
     newMap = cachedMap;
   } else {
     newMap = new mapboxgl.Map({
-      accessToken: token,
+      accessToken: token.value,
       container: 'mapbox',
-      style: mapStyle,
-      center,
-      zoom,
+      style: props.mapStyle,
+      center: props.center,
+      zoom: props.zoom,
     });
 
     newMap.addControl(new mapboxgl.FullscreenControl(), 'top-right');
@@ -321,7 +326,7 @@ function addMapElement(): mapboxgl.Map {
     );
     newMap.addControl(new mapboxgl.ScaleControl(), 'bottom-left');
   }
-  map = newMap;
+  map.value = newMap;
 
   window.cachedMapElement = newMap;
   return newMap;

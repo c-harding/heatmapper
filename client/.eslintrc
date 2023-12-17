@@ -27,13 +27,14 @@
         }
       }
     ],
+    "prefer-const": "warn",
     "vue/html-indent": "off",
     "vue/html-closing-bracket-newline": "off",
     "vue/max-attributes-per-line": "off",
     "vue/custom-event-name-casing": "off",
     "no-restricted-syntax": "off",
     "class-methods-use-this": "off",
-    "vue/multi-word-component-names": "off",
+    "vue/multi-word-component-names": "off",  
 
     // This is not needed because we apply the reactivity transform
     // https://vuejs.org/guide/extras/reactivity-transform.html

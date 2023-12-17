@@ -1,32 +1,34 @@
 <script setup lang="ts">
-import { $computed } from 'vue/macros';
+import { computed } from 'vue';
 
 import Icon from './Icon.vue';
 
-const {
-  modelValue = null,
-  blankValue = null,
-  blankLabel = null,
-  clearButton = false,
-  options,
-} = defineProps<{
-  modelValue: string;
-  blankValue: string | null;
-  blankLabel: string | null;
-  clearButton?: boolean;
-  options: {
-    value: string;
-    label: string;
-  }[];
-}>();
+const props = withDefaults(
+  defineProps<{
+    modelValue: string | null;
+    blankValue: string | null;
+    blankLabel: string | null;
+    clearButton?: boolean;
+    options: {
+      value: string;
+      label: string;
+    }[];
+  }>(),
+  {
+    modelValue: null,
+    blankValue: null,
+    blankLabel: null,
+    clearButton: false,
+  },
+);
 
 const emit = defineEmits<{
   (e: 'update:modelValue', id: string): void;
 }>();
 
-const model = $computed<string | null>({
+const model = computed<string | null>({
   get() {
-    return modelValue;
+    return props.modelValue;
   },
   set(value) {
     if (value !== null) {

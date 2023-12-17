@@ -1,31 +1,31 @@
 <script setup lang="ts">
 import type { Activity } from '@strava-heatmapper/shared/interfaces';
-import { $$, $ref } from 'vue/macros';
+import { ref } from 'vue';
 
 import MapView from './components/MapView.vue';
 import Sidebar from './components/Sidebar.vue';
 import { MapStyle } from './MapStyle';
 
-let map = $ref<typeof MapView>();
+const map = ref<typeof MapView>();
 
-let location = $ref({ lat: 51.45, lng: -2.6 });
+const location = ref({ lat: 51.45, lng: -2.6 });
 
-let zoom = $ref(10);
+const zoom = ref(10);
 
-let activities: Activity[] = $ref([]);
+const activities = ref<Activity[]>([]);
 
-let selected: number[] = $ref([]);
+const selected = ref<number[]>([]);
 
-let terrain = $ref(false);
+const terrain = ref(false);
 
-let mapStyle = $ref(MapStyle.STRAVA);
+const mapStyle = ref(MapStyle.STRAVA);
 
 function clearActivities(): void {
-  activities = [];
+  activities.value = [];
 }
 function addActivities(newActivities: Activity[]): void {
   const newIDs = new Set(newActivities.map((activity) => activity.id));
-  activities = activities
+  activities.value = activities.value
     .filter((activity) => !newIDs.has(activity.id))
     .concat(newActivities)
     .sort((a, b) => b.date - a.date);
@@ -33,19 +33,19 @@ function addActivities(newActivities: Activity[]): void {
 
 function addActivityMaps(maps: Record<string, string>): void {
   Object.entries(maps).forEach(([activity, map]) => {
-    const i = activities.findIndex(({ id }) => id.toString() === activity);
-    activities[i].map = map;
+    const i = activities.value.findIndex(({ id }) => id.toString() === activity);
+    activities.value[i].map = map;
   });
   // Trigger the activities array watcher, so the new maps are correctly shown
-  activities = activities.slice();
+  activities.value = activities.value.slice();
 }
 
 function zoomToSelected(selection: number[]): void {
-  selected = selection;
-  map?.zoomToSelection();
+  selected.value = selection;
+  map.value?.zoomToSelection();
 }
 
-defineExpose({ activities: $$(activities) });
+defineExpose({ activities });
 </script>
 
 <template>
