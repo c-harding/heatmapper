@@ -211,7 +211,9 @@ $max-size-to-minimise: 600px;
     justify-content: center;
     padding: 0.5em 0 0;
 
-    transition: margin var(--transition-speed), width var(--transition-speed);
+    transition:
+      margin var(--transition-speed),
+      width var(--transition-speed);
 
     svg {
       height: $minimised-width;
