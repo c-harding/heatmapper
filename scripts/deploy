@@ -17,5 +17,5 @@ cd "$(dirname "$0")/.." &&
   " "${DEPLOY_DIR:-.}" "$RAW_DOMAIN" "$SERVER_PORT")"
 
   rsync -re"ssh $DEPLOY_FLAG" dist/ "$DEPLOY_TARGET":"${DEPLOY_DIR:-.}" &&
-  ssh "$DEPLOY_FLAG" "$DEPLOY_TARGET" "$DEPLOY_COMMAND"
+  ssh $DEPLOY_FLAG "$DEPLOY_TARGET" "$DEPLOY_COMMAND"
 )
