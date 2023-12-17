@@ -78,12 +78,12 @@ export default class RawStravaApi {
       console.error('/token:', res.status, 'body:', await res.json());
       process.exit(1);
     }
-    const data: {
+    const data = (await res.json()) as {
       expires_at: number;
       refresh_token: string;
       access_token: string;
       athlete?: { id: number };
-    } = await res.json();
+    };
 
     const stravaAthlete = data.athlete?.id;
 
@@ -170,6 +170,6 @@ export default class RawStravaApi {
     }
     const json = await data.json();
 
-    return json;
+    return json as T;
   }
 }

@@ -1916,10 +1916,10 @@
   dependencies:
     "@types/node" "*"
 
-"@types/uuid@^8.3.0":
-  version "8.3.4"
-  resolved "https://registry.yarnpkg.com/@types/uuid/-/uuid-8.3.4.tgz#bd86a43617df0594787d38b735f55c805becf1bc"
-  integrity sha512-c/I8ZRb51j+pYGAu5CrFMRxqZ2ke4y2grEBO5AUjgSkSk+qT2Ea+OdWElz/OiMf5MNpn2b17kuVBwZLQJXzihw==
+"@types/uuid@^9.0.7":
+  version "9.0.7"
+  resolved "https://registry.yarnpkg.com/@types/uuid/-/uuid-9.0.7.tgz#b14cebc75455eeeb160d5fe23c2fcc0c64f724d8"
+  integrity sha512-WUtIVRUZ9i5dYXefDEAI7sh9/O7jGvHg7Df/5O/gtH3Yabe5odI3UWopVR1qbPXQtvOxWu3mM4XxlYeZtMWF4g==
 
 "@types/webpack-env@^1.15.2":
   version "1.18.0"
@@ -4002,6 +4002,11 @@ chardet@^0.7.0:
   resolved "https://registry.yarnpkg.com/chardet/-/chardet-0.7.0.tgz#90094849f0937f2eedc2425d0d28a9e5f0cbad9e"
   integrity sha512-mT8iDcrh03qDGRRmoA2hmBJnxpllMR+0/0qlzjqZES6NdiWDcZkCNAk4rPFZ9Q85r27unkiNNg8ZOiwZXBHwcA==
 
+cheap-ruler@^3.0.1:
+  version "3.0.2"
+  resolved "https://registry.yarnpkg.com/cheap-ruler/-/cheap-ruler-3.0.2.tgz#60d2b3a0cb77a420472c8c5bb8f2c320fba4bb87"
+  integrity sha512-02T332h1/HTN6cDSufLP8x4JzDs2+VC+8qZ/N0kWIVPyc2xUkWwWh3B2fJxR7raXkL4Mq7k554mfuM9ofv/vGg==
+
 "chokidar@>=3.0.0 <4.0.0", chokidar@^3.4.1, chokidar@^3.4.2, chokidar@^3.5.3:
   version "3.5.3"
   resolved "https://registry.yarnpkg.com/chokidar/-/chokidar-3.5.3.tgz#1cf37c8707b932bd1af1ae22c0432e2acd1903bd"
@@ -4297,11 +4302,6 @@ confusing-browser-globals@^1.0.10:
   version "1.0.11"
   resolved "https://registry.yarnpkg.com/confusing-browser-globals/-/confusing-browser-globals-1.0.11.tgz#ae40e9b57cdd3915408a2805ebd3a5585608dc81"
   integrity sha512-JsPKdmh8ZkmnHxDk55FZ1TqVLvEQTvoByJZRN9jzI0UjxK/QgAmsphz7PGtqgPieQZ/CQcHWXCR7ATDNhGe+YA==
-
-connect-history-api-fallback@^1.6.0:
-  version "1.6.0"
-  resolved "https://registry.yarnpkg.com/connect-history-api-fallback/-/connect-history-api-fallback-1.6.0.tgz#8b32089359308d111115d81cad3fceab888f97bc"
-  integrity sha512-e54B99q/OUoH64zYYRf3HBP5z24G38h5D3qXu23JGRoigpX5Ss4r9ZnDk3g0Z8uQC2x2lPaJ+UlWBc1ZWBWdLg==
 
 connect-history-api-fallback@^2.0.0:
   version "2.0.0"
@@ -4982,10 +4982,10 @@ dotenv@^10.0.0:
   resolved "https://registry.yarnpkg.com/dotenv/-/dotenv-10.0.0.tgz#3d4227b8fb95f81096cdd2b66653fb2c7085ba81"
   integrity sha512-rlBi9d8jpv9Sf1klPjNfFAuWDjKLwTIJJ/VxtoTwIR6hnZxcEOQCZg2oIL3MWBYw5GpUDKOEnND7LXTbIpQ03Q==
 
-dotenv@^8.2.0:
-  version "8.6.0"
-  resolved "https://registry.yarnpkg.com/dotenv/-/dotenv-8.6.0.tgz#061af664d19f7f4d8fc6e4ff9b584ce237adcb8b"
-  integrity sha512-IrPdXQsk2BbzvCBGBOTmmSH5SodmqZNt4ERAZDmW4CT+tL8VtvinqywuANaFu4bOMWki16nqf0e4oC0QIaDr/g==
+dotenv@^16.3.1:
+  version "16.3.1"
+  resolved "https://registry.yarnpkg.com/dotenv/-/dotenv-16.3.1.tgz#369034de7d7e5b120972693352a3bf112172cc3e"
+  integrity sha512-IPzF4w4/Rd94bA9imS68tZBaYyBWSCE47V1RGuMrB94iyTOIEwRmVL2x/4An+6mETpLrKJ5hQkB8W4kFAadeIQ==
 
 download-git-repo@^3.0.2:
   version "3.0.2"
@@ -7469,10 +7469,10 @@ jsonfile@^6.0.1:
   optionalDependencies:
     graceful-fs "^4.1.6"
 
-kdbush@^3.0.0:
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/kdbush/-/kdbush-3.0.0.tgz#f8484794d47004cc2d85ed3a79353dbe0abc2bf0"
-  integrity sha512-hRkd6/XW4HTsA9vjVpY9tuXJYLSlelnkTmVFu4M9/7MIYQtFcHpbugAU7UbOfjOiVSVYl2fqgBuJ32JUmRo5Ew==
+kdbush@^4.0.1, kdbush@^4.0.2:
+  version "4.0.2"
+  resolved "https://registry.yarnpkg.com/kdbush/-/kdbush-4.0.2.tgz#2f7b7246328b4657dd122b6c7f025fbc2c868e39"
+  integrity sha512-WbCVYJ27Sz8zi9Q7Q0xHC+05iwkm3Znipc2XTlrnJbsHMYktW4hPhXUE8Ys1engBrvffoSCqbil1JQAa7clRpA==
 
 keyv@3.0.0:
   version "3.0.0"
@@ -7788,10 +7788,10 @@ map-visit@^1.0.0:
   dependencies:
     object-visit "^1.0.0"
 
-mapbox-gl@~2.12.0:
-  version "2.12.1"
-  resolved "https://registry.yarnpkg.com/mapbox-gl/-/mapbox-gl-2.12.1.tgz#ab382c7dcd5c5d993bbf56f877ae8e9d9f85741c"
-  integrity sha512-45LVQauimFGX/fkCJzK3O2KpQQrIB0fGlg8sERu4NH0xWiBw9JsLOLYD2xAgD5SPramQvsjzM7vYWIkGxpGYNQ==
+mapbox-gl@~3.0.1:
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/mapbox-gl/-/mapbox-gl-3.0.1.tgz#1ab68cee520d727b495b94889d2137f2a8c9cde1"
+  integrity sha512-o7C6sAlj6Hkdd4xQVEgQflgJYNYyZOAtYahhIOb9m8chI8umtWcCp8Ie0iGLYJvce1WHRMa3WGzs69ggwuWlDA==
   dependencies:
     "@mapbox/geojson-rewind" "^0.5.2"
     "@mapbox/jsonlint-lines-primitives" "^2.0.2"
@@ -7801,17 +7801,19 @@ mapbox-gl@~2.12.0:
     "@mapbox/unitbezier" "^0.0.1"
     "@mapbox/vector-tile" "^1.3.1"
     "@mapbox/whoots-js" "^3.1.0"
+    cheap-ruler "^3.0.1"
     csscolorparser "~1.0.3"
     earcut "^2.2.4"
     geojson-vt "^3.2.1"
     gl-matrix "^3.4.3"
     grid-index "^1.1.0"
+    kdbush "^4.0.1"
     murmurhash-js "^1.0.0"
     pbf "^3.2.1"
     potpack "^2.0.0"
     quickselect "^2.0.0"
     rw "^1.3.3"
-    supercluster "^7.1.5"
+    supercluster "^8.0.0"
     tinyqueue "^2.0.3"
     vt-pbf "^3.1.3"
 
@@ -10522,12 +10524,12 @@ subscriptions-transport-ws@^0.11.0:
     symbol-observable "^1.0.4"
     ws "^5.2.0 || ^6.0.0 || ^7.0.0"
 
-supercluster@^7.1.5:
-  version "7.1.5"
-  resolved "https://registry.yarnpkg.com/supercluster/-/supercluster-7.1.5.tgz#65a6ce4a037a972767740614c19051b64b8be5a3"
-  integrity sha512-EulshI3pGUM66o6ZdH3ReiFcvHpM3vAigyK+vcxdjpJyEbIIrtbmBdY23mGgnI24uXiGFvrGq9Gkum/8U7vJWg==
+supercluster@^8.0.0:
+  version "8.0.1"
+  resolved "https://registry.yarnpkg.com/supercluster/-/supercluster-8.0.1.tgz#9946ba123538e9e9ab15de472531f604e7372df5"
+  integrity sha512-IiOea5kJ9iqzD2t7QJq/cREyLHTtSmUT6gQsweojg9WH2sYJqZK9SswTu6jrscO6D1G5v5vYZ9ru/eq85lXeZQ==
   dependencies:
-    kdbush "^3.0.0"
+    kdbush "^4.0.2"
 
 supports-color@^5.3.0:
   version "5.5.0"
@@ -11168,6 +11170,11 @@ uuid@^9.0.0:
   version "9.0.0"
   resolved "https://registry.yarnpkg.com/uuid/-/uuid-9.0.0.tgz#592f550650024a38ceb0c562f2f6aa435761efb5"
   integrity sha512-MXcSTerfPa4uqyzStbRoTgt5XIe3x5+42+q1sDuy3R5MDk66URdLMOZe5aPX/SQd+kuYAh0FdP/pO28IkQyTeg==
+
+uuid@^9.0.1:
+  version "9.0.1"
+  resolved "https://registry.yarnpkg.com/uuid/-/uuid-9.0.1.tgz#e188d4c8853cc722220392c424cd637f32293f30"
+  integrity sha512-b+1eJOlsR9K8HJpow9Ok3fiWOWSIcIzXodvv0rQjVoOVNpWMpxf1wZNpt4y9h10odCNrqnYp1OBzRktckBe3sA==
 
 v8-compile-cache@^2.0.3:
   version "2.3.0"
