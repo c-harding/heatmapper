@@ -3,6 +3,13 @@ export interface ActivityMap {
   map: string;
 }
 
+export interface Elevation {
+  max: number;
+  min: number;
+  gain: number;
+  loss: number;
+}
+
 export default interface Activity extends ActivityMap {
   name: string;
   date: number;
@@ -11,4 +18,5 @@ export default interface Activity extends ActivityMap {
   dateString: string[];
   distance: number;
   gear?: string;
+  elevation?: Elevation;
 }

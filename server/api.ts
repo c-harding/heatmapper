@@ -45,6 +45,10 @@ function formatDateWithLineBreak(date: moment.MomentInput, locales: string | str
   return splitFormat.map((line) => dateMoment.format(line));
 }
 
+function defined(...dependencies: unknown[]): true | undefined {
+  return dependencies.every((dependency) => dependency !== undefined) ? true : undefined;
+}
+
 function convertActivitySummary(
   {
     id,
@@ -56,6 +60,9 @@ function convertActivitySummary(
     distance,
     gear_id: gear,
     elapsed_time: duration,
+    total_elevation_gain,
+    elev_high,
+    elev_low,
   }: SummaryActivity,
   locales: string | string[] = ['en'],
 ): Activity {
@@ -70,8 +77,17 @@ function convertActivitySummary(
     type,
     dateString: formatDateWithLineBreak(startDateLocal, locales),
     gear,
+    elevation: defined(total_elevation_gain, elev_high, elev_low) && {
+      max: elev_high,
+      min: elev_low,
+      gain: total_elevation_gain,
+      loss: total_elevation_gain + elev_low - elev_high,
+    },
   };
 }
+
+const routeTypeMap = { 1: 'Ride', 2: 'Run', 3: 'Walk' } as const;
+const routeSubTypeMap = { 1: 'Road', 2: 'MountainBike', 3: 'Cross', 4: 'Trail', 5: 'Mixed' } as const;
 
 function convertRouteSummary(
   {
@@ -92,8 +108,8 @@ function convertRouteSummary(
     date: +new Date(date),
     map,
     starred,
-    type: ({ 1: 'Ride', 2: 'Run', 3: 'Walk' } as const)[type],
-    subType: ({ 1: 'Road', 2: 'MountainBike', 3: 'Cross', 4: 'Trail', 5: 'Mixed' } as const)[subType],
+    type: routeTypeMap[type],
+    subType: routeSubTypeMap[subType],
     dateString: formatDateWithLineBreak(date, locales),
   };
 }
