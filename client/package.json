@@ -11,7 +11,7 @@
   "dependencies": {
     "@mapbox/polyline": "^1.1.1",
     "@strava-heatmapper/shared": "^0.1.0",
-    "@vueuse/head": "^0.7.6",
+    "@unhead/vue": "^1.8.9",
     "core-js": "^3.6.5",
     "mapbox-gl": "~2.12.0",
     "vue": "^3.3.12"

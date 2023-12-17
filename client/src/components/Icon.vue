@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useHead } from '@vueuse/head';
+import { useHead } from '@unhead/vue';
 import { computed } from 'vue';
 
 const props = withDefaults(
@@ -27,7 +27,6 @@ useHead({
     {
       href: 'https://fonts.googleapis.com/icon?family=Material+Icons',
       rel: 'stylesheet',
-      undo: false,
     },
   ],
 });

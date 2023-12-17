@@ -11,7 +11,7 @@ declare global {
 <script setup lang="tsx">
 import polyline from '@mapbox/polyline';
 import type Activity from '@strava-heatmapper/shared/interfaces/Activity';
-import { useHead } from '@vueuse/head';
+import { useHead } from '@unhead/vue';
 import type { GeoJSON } from 'geojson';
 import { LngLatBounds } from 'mapbox-gl';
 import type { VNode } from 'vue';
