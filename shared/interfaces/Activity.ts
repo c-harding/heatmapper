@@ -1,7 +1,7 @@
 import type SportType from './SportType';
 
 export interface ActivityMap {
-  id: number;
+  id: string;
   map: string;
 }
 

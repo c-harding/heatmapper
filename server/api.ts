@@ -7,9 +7,9 @@ import type {
   RequestMessage,
   ResponseMessage,
   Route,
+  StatsMessage,
 } from '@strava-heatmapper/shared/interfaces';
 import { TimeRange } from '@strava-heatmapper/shared/interfaces';
-import type { StatsMessage } from '@strava-heatmapper/shared/interfaces/ResponseMessage';
 import express from 'express';
 import type { Router } from 'express-ws';
 import { createReadStream } from 'fs';
@@ -20,6 +20,8 @@ import { completeInOrder, memoize } from './stateful-functions';
 import { Strava } from './strava';
 import type { DetailedGear, SummaryActivity, SummaryRoute } from './strava/model';
 import { tokenExchange, validTokenCallback } from './strava/token';
+
+const VERSION = 1;
 
 async function* chunkAsync<T>(array: Promise<T>[], n = 10): AsyncGenerator<T[]> {
   for (let i = 0; i < array.length; i += n) {
@@ -70,7 +72,7 @@ function convertActivitySummary(
   const date = +new Date(startDate);
   return {
     route: false,
-    id,
+    id: String(id),
     name,
     date,
     movingTime,
@@ -264,6 +266,10 @@ export default function apiRouter(domain: string): express.Router {
 
     ws.on('message', async (data) => {
       const message: RequestMessage = JSON.parse(data.toString());
+      if (message.version) {
+        send({ type: 'version', version: VERSION });
+      }
+
       if (message.activities) {
         stats.finding.started = true;
 

@@ -2,6 +2,7 @@ import type { Activity, Gear } from '@strava-heatmapper/shared/interfaces';
 import { TimeRange } from '@strava-heatmapper/shared/interfaces';
 
 export interface ActivityStore {
+  version: number;
   covered: TimeRange[];
   activities: Activity[];
 }
@@ -29,7 +30,14 @@ export function getCachedGear(id: string): Gear | undefined {
 
 export function getActivityStore(): ActivityStore {
   const cache = localStorage.getItem('activities');
-  return cache ? JSON.parse(cache) : { covered: [], activities: [] };
+  return cache ? (JSON.parse(cache) as ActivityStore) : { version: 0, covered: [], activities: [] };
+}
+
+export function resetActivityStore(version: number) {
+  localStorage.setItem(
+    'activities',
+    JSON.stringify({ activities: [], covered: [], version } satisfies ActivityStore),
+  );
 }
 
 export function getCachedActivities(): Activity[] {
@@ -40,6 +48,7 @@ export function appendCachedActivities(activities: Activity[], end: number, star
   const existingStore = getActivityStore();
   const ids = new Set(activities.map((activity) => activity.id));
   const newStore: ActivityStore = {
+    version: existingStore.version,
     covered: TimeRange.merge((existingStore.covered || []).concat({ start, end })),
     activities: (existingStore.activities || [])
       .filter((existingActivity) => !ids.has(existingActivity.id))

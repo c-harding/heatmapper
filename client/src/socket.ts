@@ -1,4 +1,8 @@
-import type { RequestMessage } from '@strava-heatmapper/shared/interfaces';
+import type {
+  RequestMessage,
+  ResponseMessage,
+  ResponseMessageType,
+} from '@strava-heatmapper/shared/interfaces';
 
 let socketID = 0;
 
@@ -17,6 +21,10 @@ export default class Socket {
     if (this.verbose) console.log(...args);
   }
 
+  private promisedResponses: Partial<
+    Record<ResponseMessageType, ((data: ResponseMessage) => void)[]>
+  > = {};
+
   private get connection(): Promise<WebSocket> {
     return (this._connection ??= new Promise((resolve, reject) => {
       this.log('Socket', this.id, 'opening');
@@ -29,24 +37,26 @@ export default class Socket {
         this.log('Socket', this.id, 'opened to state', connection?.readyState);
         resolve(connection);
       };
-      connection.onmessage = (message) => this.messageHandler(message, this);
+      connection.onmessage = (message) => {
+        const data = JSON.parse(message.data) as ResponseMessage;
+        const promisedResponse = this.promisedResponses[data.type]?.shift();
+        if (promisedResponse) {
+          promisedResponse(data);
+        } else {
+          this.messageHandler(data, this);
+        }
+      };
       connection.onclose = () => this.closedHandler(this.errored);
     }));
   }
 
-  messageHandler: (message: MessageEvent, socket: Socket) => void;
-
-  closedHandler: (errored: boolean) => void;
-
   constructor(
     url: string,
-    messageHandler: (message: MessageEvent, socket: Socket) => void,
-    closedHandler: (errored: boolean) => void,
+    private messageHandler: (data: ResponseMessage, socket: Socket) => void,
+    private closedHandler: (errored: boolean) => void,
     { verbose = false } = {},
   ) {
     this.url = url;
-    this.messageHandler = messageHandler;
-    this.closedHandler = closedHandler;
     this.verbose = verbose;
   }
 
@@ -59,9 +69,31 @@ export default class Socket {
     this.log('Sent', data);
   }
 
-  async sendRequest(message: RequestMessage): Promise<void> {
+  /** Send a request without waiting for a response */
+  async sendRequest(message: RequestMessage): Promise<undefined>;
+
+  /** Send a request and wait for the first response of  */
+  async sendRequest<T extends ResponseMessageType>(
+    message: RequestMessage,
+    responseType: T,
+  ): Promise<ResponseMessage & { type: T }>;
+
+  async sendRequest<T extends ResponseMessageType>(
+    message: RequestMessage,
+    responseType?: T,
+  ): Promise<(ResponseMessage & { type: T }) | undefined> {
     this.log('Socket', this.id, 'sending', message);
+    let promise: Promise<ResponseMessage & { type: T }> | undefined;
+    if (responseType) {
+      promise = new Promise<ResponseMessage>((resolve) => {
+        const promisedResponseQueue: ((data: ResponseMessage) => void)[] = (this.promisedResponses[
+          responseType
+        ] ??= []);
+        promisedResponseQueue.push(resolve);
+      }) as Promise<ResponseMessage & { type: T }>;
+    }
     await this.send(JSON.stringify(message));
+    return await promise;
   }
 
   async close(): Promise<void> {

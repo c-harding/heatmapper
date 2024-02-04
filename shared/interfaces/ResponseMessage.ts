@@ -2,6 +2,10 @@ import type Activity from './Activity';
 import type Gear from './Gear';
 import type Route from './Route';
 
+interface VersionMessage {
+  type: 'version';
+  version: number;
+}
 interface ActivitiesMessage {
   type: 'activities';
   activities: Activity[];
@@ -33,11 +37,14 @@ export interface GearMessage {
 }
 
 type ResponseMessage =
+  | VersionMessage
   | ActivitiesMessage
   | MapsMessage
   | StatsMessage
   | RoutesMessage
   | LoginMessage
   | GearMessage;
+
+export type ResponseMessageType = ResponseMessage['type'];
 
 export default ResponseMessage;

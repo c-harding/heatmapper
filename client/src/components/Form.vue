@@ -1,17 +1,18 @@
 <script setup lang="ts">
-import type { Activity, Gear, ResponseMessage, Route } from '@strava-heatmapper/shared/interfaces';
+import type { Activity, Gear, Route } from '@strava-heatmapper/shared/interfaces';
 import { TimeRange } from '@strava-heatmapper/shared/interfaces';
 import { computed, reactive, ref, watch } from 'vue';
 
 import { MapStyle } from '../MapStyle';
 import Socket from '../socket';
-import { sportTypes } from '../sportTypes';
+import { sportGroups, sportTypes } from '../sportTypes';
 import {
   appendCachedActivities,
   getCachedActivities,
   getCachedGear,
   getCachedMap,
   getCachedMaps,
+  resetActivityStore,
   saveCachedGear,
 } from '../utils/storage';
 import { getActivityStore, saveCachedMaps } from '../utils/storage';
@@ -96,7 +97,7 @@ const start = ref<Date | null>(null);
 const end = ref<Date | null>(null);
 const continueLogin = ref<((withCookies: boolean) => void) | null>(null);
 const sportType = ref('');
-const sortedSportTypes = Object.entries(sportTypes)
+const sortedSportTypes = [...Object.entries(sportGroups), ...Object.entries(sportTypes)]
   .map(([value, label]) => ({ value, label }))
   .sort((a, b) => a.label.localeCompare(b.label));
 
@@ -160,15 +161,15 @@ watch(sportType, () => {
   loadFromCache();
 });
 
-function requestMaps(ids: (number | string)[], socket?: Socket): void {
+async function requestMaps(ids: (number | string)[], socket?: Socket) {
   clientStats.value.mapsRequested += ids.length;
   const { cached, notCached } = getCachedMaps(ids);
+  receiveMaps(cached);
   if (socket && notCached.length) {
-    socket.sendRequest({
+    await socket.sendRequest({
       maps: notCached,
     });
   }
-  receiveMaps(cached);
   checkFinished(socket);
 }
 
@@ -179,7 +180,7 @@ function requestGear(ids: (string | undefined)[], socket?: Socket) {
     if (gear.has(gearId)) continue;
     if (socket) {
       gear.set(gearId, null);
-      socket.sendRequest({
+      void socket.sendRequest({
         gear: gearId,
       });
     } else {
@@ -233,14 +234,14 @@ function loadFromCache(partial = false): void {
   }
 }
 
-function startLoading(socket: Socket, ranges: TimeRange[]): void {
-  socket.sendRequest({
+async function startLoading(socket: Socket, ranges: TimeRange[]) {
+  await socket.sendRequest({
     activities: ranges,
   });
 }
 
-function startLoadingRoutes(socket: Socket): void {
-  socket.sendRequest({
+async function startLoadingRoutes(socket: Socket) {
+  await socket.sendRequest({
     routes: true,
   });
 }
@@ -283,8 +284,7 @@ async function sockets({ partial = false, routes = false } = {}): Promise<void> 
   const protocol = window.location.protocol.includes('https') ? 'wss' : 'ws';
   const socket = new Socket(
     `${protocol}://${window.location.host}/api/activities`,
-    (message) => {
-      const data: ResponseMessage = JSON.parse(message.data);
+    (data) => {
       switch (data.type) {
         case 'stats': {
           const oldStats = stats.value;
@@ -344,14 +344,22 @@ async function sockets({ partial = false, routes = false } = {}): Promise<void> 
     },
   );
 
+  const { version: serverVersion } = await socket.sendRequest({ version: true }, 'version');
+
+  const storeVersion = getActivityStore().version;
+  if (storeVersion !== serverVersion) {
+    resetActivityStore(serverVersion);
+  }
+
   if (routes) {
+    // TODO: send ranges
     startLoadingRoutes(socket);
   } else {
     starting.value = true;
 
     let ranges: TimeRange[];
+    const { covered, activities, version: storeVersion } = getActivityStore();
     if (partial) {
-      const { covered, activities } = getActivityStore();
       ranges = TimeRange.cap(TimeRange.invert(covered), startTimestamp ?? 0, endTimestamp);
       receiveActivities(activities, socket);
     } else {

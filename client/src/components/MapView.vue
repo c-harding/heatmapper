@@ -6,11 +6,13 @@ declare global {
     cachedMapElement?: mapboxgl.Map;
   }
 }
+
+type Properties = { id: string };
 </script>
 
 <script setup lang="tsx">
 import polyline from '@mapbox/polyline';
-import type Activity from '@strava-heatmapper/shared/interfaces/Activity';
+import type { Activity } from '@strava-heatmapper/shared/interfaces';
 import { useHead } from '@unhead/vue';
 import type { GeoJSON } from 'geojson';
 import { LngLatBounds } from 'mapbox-gl';
@@ -33,16 +35,21 @@ const fromZoom = (...pairs: (readonly [zoom: number, value: unknown])[]): mapbox
   ...pairs.flatMap(([zoomLevel, value]) => [zoomLevel, value]),
 ];
 
-const makeGeoJsonData = (activities: Activity[] = []): GeoJSON.FeatureCollection => ({
+const makeGeoJsonData = (
+  activities: Activity[] = [],
+): GeoJSON.FeatureCollection<GeoJSON.LineString, Properties> => ({
   type: 'FeatureCollection',
   features: activities
     .filter((activity) => activity.map)
-    .map((activity) => ({
-      type: 'Feature',
-      id: activity.id,
-      properties: null,
-      geometry: polyline.toGeoJSON(activity.map),
-    })),
+    .map(
+      (activity): GeoJSON.Feature<GeoJSON.LineString, Properties> => ({
+        type: 'Feature',
+        properties: {
+          id: activity.id,
+        },
+        geometry: polyline.toGeoJSON(activity.map),
+      }),
+    ),
 });
 
 const makeGeoJson = (activities = []): mapboxgl.GeoJSONSourceRaw => ({
@@ -130,7 +137,7 @@ const selectedActivities = computed<Activity[]>(() => {
   return props.activities.filter((activity) => props.selected.includes(activity.id));
 });
 
-const localSelected = ref<number[]>([]);
+const localSelected = ref<string[]>([]);
 
 const onTerrain = () => {
   if (props.terrain) {
@@ -152,7 +159,7 @@ const props = withDefaults(
   defineProps<{
     center: mapboxgl.LngLatLike;
     zoom: number;
-    selected?: number[];
+    selected?: string[];
     activities: Activity[];
     terrain?: boolean;
     mapStyle: MapStyle;
@@ -166,7 +173,7 @@ const props = withDefaults(
 const emit = defineEmits<{
   (e: 'update:center', value: mapboxgl.LngLatLike): void;
   (e: 'update:zoom', value: number): void;
-  (e: 'update:selected', value: number[]): void;
+  (e: 'update:selected', value: string[]): void;
 }>();
 
 watch(
@@ -261,27 +268,27 @@ async function mapLoaded(map: mapboxgl.Map): Promise<void> {
   applyActivities(selectedActivities.value, 'selected');
 }
 
-function click(map: mapboxgl.Map, e: mapboxgl.MapMouseEvent): void {
-  const surround = (
-    point: mapboxgl.Point,
-    offset: number,
-  ): [mapboxgl.PointLike, mapboxgl.PointLike] => [
+function surround(point: mapboxgl.Point, offset: number): [mapboxgl.PointLike, mapboxgl.PointLike] {
+  return [
     [point.x - offset, point.y + offset],
     [point.x + offset, point.y - offset],
   ];
+}
+
+function click(map: mapboxgl.Map, e: mapboxgl.MapMouseEvent): void {
   for (let i = 0; i < 5; i += 1) {
     const neighbours = map.queryRenderedFeatures(surround(e.point, i), {
       layers: ['lines', 'selected'],
     });
     if (neighbours.length > 0) {
-      select(neighbours[neighbours.length - 1].id as number);
+      select((neighbours[neighbours.length - 1].properties as Properties).id);
       return;
     }
   }
   select();
 }
 
-function select(id?: number): void {
+function select(id?: string): void {
   const selected = id !== undefined ? [id] : [];
   localSelected.value = selected;
   emit('update:selected', selected);
