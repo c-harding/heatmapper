@@ -41,10 +41,15 @@ const time = computed(() =>
   }),
 );
 
-const showElevationGain: SportType[] = ['AlpineSki', 'BackcountrySki', 'Canoeing', 'Kayaking'];
+const showElevationLoss: SportType[] = [
+  // 'AlpineSki',
+  // 'BackcountrySki',
+  // 'Canoeing',
+  // 'Kayaking'
+];
 
 const hideElevationGain: SportType[] = [
-  'AlpineSki',
+  // 'AlpineSki',
   'Crossfit',
   'Elliptical',
   'Handcycle',
@@ -63,7 +68,6 @@ const hideElevationGain: SportType[] = [
   'Yoga',
 ];
 
-const pad = (num: number) => num.toFixed(0).padStart(2, '0');
 const metres = (value: number, prefix = '') => `${prefix}${value.toFixed(0)}\xa0m`;
 const suffix = (value: number | undefined, suffix: string, fixed = 0) =>
   value !== undefined ? value.toFixed(fixed) + suffix : undefined;
@@ -93,12 +97,12 @@ const elevationString = computed(() => {
       ? metres(props.activity.elevation.gain, '↗\xa0')
       : undefined;
   const elevationLoss =
-    !props.activity.route && showElevationGain.includes(props.activity.type)
+    !props.activity.route && showElevationLoss.includes(props.activity.type)
       ? metres(props.activity.elevation.loss, '↘\xa0')
       : undefined;
 
   if (elevationGain && elevationLoss) {
-    return `+${elevationGain} ${elevationLoss}`;
+    return `${elevationGain} ${elevationLoss}`;
   } else {
     return elevationGain ?? elevationLoss;
   }

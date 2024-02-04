@@ -84,6 +84,7 @@ function convertActivitySummary(
       max: elev_high,
       min: elev_low,
       gain: total_elevation_gain,
+      // TODO: this is wrong. Should be (total_elevation_gain + elev_end - elev_start)
       loss: total_elevation_gain + elev_low - elev_high,
     },
   };
