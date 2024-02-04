@@ -9,7 +9,7 @@
     "develop": "../serve"
   },
   "dependencies": {
-    "@mapbox/polyline": "^1.1.1",
+    "@mapbox/polyline": "^1.2.1",
     "@strava-heatmapper/shared": "^0.1.0",
     "@unhead/vue": "^1.8.9",
     "core-js": "^3.6.5",

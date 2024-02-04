@@ -21,8 +21,11 @@ const emit = defineEmits<{
 }>();
 
 const url = computed<string>(() => {
-  if ((props.activity as Route).route) return `https://www.strava.com/routes/${props.activity.id}`;
-  return `https://www.strava.com/activities/${props.activity.id}`;
+  if (props.activity.route) {
+    return `https://www.strava.com/routes/${props.activity.id}`;
+  } else {
+    return `https://www.strava.com/activities/${props.activity.id}`;
+  }
 });
 </script>
 

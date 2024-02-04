@@ -68,6 +68,7 @@ function convertActivitySummary(
 ): Activity {
   const date = +new Date(startDate);
   return {
+    route: false,
     id,
     name,
     date,

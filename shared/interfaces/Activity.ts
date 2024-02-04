@@ -11,6 +11,7 @@ export interface Elevation {
 }
 
 export default interface Activity extends ActivityMap {
+  route: false;
   name: string;
   date: number;
   end: number;

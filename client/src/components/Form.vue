@@ -229,7 +229,9 @@ function checkFinished(socket?: Socket): void {
 function loadFromCache(partial = false): void {
   const activities = getCachedActivities();
   if (activities && activities.length) {
-    if (!partial) stats.value = { finding: { finished: true, length: activities.length } };
+    if (!partial) {
+      stats.value = { finding: { finished: true, length: activities.length } };
+    }
     const cachedActivities = activities.filter(({ id }) => getCachedMap(id));
     clientStats.value.mapsNotCached = activities.length - cachedActivities.length;
     receiveActivities(cachedActivities);
