@@ -16,13 +16,13 @@
     "sourceType": "module"
   },
   "rules": {
-    "prettier/prettier": "error",
+    "prettier/prettier": "warn",
     "no-return-await": "off",
     "no-param-reassign": [
       "error",
       {
         "props": false
       }
-    ],
+    ]
   }
 }

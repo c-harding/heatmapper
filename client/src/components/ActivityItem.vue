@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import type { Activity, Route } from '@strava-heatmapper/shared/interfaces';
-import type { SportType } from '@strava-heatmapper/shared/interfaces/SportType';
+import type { Activity, Route, SportType } from '@strava-heatmapper/shared/interfaces';
 import { computed } from 'vue';
 
 import Spinner from './Spinner.vue';

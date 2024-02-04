@@ -1,4 +1,4 @@
-import type { SportType } from '@strava-heatmapper/shared/interfaces/SportType';
+import type { SportType } from '@strava-heatmapper/shared/interfaces';
 
 export type LatLng = [number, number];
 

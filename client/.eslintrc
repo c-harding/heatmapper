@@ -19,6 +19,7 @@
     }
   },
   "rules": {
+    "prettier/prettier": "warn",
     "vue/html-self-closing": [
       "error",
       {

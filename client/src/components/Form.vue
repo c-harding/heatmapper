@@ -5,7 +5,7 @@ import { computed, reactive, ref, watch } from 'vue';
 
 import { MapStyle } from '../MapStyle';
 import Socket from '../socket';
-import sportTypes from '../sportTypes';
+import { sportTypes } from '../sportTypes';
 import {
   appendCachedActivities,
   getCachedActivities,
@@ -378,12 +378,12 @@ defineExpose({ loadFromCache, gear });
         <DateInput v-model="end" name="end" />
       </label>
       <label>
-        <span>Activity type</span>
+        <span>Sport type</span>
         <Dropdown
           v-model="sportType"
           :options="sortedSportTypes"
           blank-value=""
-          blank-label="All activities"
+          blank-label="All sports"
         />
       </label>
     </div>

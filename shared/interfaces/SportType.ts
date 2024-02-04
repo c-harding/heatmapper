@@ -1,4 +1,4 @@
-export type SportType =
+type SportType =
   | 'AlpineSki'
   | 'BackcountrySki'
   | 'Badminton'
@@ -49,3 +49,5 @@ export type SportType =
   | 'Windsurf'
   | 'Workout'
   | 'Yoga';
+
+export default SportType;

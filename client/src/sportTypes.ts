@@ -1,21 +1,34 @@
-const sportTypes: { [name: string]: string } = {
-  'Hike,Snowshoe,Run,Walk': 'All on foot',
+import type { SportType } from '@strava-heatmapper/shared/interfaces';
+
+export const sportGroups: Record<string, string> = {
+  'Hike,Snowshoe,Run,TrailRun,Walk': 'All on foot',
   'AlpineSki,BackcountrySki,IceSkate,Snowboard,Snowshoe,NordicSki': 'All winter sports',
+};
+
+export const sportTypes: Record<SportType, string> = {
   AlpineSki: 'Downhill skiing',
   BackcountrySki: 'Off-piste skiing',
+  Badminton: 'Badminton',
   Canoeing: 'Canoeing',
   Crossfit: 'Crossfit',
   EBikeRide: 'E-bike',
   Elliptical: 'Cross-trainer',
+  EMountainBikeRide: 'E-MTB',
   Golf: 'Golf',
+  GravelRide: 'Gravel biking',
   Handcycle: 'Handcycling',
+  HighIntensityIntervalTraining: 'HIIT',
   Hike: 'Hiking',
   IceSkate: 'Ice skating',
   InlineSkate: 'Inline skating',
   Kayaking: 'Kayaking',
   Kitesurf: 'Kitesurfing',
+  MountainBikeRide: 'Mountain biking',
   NordicSki: 'Cross-country skiing',
-  Ride: 'Cycling',
+  Pickleball: 'Pickleball',
+  Pilates: 'Pilates',
+  Racquetball: 'Racquetball',
+  Ride: 'Biking',
   RockClimbing: 'Rock climbing',
   RollerSki: 'Roller skiing',
   Rowing: 'Rowing',
@@ -25,12 +38,17 @@ const sportTypes: { [name: string]: string } = {
   Snowboard: 'Snowboarding',
   Snowshoe: 'Snowshoing',
   Soccer: 'Football',
+  Squash: 'Squash',
   StairStepper: 'Stair stepper',
   StandUpPaddling: 'Stand up paddleboarding',
   Surfing: 'Surfing',
   Swim: 'Swimming',
+  TableTennis: 'Table tennis',
+  Tennis: 'Tennis',
+  TrailRun: 'Trail running',
   Velomobile: 'Velomobile',
   VirtualRide: 'Virtual cycling',
+  VirtualRow: 'Rowing machine',
   VirtualRun: 'Virtual running',
   Walk: 'Walking',
   WeightTraining: 'Weight training',
@@ -39,4 +57,3 @@ const sportTypes: { [name: string]: string } = {
   Workout: 'Workout',
   Yoga: 'Yoga',
 };
-export default sportTypes;

@@ -3,16 +3,18 @@ import { computed } from 'vue';
 
 import Icon from './Icon.vue';
 
+export interface Option {
+  value: string;
+  label: string;
+}
+
 const props = withDefaults(
   defineProps<{
     modelValue: string | null;
     blankValue: string | null;
     blankLabel: string | null;
     clearButton?: boolean;
-    options: {
-      value: string;
-      label: string;
-    }[];
+    options: Option[];
   }>(),
   {
     modelValue: null,

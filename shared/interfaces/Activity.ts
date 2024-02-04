@@ -1,4 +1,4 @@
-import type { SportType } from './SportType';
+import type SportType from './SportType';
 
 export interface ActivityMap {
   id: number;
