@@ -1,3 +1,5 @@
+import type { SportType } from '@strava-heatmapper/shared/interfaces/SportType';
+
 export type LatLng = [number, number];
 
 export interface SummaryActivity {
@@ -12,7 +14,7 @@ export interface SummaryActivity {
   /** The activity's total elevation gain. */ total_elevation_gain: number;
   /** The activity's highest elevation, in meters */ elev_high: number;
   /** The activity's lowest elevation, in meters */ elev_low: number;
-  /** An instance of ActivityType. */ type: string;
+  /** An instance of SportType. */ sport_type: SportType;
   /** The time at which the activity was started. */ start_date: string;
   /** The time at which the activity was started in the local timezone. */ start_date_local: string;
   /** The timezone of the activity */ timezone: string;
@@ -65,5 +67,7 @@ export interface SummaryRoute {
   map: { summary_polyline: string };
   type: 1 | 2 | 3;
   sub_type: 1 | 2 | 3 | 4 | 5;
+  distance: number;
+  elevation_gain: number;
   starred: boolean;
 }

@@ -1,16 +1,22 @@
 <script setup lang="ts">
 import type { Activity, Route } from '@strava-heatmapper/shared/interfaces';
+import type { SportType } from '@strava-heatmapper/shared/interfaces/SportType';
 import { computed } from 'vue';
 
 import Spinner from './Spinner.vue';
+import StravaIcon from './StravaIcon.vue';
 
 const props = withDefaults(
   defineProps<{
     activity: Activity | Route;
     selected?: boolean;
+    expanded?: boolean;
+    showTime?: boolean;
   }>(),
   {
     selected: false,
+    expanded: true,
+    showTime: false,
   },
 );
 
@@ -27,6 +33,80 @@ const url = computed<string>(() => {
     return `https://www.strava.com/activities/${props.activity.id}`;
   }
 });
+
+const time = computed(() =>
+  new Date(props.activity.date).toLocaleTimeString(undefined, {
+    hour: 'numeric',
+    minute: 'numeric',
+  }),
+);
+
+const showElevationGain: SportType[] = ['AlpineSki', 'BackcountrySki', 'Canoeing', 'Kayaking'];
+
+const hideElevationGain: SportType[] = [
+  'AlpineSki',
+  'Crossfit',
+  'Elliptical',
+  'Handcycle',
+  'IceSkate',
+  'InlineSkate',
+  'Kitesurf',
+  'Rowing',
+  'Sail',
+  'Skateboard',
+  'Soccer',
+  'StandUpPaddling',
+  'Surfing',
+  'Swim',
+  'WeightTraining',
+  'Windsurf',
+  'Yoga',
+];
+
+const pad = (num: number) => num.toFixed(0).padStart(2, '0');
+const metres = (value: number, prefix = '') => `${prefix}${value.toFixed(0)}\xa0m`;
+const suffix = (value: number | undefined, suffix: string, fixed = 0) =>
+  value !== undefined ? value.toFixed(fixed) + suffix : undefined;
+
+const distanceString = computed(() => {
+  const kilometres = props.activity.distance / 1000;
+  const precision = 2 - Math.max(0, Math.min(Math.floor(Math.log10(kilometres)), 2));
+
+  return suffix(kilometres, '\xa0km', precision);
+});
+
+const movingTime = computed(() => {
+  const time = !props.activity.route && props.activity.movingTime;
+  if (!time) return undefined;
+  const days = suffix(Math.floor(time / 60 / 60 / 24) || undefined, '\xa0d');
+  const hours = suffix(Math.floor((time / 60 / 60) % 24) || undefined, '\xa0h');
+  const minutes = suffix(Math.floor((time / 60) % 60) || undefined, '\xa0m');
+  const seconds = suffix(Math.floor(time % 60) || undefined, '\xa0s');
+
+  return [days, hours, minutes, seconds].filter(Boolean).slice(0, 2).join(' ');
+});
+
+const elevationString = computed(() => {
+  if (!props.activity.elevation) return;
+  const elevationGain =
+    props.activity.route || !hideElevationGain.includes(props.activity.type)
+      ? metres(props.activity.elevation.gain, '↗\xa0')
+      : undefined;
+  const elevationLoss =
+    !props.activity.route && showElevationGain.includes(props.activity.type)
+      ? metres(props.activity.elevation.loss, '↘\xa0')
+      : undefined;
+
+  if (elevationGain && elevationLoss) {
+    return `+${elevationGain} ${elevationLoss}`;
+  } else {
+    return elevationGain ?? elevationLoss;
+  }
+});
+
+const stats = computed(() =>
+  [distanceString.value, elevationString.value, movingTime.value].filter(Boolean).join(' • '),
+);
 </script>
 
 <template>
@@ -36,12 +116,25 @@ const url = computed<string>(() => {
     @touchstart="emit('touchstart')"
     @dblclick="emit('dblclick', $event)"
   >
-    <div class="activity-name" v-text="activity.name" />
+    <StravaIcon v-if="expanded" class="strava-icon" :sport-type="activity.type" />
+    <div class="activity-info">
+      <div class="activity-name" v-text="activity.name" />
+      <div v-if="expanded" class="activity-stats" v-text="stats" />
+    </div>
     <div v-if="!activity.map" class="spinner">
       <Spinner size="tiny" line-fg-color="#888" />
     </div>
-    <div class="date" v-text="activity.dateString.join('\n')" />
-    <a :href="url" target="_blank" class="strava-link" @click="$event.stopPropagation()">
+    <div class="date">
+      <div v-text="activity.dateString.join('\n')" />
+      <div v-if="showTime && expanded && !activity.route" class="time" v-text="time" />
+    </div>
+    <a
+      :href="url"
+      target="_blank"
+      class="strava-link"
+      :class="{ padding: !showTime }"
+      @click="$event.stopPropagation()"
+    >
       <img src="@/assets/strava.png" />
     </a>
   </li>
@@ -52,8 +145,10 @@ const url = computed<string>(() => {
   cursor: pointer;
   list-style: none;
   font-size: 14px;
+  padding-left: 8px;
   display: flex;
   align-items: center;
+  gap: 0 4px;
 
   &:hover {
     background: var(--background-slight);
@@ -63,13 +158,18 @@ const url = computed<string>(() => {
     background: var(--background-strong);
   }
 
-  > * {
-    padding: 2px 0;
+  .strava-icon {
+    padding-right: 4px;
   }
 
-  .activity-name {
+  .activity-info {
     flex: 1;
-    padding-left: 8px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .activity-stats {
+    font-size: 0.75em;
   }
 
   .spinner {
@@ -95,13 +195,24 @@ const url = computed<string>(() => {
     &:not(:hover) > img {
       filter: grayscale(100%);
     }
+
+    &.padding {
+      padding-top: 8px;
+      padding-bottom: 8px;
+    }
   }
 
   .date {
-    display: inline-block;
-    white-space: pre-line;
+    display: flex;
     font-size: 0.75em;
-    text-align: right;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    white-space: pre-line;
+
+    .time {
+      opacity: 0.5;
+    }
   }
 }
 </style>

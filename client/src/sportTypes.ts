@@ -1,4 +1,4 @@
-const activityTypes: { [name: string]: string } = {
+const sportTypes: { [name: string]: string } = {
   'Hike,Snowshoe,Run,Walk': 'All on foot',
   'AlpineSki,BackcountrySki,IceSkate,Snowboard,Snowshoe,NordicSki': 'All winter sports',
   AlpineSki: 'Downhill skiing',
@@ -39,4 +39,4 @@ const activityTypes: { [name: string]: string } = {
   Workout: 'Workout',
   Yoga: 'Yoga',
 };
-export default activityTypes;
+export default sportTypes;

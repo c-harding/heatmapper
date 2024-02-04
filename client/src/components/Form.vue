@@ -3,9 +3,9 @@ import type { Activity, Gear, ResponseMessage, Route } from '@strava-heatmapper/
 import { TimeRange } from '@strava-heatmapper/shared/interfaces';
 import { computed, reactive, ref, watch } from 'vue';
 
-import activityTypes from '../activityTypes';
 import { MapStyle } from '../MapStyle';
 import Socket from '../socket';
+import sportTypes from '../sportTypes';
 import {
   appendCachedActivities,
   getCachedActivities,
@@ -95,8 +95,8 @@ function filterActivities<ActivityOrRoute extends Activity | Route>(
 const start = ref<Date | null>(null);
 const end = ref<Date | null>(null);
 const continueLogin = ref<((withCookies: boolean) => void) | null>(null);
-const activityType = ref('');
-const sortedActivityTypes = Object.entries(activityTypes)
+const sportType = ref('');
+const sortedSportTypes = Object.entries(sportTypes)
   .map(([value, label]) => ({ value, label }))
   .sort((a, b) => a.label.localeCompare(b.label));
 
@@ -155,7 +155,7 @@ function receiveMaps(maps: Record<string, string>): void {
   emit('add-activity-maps', maps);
 }
 
-watch(activityType, () => {
+watch(sportType, () => {
   emit('clear-activities');
   loadFromCache();
 });
@@ -189,12 +189,7 @@ function requestGear(ids: (string | undefined)[], socket?: Socket) {
 }
 
 function receiveActivities(activities: Activity[], socket?: Socket): void {
-  const filteredActivities = filterActivities(
-    activities,
-    activityType.value,
-    start.value,
-    end.value,
-  );
+  const filteredActivities = filterActivities(activities, sportType.value, start.value, end.value);
   requestGear(
     filteredActivities.map(({ gear }) => gear),
     socket,
@@ -207,7 +202,7 @@ function receiveActivities(activities: Activity[], socket?: Socket): void {
 }
 
 function receiveRoutes(routes: Route[], socket?: Socket): void {
-  const filteredRoutes = filterActivities(routes, activityType.value, start.value, end.value);
+  const filteredRoutes = filterActivities(routes, sportType.value, start.value, end.value);
   emit('add-activities', filteredRoutes);
   requestMaps(
     filteredRoutes.map(({ id }) => id),
@@ -385,8 +380,8 @@ defineExpose({ loadFromCache, gear });
       <label>
         <span>Activity type</span>
         <Dropdown
-          v-model="activityType"
-          :options="sortedActivityTypes"
+          v-model="sportType"
+          :options="sortedSportTypes"
           blank-value=""
           blank-label="All activities"
         />
