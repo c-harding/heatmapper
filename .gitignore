@@ -7,7 +7,8 @@ node_modules
 /server/sessions
 
 # env files and key files
-.env
+*.env
+!sample.env
 /dist/*.pem
 /*.pem
 
