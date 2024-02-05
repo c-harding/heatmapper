@@ -2,8 +2,9 @@
 import type { MapItem } from '@strava-heatmapper/shared/interfaces';
 import { ref } from 'vue';
 
+import ActivitiesPanel from './components/ActivitiesPanel.vue';
+import CollapsibleSidebar from './components/CollapsibleSidebar.vue';
 import MapView from './components/MapView.vue';
-import Sidebar from './components/Sidebar.vue';
 import { MapStyle } from './MapStyle';
 
 const map = ref<typeof MapView>();
@@ -17,6 +18,8 @@ const mapItems = ref<MapItem[]>([]);
 const selected = ref<string[]>([]);
 
 const terrain = ref(false);
+
+const minimised = ref(false);
 
 const mapStyle = ref(MapStyle.STRAVA);
 
@@ -51,16 +54,19 @@ defineExpose({ mapItems });
 
 <template>
   <div id="app">
-    <Sidebar
-      v-model:map-style="mapStyle"
-      v-model:selected="selected"
-      v-model:terrain="terrain"
-      :map-items="mapItems"
-      @zoom-to-selected="zoomToSelected"
-      @clear-map-items="clearMapItems"
-      @add-map-items="addMapItems"
-      @add-maps="addMaps"
-    />
+    <CollapsibleSidebar v-model:minimised="minimised" @sidebar-size="sidebarOverlaySize = $event">
+      <ActivitiesPanel
+        v-model:map-style="mapStyle"
+        v-model:selected="selected"
+        v-model:terrain="terrain"
+        :map-items="mapItems"
+        @focus-sidebar="minimised = false"
+        @zoom-to-selected="zoomToSelected"
+        @clear-map-items="clearMapItems"
+        @add-map-items="addMapItems"
+        @add-maps="addMaps"
+      />
+    </CollapsibleSidebar>
     <MapView
       ref="map"
       v-model:map-style="mapStyle"

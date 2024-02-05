@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { onBeforeUnmount, onMounted, ref } from 'vue';
+
 import { useModel } from '../utils/useModel';
 import Icon from './Icon.vue';
 
@@ -11,9 +13,25 @@ const props = withDefaults(
 
 const emit = defineEmits<{
   (e: 'update:minimised', value: boolean): void;
+  (e: 'sidebar-size', value: DOMRectReadOnly | undefined): void;
 }>();
 
-const minimisedModel = useModel('minimised', props, emit);
+function emitPaddingDimensions() {
+  emit('sidebar-size', minimisedOverlay.value?.getBoundingClientRect());
+}
+
+onMounted(() => {
+  emitPaddingDimensions();
+  window.addEventListener('resize', emitPaddingDimensions, { passive: true });
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', emitPaddingDimensions);
+});
+
+const minimisedModel = useModel('minimised', props)(emit);
+
+const minimisedOverlay = ref<HTMLElement>();
 </script>
 
 <template>

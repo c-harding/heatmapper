@@ -5,7 +5,6 @@ import { computed, nextTick, onMounted, ref, watch } from 'vue';
 import { MapStyle } from '../MapStyle';
 import { findLastIndex } from '../utils/arrays';
 import { cancelTextSelection } from '../utils/ui';
-import CollapsibleSidebar from './CollapsibleSidebar.vue';
 import FormComponent from './Form.vue';
 import SidebarItem from './SidebarItem.vue';
 
@@ -45,6 +44,7 @@ const emit = defineEmits<{
   (e: 'zoom-to-selected', value: string[]): void;
   (e: 'update:mapStyle', value: MapStyle): void;
   (e: 'update:terrain', value: boolean): void;
+  (e: 'focus-sidebar'): void;
 }>();
 
 const mapStyleModel = computed<MapStyle>({
@@ -70,8 +70,6 @@ const form = ref<InstanceType<typeof FormComponent>>();
 const localSelected = ref<string[]>();
 
 const selectionBase = ref<string[]>();
-
-const minimised = ref(false);
 
 const gitHash = process.env.VUE_APP_GIT_HASH ?? null;
 
@@ -113,10 +111,10 @@ watch(
     if (selected !== localSelected.value) {
       localSelected.value = selected;
       selectionBase.value = selected;
-      if (selected.length !== 0) minimised.value = false;
+      if (selected.length !== 0) emit('focus-sidebar');
       await nextTick();
       const el = sidebarItemList.value?.querySelector('.selected');
-      if (el) el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      el?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
     }
   },
 );
@@ -129,41 +127,39 @@ onMounted(() => {
 </script>
 
 <template>
-  <CollapsibleSidebar v-model:minimised="minimised">
-    <div class="sidebar-content">
-      <FormComponent
-        ref="form"
-        v-model:terrain="terrainModel"
-        v-model:map-style="mapStyleModel"
-        @clear-map-items="emit('clear-map-items')"
-        @add-map-items="emit('add-map-items', $event)"
-        @add-maps="emit('add-maps', $event)"
+  <div class="sidebar-content">
+    <FormComponent
+      ref="form"
+      v-model:terrain="terrainModel"
+      v-model:map-style="mapStyleModel"
+      @clear-map-items="emit('clear-map-items')"
+      @add-map-items="emit('add-map-items', $event)"
+      @add-maps="emit('add-maps', $event)"
+    />
+    <ul ref="sidebarItemList">
+      <SidebarItem
+        v-for="item of mapItems"
+        :key="item.id"
+        :item="item"
+        :selected="selected.includes(item.id)"
+        @click="click(item.id, $event)"
+        @dblclick="forceSelect"
       />
-      <ul ref="sidebarItemList">
-        <SidebarItem
-          v-for="item of mapItems"
-          :key="item.id"
-          :item="item"
-          :selected="selected.includes(item.id)"
-          @click="click(item.id, $event)"
-          @dblclick="forceSelect"
-        />
-      </ul>
-      <p class="credits">
-        Made by Charlie{{ nbsp }}Harding
-        <a class="icon strava" href="https://www.strava.com/athletes/13013632"
-          ><img src="@/assets/strava.png"
-        /></a>
-        <a class="icon github" href="https://github.com/c-harding/heatmapper"
-          ><img src="@/assets/github.png"
-        /></a>
-        <br />
-        <span v-if="gitHash" class="credits">
-          Build <code>{{ gitHash }}</code>
-        </span>
-      </p>
-    </div>
-  </CollapsibleSidebar>
+    </ul>
+    <p class="credits">
+      Made by Charlie{{ nbsp }}Harding
+      <a class="icon strava" href="https://www.strava.com/athletes/13013632"
+        ><img src="@/assets/strava.png"
+      /></a>
+      <a class="icon github" href="https://github.com/c-harding/heatmapper"
+        ><img src="@/assets/github.png"
+      /></a>
+      <br />
+      <span v-if="gitHash" class="credits">
+        Build <code>{{ gitHash }}</code>
+      </span>
+    </p>
+  </div>
 </template>
 
 <style lang="scss" scoped>
