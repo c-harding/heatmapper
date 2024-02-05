@@ -81,12 +81,24 @@ const distanceString = computed(() => {
 const movingTime = computed(() => {
   const time = !props.item.route && props.item.movingTime;
   if (!time) return undefined;
-  const days = suffix(Math.floor(time / 60 / 60 / 24) || undefined, '\xa0d');
-  const hours = suffix(Math.floor((time / 60 / 60) % 24) || undefined, '\xa0h');
-  const minutes = suffix(Math.floor((time / 60) % 60) || undefined, '\xa0m');
-  const seconds = suffix(Math.floor(time % 60) || undefined, '\xa0s');
 
-  return [days, hours, minutes, seconds].filter(Boolean).slice(0, 2).join(' ');
+  // If any value is zero,
+  // return undefined if the previous value was undefined,
+  // otherwise return zero (with the suffix).
+  const days = suffix(Math.floor(time / 60 / 60 / 24) || undefined, 'd');
+  const hours = suffix(Math.floor((time / 60 / 60) % 24) || (days ? 0 : undefined), 'h');
+  const minutes = suffix(Math.floor((time / 60) % 60) || (hours ? 0 : undefined), 'm');
+  const seconds = suffix(Math.floor(time % 60) || (minutes ? 0 : undefined), 's');
+
+  return (
+    [days, hours, minutes, seconds]
+      // Ignore zero entries
+      .filter(Boolean)
+      // Take the most significant digits
+      .slice(0, 2)
+      // join with non-breaking spaces
+      .join('\xa0')
+  );
 });
 
 const elevationString = computed(() => {
