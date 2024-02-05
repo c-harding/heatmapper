@@ -57,14 +57,16 @@ const minimisedOverlay = ref<HTMLElement>();
 </template>
 
 <style lang="scss">
-$sidebar-width: 20rem;
-$minimised-width: 0rem;
-$corner-radius: 1rem;
-$scaled-corner-radius: min($corner-radius, 50%);
-$pseudo-scaled-corner-radius: min($corner-radius, 100%);
 $tab-width: 5rem;
 $tab-height: 5rem;
 $logo-height: 5rem;
+
+$minimised-width: 0rem;
+$sidebar-width: min(20rem, 100vw - #{$tab-width});
+$corner-radius: 1rem;
+$scaled-corner-radius: min($corner-radius, 50%);
+$pseudo-scaled-corner-radius: min($corner-radius, 100%);
+
 $max-size-to-minimise: 600px;
 $padding-top: calc(0.5rem + var(--top-safe-area));
 
@@ -264,7 +266,7 @@ $padding-top: calc(0.5rem + var(--top-safe-area));
 
 @media screen and (max-width: $max-size-to-minimise) {
   .sidebar {
-    $sidebar-overlap: $minimised-width - $sidebar-width;
+    $sidebar-overlap: calc(#{$minimised-width} - #{$sidebar-width});
     $sidebar-overlay-width: $minimised-width + $tab-width;
     $sidebar-overlay-height: calc(#{$padding-top} + #{$logo-height} + #{$tab-height});
 
