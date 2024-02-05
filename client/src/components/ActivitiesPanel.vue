@@ -8,16 +8,16 @@ import { cancelTextSelection } from '../utils/ui';
 import FormComponent from './Form.vue';
 import SidebarItem from './SidebarItem.vue';
 
-function getRange(activities: MapItem[], to: string, from?: string | string[]): string[] {
+function getRange(mapItems: MapItem[], to: string, from?: string | string[]): string[] {
   if (to === undefined) return [];
   if (from === undefined) return [to];
   const fromArray: string[] = [from].flat();
   if (fromArray.includes(to)) return fromArray;
 
-  const start = activities.findIndex(({ id }) => to === id || fromArray.includes(id));
+  const start = mapItems.findIndex(({ id }) => to === id || fromArray.includes(id));
   if (start === -1) return [to, ...fromArray];
-  const end = findLastIndex(activities, ({ id }) => to === id || fromArray.includes(id));
-  return activities.slice(start, end + 1).map(({ id }) => id);
+  const end = findLastIndex(mapItems, ({ id }) => to === id || fromArray.includes(id));
+  return mapItems.slice(start, end + 1).map(({ id }) => id);
 }
 
 const props = withDefaults(
