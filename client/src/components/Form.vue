@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Activity, Gear, Route } from '@strava-heatmapper/shared/interfaces';
+import type { Activity, Gear, MapItem, Route } from '@strava-heatmapper/shared/interfaces';
 import { TimeRange } from '@strava-heatmapper/shared/interfaces';
 import { computed, reactive, ref, watch } from 'vue';
 
@@ -36,9 +36,9 @@ const props = withDefaults(
 const gear = reactive(new Map<string, Gear | null>());
 
 const emit = defineEmits<{
-  (e: 'add-activities', value: Activity[] | Route[]): void;
-  (e: 'clear-activities'): void;
-  (e: 'add-activity-maps', value: Record<string, string>): void;
+  (e: 'add-map-items', value: MapItem[]): void;
+  (e: 'clear-map-items'): void;
+  (e: 'add-maps', value: Record<string, string>): void;
   (e: 'update:terrain', value: boolean): void;
   (e: 'update:mapStyle', value: MapStyle): void;
 }>();
@@ -62,6 +62,7 @@ function findingString(
   { started = false, finished = false, length = 0 }: LoadingStats['finding'] = {},
   inCache = false,
 ) {
+  // TODO: generic for activities/routes
   if (finished && inCache) return `found ${countActivities(length)} in cache`;
   if (finished) return `found ${countActivities(length)}`;
   if (length) return `found ${countActivities(length)} so far`;
@@ -78,17 +79,17 @@ function mapString(requested = 0, length = 0, uncached = 0) {
   return '';
 }
 
-function filterActivities<ActivityOrRoute extends Activity | Route>(
-  activities: ActivityOrRoute[],
+function filterActivities<T extends MapItem>(
+  mapItems: T[],
   type?: string,
   start?: Date | null,
   end?: Date | null,
-): ActivityOrRoute[] {
-  return activities.filter((activity) =>
+): T[] {
+  return mapItems.filter((item) =>
     [
-      !type || type.split(',').includes(activity.type),
-      !start || activity.date >= +start,
-      !end || activity.date <= +end + DAY,
+      !type || type.split(',').includes(item.type),
+      !start || item.date >= +start,
+      !end || item.date <= +end + DAY,
     ].every(Boolean),
   );
 }
@@ -148,20 +149,20 @@ function clearCache(): void {
   localStorage.clear();
   document.cookie = `token=;expires=${new Date(0).toUTCString()}`;
   stats.value = { cleared: true };
-  emit('clear-activities');
+  emit('clear-map-items');
 }
 
 function receiveMaps(maps: Record<string, string>): void {
   clientStats.value.mapsLoaded += Object.keys(maps).length;
-  emit('add-activity-maps', maps);
+  emit('add-maps', maps);
 }
 
 watch(sportType, () => {
-  emit('clear-activities');
+  emit('clear-map-items');
   loadFromCache();
 });
 
-async function requestMaps(ids: (number | string)[], socket?: Socket) {
+async function requestMaps(ids: string[], socket?: Socket) {
   clientStats.value.mapsRequested += ids.length;
   const { cached, notCached } = getCachedMaps(ids);
   receiveMaps(cached);
@@ -195,7 +196,7 @@ function receiveActivities(activities: Activity[], socket?: Socket): void {
     filteredActivities.map(({ gear }) => gear),
     socket,
   );
-  emit('add-activities', filteredActivities);
+  emit('add-map-items', filteredActivities);
   requestMaps(
     filteredActivities.map(({ id }) => id),
     socket,
@@ -204,7 +205,7 @@ function receiveActivities(activities: Activity[], socket?: Socket): void {
 
 function receiveRoutes(routes: Route[], socket?: Socket): void {
   const filteredRoutes = filterActivities(routes, sportType.value, start.value, end.value);
-  emit('add-activities', filteredRoutes);
+  emit('add-map-items', filteredRoutes);
   requestMaps(
     filteredRoutes.map(({ id }) => id),
     socket,
@@ -259,7 +260,7 @@ async function loadRoutes(): Promise<void> {
 }
 
 async function sockets({ partial = false, routes = false } = {}): Promise<void> {
-  emit('clear-activities');
+  emit('clear-map-items');
   if (partial) loadFromCache(partial);
   clientStats.value = {
     mapsRequested: 0,
@@ -348,6 +349,7 @@ async function sockets({ partial = false, routes = false } = {}): Promise<void> 
 
   const storeVersion = getActivityStore().version;
   if (storeVersion !== serverVersion) {
+    emit('clear-map-items');
     resetActivityStore(serverVersion);
   }
 

@@ -12,7 +12,7 @@ type Properties = { id: string };
 
 <script setup lang="tsx">
 import polyline from '@mapbox/polyline';
-import type { Activity } from '@strava-heatmapper/shared/interfaces';
+import type { MapItem } from '@strava-heatmapper/shared/interfaces';
 import { useHead } from '@unhead/vue';
 import type { GeoJSON } from 'geojson';
 import { LngLatBounds } from 'mapbox-gl';
@@ -36,25 +36,23 @@ const fromZoom = (...pairs: (readonly [zoom: number, value: unknown])[]): mapbox
 ];
 
 const makeGeoJsonData = (
-  activities: Activity[] = [],
+  mapItems: MapItem[] = [],
 ): GeoJSON.FeatureCollection<GeoJSON.LineString, Properties> => ({
   type: 'FeatureCollection',
-  features: activities
-    .filter((activity) => activity.map)
-    .map(
-      (activity): GeoJSON.Feature<GeoJSON.LineString, Properties> => ({
-        type: 'Feature',
-        properties: {
-          id: activity.id,
-        },
-        geometry: polyline.toGeoJSON(activity.map),
-      }),
-    ),
+  features: mapItems
+    .filter((item) => item.map)
+    .map<GeoJSON.Feature<GeoJSON.LineString, Properties>>((item) => ({
+      type: 'Feature',
+      properties: {
+        id: item.id,
+      },
+      geometry: polyline.toGeoJSON(item.map),
+    })),
 });
 
-const makeGeoJson = (activities = []): mapboxgl.GeoJSONSourceRaw => ({
+const makeGeoJson = (mapItems: MapItem[] = []): mapboxgl.GeoJSONSourceRaw => ({
   type: 'geojson',
-  data: makeGeoJsonData(activities),
+  data: makeGeoJsonData(mapItems),
 });
 
 interface LayerDef {
@@ -133,9 +131,9 @@ const token = ref(
   'pk.eyJ1IjoiY2hhcmRpbmciLCJhIjoiY2tiYWp0cndkMDc0ZjJybXhlcHdoM2Z3biJ9.XUwOLV17ZBXE8dhp198dqg',
 );
 
-const selectedActivities = computed<Activity[]>(() => {
-  return props.activities.filter((activity) => props.selected.includes(activity.id));
-});
+const selectedMapItems = computed<MapItem[]>(() =>
+  props.mapItems.filter((item) => props.selected.includes(item.id)),
+);
 
 const localSelected = ref<string[]>([]);
 
@@ -160,7 +158,7 @@ const props = withDefaults(
     center: mapboxgl.LngLatLike;
     zoom: number;
     selected?: string[];
-    activities: Activity[];
+    mapItems: MapItem[];
     terrain?: boolean;
     mapStyle: MapStyle;
   }>(),
@@ -194,14 +192,14 @@ watch(
 watch(() => props.terrain, onTerrain);
 
 watch(
-  () => props.activities,
-  (activities) => {
-    applyActivities(activities, 'lines');
+  () => props.mapItems,
+  (mapItems) => {
+    applyMapItems(mapItems, 'lines');
   },
 );
 
-watch(selectedActivities, (selectedActivities) => {
-  applyActivities(selectedActivities, 'selected');
+watch(selectedMapItems, (selectedMapItems) => {
+  applyMapItems(selectedMapItems, 'selected');
 });
 
 watch(
@@ -210,17 +208,17 @@ watch(
     nextTick(() => {
       if (props.selected !== localSelected.value) {
         localSelected.value = props.selected;
-        flyTo(selectedActivities.value);
+        flyTo(selectedMapItems.value);
       }
     });
   },
 );
 
-function flyTo(activities: Activity[], zoom = false): void {
+function flyTo(mapItems: MapItem[], zoom = false): void {
   const padding = 20;
 
-  if (!map.value || activities.length === 0) return;
-  const coordinates = activities.flatMap(({ map: line }) =>
+  if (!map.value || mapItems.length === 0) return;
+  const coordinates = mapItems.flatMap(({ map: line }) =>
     polyline.decode(line).map<[number, number]>(([y, x]) => [x, y]),
   );
   const bounds = coordinates.reduce(
@@ -246,10 +244,10 @@ function flyTo(activities: Activity[], zoom = false): void {
 }
 
 function zoomToSelection(): void {
-  flyTo(selectedActivities.value, true);
+  flyTo(selectedMapItems.value, true);
 }
 
-function applyActivities(next: Activity[], sourceID: string): void {
+function applyMapItems(next: MapItem[], sourceID: string): void {
   const source = map.value?.getSource(sourceID);
   (source as mapboxgl.GeoJSONSource)?.setData(makeGeoJsonData(next));
 }
@@ -264,8 +262,8 @@ async function mapLoaded(map: mapboxgl.Map): Promise<void> {
   onTerrain();
 
   await nextTick();
-  applyActivities(props.activities, 'lines');
-  applyActivities(selectedActivities.value, 'selected');
+  applyMapItems(props.mapItems, 'lines');
+  applyMapItems(selectedMapItems.value, 'selected');
 }
 
 function surround(point: mapboxgl.Point, offset: number): [mapboxgl.PointLike, mapboxgl.PointLike] {

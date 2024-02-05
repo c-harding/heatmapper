@@ -58,7 +58,7 @@ export function appendCachedActivities(activities: Activity[], end: number, star
   localStorage.setItem('activities', JSON.stringify(newStore));
 }
 
-export function getCachedMaps(ids: (string | number)[]) {
+export function getCachedMaps(ids: string[]) {
   const notCached: string[] = [];
 
   const cached: Record<string, string> = {};

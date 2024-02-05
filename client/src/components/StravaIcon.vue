@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { SportType } from '@strava-heatmapper/shared/interfaces';
 
-import { activityIconString } from '../utils/icons';
+import { sportIconString } from '../utils/icons';
 
 const props = withDefaults(
   defineProps<{
@@ -13,7 +13,7 @@ const props = withDefaults(
 
 <template>
   <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor">
-    <path fillRule="evenodd" :d="activityIconString(sportType)" />
+    <path fillRule="evenodd" :d="sportIconString(sportType)" />
   </svg>
 </template>
 

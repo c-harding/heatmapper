@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Activity, Route, SportType } from '@strava-heatmapper/shared/interfaces';
+import type { MapItem, SportType } from '@strava-heatmapper/shared/interfaces';
 import { computed } from 'vue';
 
 import Spinner from './Spinner.vue';
@@ -7,7 +7,7 @@ import StravaIcon from './StravaIcon.vue';
 
 const props = withDefaults(
   defineProps<{
-    activity: Activity | Route;
+    item: MapItem;
     selected?: boolean;
     expanded?: boolean;
     showTime?: boolean;
@@ -26,15 +26,15 @@ const emit = defineEmits<{
 }>();
 
 const url = computed<string>(() => {
-  if (props.activity.route) {
-    return `https://www.strava.com/routes/${props.activity.id}`;
+  if (props.item.route) {
+    return `https://www.strava.com/routes/${props.item.id}`;
   } else {
-    return `https://www.strava.com/activities/${props.activity.id}`;
+    return `https://www.strava.com/activities/${props.item.id}`;
   }
 });
 
 const time = computed(() =>
-  new Date(props.activity.date).toLocaleTimeString(undefined, {
+  new Date(props.item.date).toLocaleTimeString(undefined, {
     hour: 'numeric',
     minute: 'numeric',
   }),
@@ -72,14 +72,14 @@ const suffix = (value: number | undefined, suffix: string, fixed = 0) =>
   value !== undefined ? value.toFixed(fixed) + suffix : undefined;
 
 const distanceString = computed(() => {
-  const kilometres = props.activity.distance / 1000;
+  const kilometres = props.item.distance / 1000;
   const precision = 2 - Math.max(0, Math.min(Math.floor(Math.log10(kilometres)), 2));
 
   return suffix(kilometres, '\xa0km', precision);
 });
 
 const movingTime = computed(() => {
-  const time = !props.activity.route && props.activity.movingTime;
+  const time = !props.item.route && props.item.movingTime;
   if (!time) return undefined;
   const days = suffix(Math.floor(time / 60 / 60 / 24) || undefined, '\xa0d');
   const hours = suffix(Math.floor((time / 60 / 60) % 24) || undefined, '\xa0h');
@@ -90,14 +90,14 @@ const movingTime = computed(() => {
 });
 
 const elevationString = computed(() => {
-  if (!props.activity.elevation) return;
+  if (!props.item.elevation) return;
   const elevationGain =
-    props.activity.route || !hideElevationGain.includes(props.activity.type)
-      ? metres(props.activity.elevation.gain, '↗\xa0')
+    props.item.route || !hideElevationGain.includes(props.item.type)
+      ? metres(props.item.elevation.gain, '↗\xa0')
       : undefined;
   const elevationLoss =
-    !props.activity.route && showElevationLoss.includes(props.activity.type)
-      ? metres(props.activity.elevation.loss, '↘\xa0')
+    !props.item.route && showElevationLoss.includes(props.item.type)
+      ? metres(props.item.elevation.loss, '↘\xa0')
       : undefined;
 
   if (elevationGain && elevationLoss) {
@@ -114,22 +114,22 @@ const stats = computed(() =>
 
 <template>
   <li
-    :class="['activity-item', { selected }]"
+    :class="['sidebar-item', { selected }]"
     @click="emit('click', $event)"
     @touchstart="emit('touchstart')"
     @dblclick="emit('dblclick', $event)"
   >
-    <StravaIcon v-if="expanded" class="strava-icon" :sport-type="activity.type" />
-    <div class="activity-info">
-      <div class="activity-name" v-text="activity.name" />
-      <div v-if="expanded" class="activity-stats" v-text="stats" />
+    <StravaIcon v-if="expanded" class="strava-icon" :sport-type="item.type" />
+    <div class="sidebar-item-info">
+      <div class="sidebar-item-name" v-text="item.name" />
+      <div v-if="expanded" class="sidebar-item-stats" v-text="stats" />
     </div>
-    <div v-if="!activity.map" class="spinner">
+    <div v-if="!item.map" class="spinner">
       <Spinner size="tiny" line-fg-color="#888" />
     </div>
     <div class="date">
-      <div v-text="activity.dateString.join('\n')" />
-      <div v-if="showTime && expanded && !activity.route" class="time" v-text="time" />
+      <div v-text="item.dateString.join('\n')" />
+      <div v-if="showTime && expanded && !item.route" class="time" v-text="time" />
     </div>
     <a
       :href="url"
@@ -144,7 +144,7 @@ const stats = computed(() =>
 </template>
 
 <style lang="scss">
-.activity-item {
+.sidebar-item {
   cursor: pointer;
   list-style: none;
   font-size: 14px;
@@ -165,13 +165,13 @@ const stats = computed(() =>
     padding-right: 4px;
   }
 
-  .activity-info {
+  .sidebar-item-info {
     flex: 1;
     display: flex;
     flex-direction: column;
   }
 
-  .activity-stats {
+  .sidebar-item-stats {
     font-size: 0.75em;
   }
 

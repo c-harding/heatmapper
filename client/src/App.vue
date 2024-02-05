@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Activity } from '@strava-heatmapper/shared/interfaces';
+import type { MapItem } from '@strava-heatmapper/shared/interfaces';
 import { ref } from 'vue';
 
 import MapView from './components/MapView.vue';
@@ -12,40 +12,41 @@ const location = ref({ lat: 51.45, lng: -2.6 });
 
 const zoom = ref(10);
 
-const activities = ref<Activity[]>([]);
+const mapItems = ref<MapItem[]>([]);
 
-const selected = ref<number[]>([]);
+const selected = ref<string[]>([]);
 
 const terrain = ref(false);
 
 const mapStyle = ref(MapStyle.STRAVA);
 
-function clearActivities(): void {
-  activities.value = [];
+function clearMapItems(): void {
+  mapItems.value = [];
 }
-function addActivities(newActivities: Activity[]): void {
-  const newIDs = new Set(newActivities.map((activity) => activity.id));
-  activities.value = activities.value
-    .filter((activity) => !newIDs.has(activity.id))
-    .concat(newActivities)
+function addMapItems(newItems: MapItem[]): void {
+  const newIDs = new Set(newItems.map((item) => item.id));
+  mapItems.value = mapItems.value
+    .filter((item) => !newIDs.has(item.id))
+    .concat(newItems)
     .sort((a, b) => b.date - a.date);
 }
 
-function addActivityMaps(maps: Record<string, string>): void {
-  Object.entries(maps).forEach(([activity, map]) => {
-    const i = activities.value.findIndex(({ id }) => id.toString() === activity);
-    activities.value[i].map = map;
+function addMaps(maps: Record<string, string>): void {
+  Object.entries(maps).forEach(([item, map]) => {
+    const i = mapItems.value.findIndex(({ id }) => id.toString() === item);
+    mapItems.value[i].map = map;
   });
-  // Trigger the activities array watcher, so the new maps are correctly shown
-  activities.value = activities.value.slice();
+  // Trigger the mapItems array watcher, so the new maps are correctly shown
+  // TODO: is this needed?
+  mapItems.value = mapItems.value.slice();
 }
 
-function zoomToSelected(selection: number[]): void {
+function zoomToSelected(selection: string[]): void {
   selected.value = selection;
   map.value?.zoomToSelection();
 }
 
-defineExpose({ activities });
+defineExpose({ mapItems });
 </script>
 
 <template>
@@ -54,11 +55,11 @@ defineExpose({ activities });
       v-model:map-style="mapStyle"
       v-model:selected="selected"
       v-model:terrain="terrain"
-      :activities="activities"
+      :map-items="mapItems"
       @zoom-to-selected="zoomToSelected"
-      @clear-activities="clearActivities"
-      @add-activities="addActivities"
-      @add-activity-maps="addActivityMaps"
+      @clear-map-items="clearMapItems"
+      @add-map-items="addMapItems"
+      @add-maps="addMaps"
     />
     <MapView
       ref="map"
@@ -67,7 +68,7 @@ defineExpose({ activities });
       v-model:zoom="zoom"
       v-model:selected="selected"
       :terrain="terrain"
-      :activities="activities"
+      :map-items="mapItems"
     />
   </div>
 </template>

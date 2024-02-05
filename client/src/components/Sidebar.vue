@@ -1,18 +1,18 @@
 <script setup lang="ts">
-import type { Activity, Route } from '@strava-heatmapper/shared/interfaces';
+import type { MapItem } from '@strava-heatmapper/shared/interfaces';
 import { computed, nextTick, onMounted, ref, watch } from 'vue';
 
 import { MapStyle } from '../MapStyle';
 import { findLastIndex } from '../utils/arrays';
 import { cancelTextSelection } from '../utils/ui';
-import ActivityItem from './ActivityItem.vue';
 import FormComponent from './Form.vue';
 import Icon from './Icon.vue';
+import SidebarItem from './SidebarItem.vue';
 
-function getRange(activities: Activity[], to: number, from?: number | number[]): number[] {
+function getRange(activities: MapItem[], to: string, from?: string | string[]): string[] {
   if (to === undefined) return [];
   if (from === undefined) return [to];
-  const fromArray: number[] = [from].flat();
+  const fromArray: string[] = [from].flat();
   if (fromArray.includes(to)) return fromArray;
 
   const start = activities.findIndex(({ id }) => to === id || fromArray.includes(id));
@@ -23,13 +23,13 @@ function getRange(activities: Activity[], to: number, from?: number | number[]):
 
 const props = withDefaults(
   defineProps<{
-    activities: Activity[];
-    selected?: number[];
+    mapItems: MapItem[];
+    selected?: string[];
     terrain?: boolean;
     mapStyle?: MapStyle;
   }>(),
   {
-    activities: () => [],
+    mapItems: () => [],
     selected: () => [],
     terrain: false,
     mapStyle: MapStyle.STRAVA,
@@ -38,11 +38,11 @@ const props = withDefaults(
 
 const emit = defineEmits<{
   (e: 'zoom-to-selected'): void;
-  (e: 'add-activities', value: Activity[] | Route[]): void;
-  (e: 'add-activity-maps', value: Record<string, string>): void;
-  (e: 'clear-activities'): void;
-  (e: 'update:selected', value: number[]): void;
-  (e: 'zoom-to-selected', value: number[]): void;
+  (e: 'add-map-items', value: MapItem[]): void;
+  (e: 'add-maps', value: Record<string, string>): void;
+  (e: 'clear-map-items'): void;
+  (e: 'update:selected', value: string[]): void;
+  (e: 'zoom-to-selected', value: string[]): void;
   (e: 'update:mapStyle', value: MapStyle): void;
   (e: 'update:terrain', value: boolean): void;
 }>();
@@ -67,9 +67,9 @@ const terrainModel = computed<boolean>({
 
 const form = ref<InstanceType<typeof FormComponent>>();
 
-const localSelected = ref<number[]>();
+const localSelected = ref<string[]>();
 
-const selectionBase = ref<number[]>();
+const selectionBase = ref<string[]>();
 
 const minimised = ref(false);
 
@@ -77,24 +77,24 @@ const gitHash = process.env.VUE_APP_GIT_HASH ?? null;
 
 const nbsp = '\xa0';
 
-const activityItemList = ref<HTMLUListElement>();
+const sidebarItemList = ref<HTMLUListElement>();
 
 function toggleInArray<T>(array: T[], item: T): T[] {
   if (array.includes(item)) return array.filter((x) => x !== item);
   else return [...array, item];
 }
 
-function getSelection(id: number, e: MouseEvent): number[] {
+function getSelection(id: string, e: MouseEvent): string[] {
   if (e.metaKey || e.ctrlKey) return toggleInArray(props.selected, id);
-  if (e.shiftKey) return getRange(props.activities, id, selectionBase.value);
+  if (e.shiftKey) return getRange(props.mapItems, id, selectionBase.value);
   return [id];
 }
 
-function click(id: number, e: MouseEvent): void {
+function click(id: string, e: MouseEvent): void {
   if (e.detail === 1) select(id, e);
 }
 
-function select(id: number, e: MouseEvent): void {
+function select(id: string, e: MouseEvent): void {
   if (e.shiftKey) cancelTextSelection();
   const newSelected = getSelection(id, e);
   if (newSelected.length === 1) selectionBase.value = newSelected;
@@ -109,20 +109,20 @@ function forceSelect(): void {
 
 watch(
   () => props.selected,
-  async (selected: number[]) => {
+  async (selected: string[]) => {
     if (selected !== localSelected.value) {
       localSelected.value = selected;
       selectionBase.value = selected;
       if (selected.length !== 0) minimised.value = false;
       await nextTick();
-      const el = activityItemList.value?.querySelector('.selected');
+      const el = sidebarItemList.value?.querySelector('.selected');
       if (el) el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
     }
   },
 );
 
 onMounted(() => {
-  if (!props.activities || props.activities.length === 0) {
+  if (!props.mapItems || props.mapItems.length === 0) {
     form.value?.loadFromCache();
   }
 });
@@ -153,17 +153,17 @@ onMounted(() => {
         ref="form"
         v-model:terrain="terrainModel"
         v-model:map-style="mapStyleModel"
-        @clear-activities="emit('clear-activities')"
-        @add-activities="emit('add-activities', $event)"
-        @add-activity-maps="emit('add-activity-maps', $event)"
+        @clear-map-items="emit('clear-map-items')"
+        @add-map-items="emit('add-map-items', $event)"
+        @add-maps="emit('add-maps', $event)"
       />
-      <ul ref="activityItemList">
-        <ActivityItem
-          v-for="activity of activities"
-          :key="activity.id"
-          :activity="activity"
-          :selected="selected.includes(activity.id)"
-          @click="click(activity.id, $event)"
+      <ul ref="sidebarItemList">
+        <SidebarItem
+          v-for="item of mapItems"
+          :key="item.id"
+          :item="item"
+          :selected="selected.includes(item.id)"
+          @click="click(item.id, $event)"
           @dblclick="forceSelect"
         />
       </ul>
