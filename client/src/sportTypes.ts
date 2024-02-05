@@ -40,7 +40,7 @@ export const sportTypes: Record<SportType, string> = {
   Soccer: 'Football',
   Squash: 'Squash',
   StairStepper: 'Stair stepper',
-  StandUpPaddling: 'Stand up paddleboarding',
+  StandUpPaddling: 'SUP',
   Surfing: 'Surfing',
   Swim: 'Swimming',
   TableTennis: 'Table tennis',
