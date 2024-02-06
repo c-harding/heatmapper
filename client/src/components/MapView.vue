@@ -350,19 +350,22 @@ function surround(point: mapboxgl.Point, offset: number): [mapboxgl.PointLike, m
 }
 
 function click(map: mapboxgl.Map, e: mapboxgl.MapMouseEvent): void {
+  const originalEvent = e.originalEvent;
   // Ignore duplicate clicks
-  if (e.originalEvent.detail > 1) return;
+  if (originalEvent.detail > 1) return;
+
+  const keepExisting = originalEvent.metaKey || originalEvent.ctrlKey;
 
   for (let i = 0; i < 5; i += 1) {
     const neighbours = map.queryRenderedFeatures(surround(e.point, i), {
       layers: ['lines', 'selected'],
     });
     if (neighbours.length > 0) {
-      select((neighbours[neighbours.length - 1].properties as Properties).id);
+      select((neighbours[neighbours.length - 1].properties as Properties).id, keepExisting);
       return;
     }
   }
-  select();
+  select(undefined, keepExisting);
 }
 
 function dblclick(e: mapboxgl.MapMouseEvent): void {
@@ -372,8 +375,9 @@ function dblclick(e: mapboxgl.MapMouseEvent): void {
   }
 }
 
-function select(id?: string): void {
-  const selected = id !== undefined ? [id] : [];
+function select(id?: string, keepExisting = false): void {
+  const newSelected = id !== undefined ? [id] : [];
+  const selected = keepExisting ? localSelected.value.concat(newSelected) : newSelected;
   localSelected.value = selected;
   emit('update:selected', selected);
 }
