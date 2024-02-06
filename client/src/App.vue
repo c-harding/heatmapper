@@ -2,9 +2,9 @@
 import type { MapItem } from '@strava-heatmapper/shared/interfaces';
 import { ref } from 'vue';
 
-import ActivitiesPanel from './components/ActivitiesPanel.vue';
 import CollapsibleSidebar from './components/CollapsibleSidebar.vue';
 import MapView from './components/MapView.vue';
+import SidebarContent from './components/SidebarContent.vue';
 import { MapStyle } from './MapStyle';
 
 const map = ref<typeof MapView>();
@@ -39,9 +39,6 @@ function addMaps(maps: Record<string, string>): void {
     const i = mapItems.value.findIndex(({ id }) => id.toString() === item);
     mapItems.value[i].map = map;
   });
-  // Trigger the mapItems array watcher, so the new maps are correctly shown
-  // TODO: is this needed?
-  mapItems.value = mapItems.value.slice();
 }
 
 function zoomToSelected(): void {
@@ -54,7 +51,7 @@ defineExpose({ mapItems });
 <template>
   <div id="app">
     <CollapsibleSidebar v-model:minimised="minimised">
-      <ActivitiesPanel
+      <SidebarContent
         v-model:map-style="mapStyle"
         v-model:selected="selected"
         v-model:terrain="terrain"
