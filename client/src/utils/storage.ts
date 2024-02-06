@@ -52,7 +52,7 @@ export function appendCachedActivities(activities: Activity[], end: number, star
     covered: TimeRange.merge((existingStore.covered || []).concat({ start, end })),
     activities: (existingStore.activities || [])
       .filter((existingActivity) => !ids.has(existingActivity.id))
-      .concat(activities)
+      .concat(activities.map((activity) => ({ ...activity, map: '' })))
       .sort((a, b) => b.date - a.date),
   };
   localStorage.setItem('activities', JSON.stringify(newStore));
