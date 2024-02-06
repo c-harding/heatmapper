@@ -44,8 +44,7 @@ function addMaps(maps: Record<string, string>): void {
   mapItems.value = mapItems.value.slice();
 }
 
-function zoomToSelected(selection: string[]): void {
-  selected.value = selection;
+function zoomToSelected(): void {
   map.value?.zoomToSelection();
 }
 

@@ -350,6 +350,9 @@ function surround(point: mapboxgl.Point, offset: number): [mapboxgl.PointLike, m
 }
 
 function click(map: mapboxgl.Map, e: mapboxgl.MapMouseEvent): void {
+  // Ignore duplicate clicks
+  if (e.originalEvent.detail > 1) return;
+
   for (let i = 0; i < 5; i += 1) {
     const neighbours = map.queryRenderedFeatures(surround(e.point, i), {
       layers: ['lines', 'selected'],
@@ -360,6 +363,13 @@ function click(map: mapboxgl.Map, e: mapboxgl.MapMouseEvent): void {
     }
   }
   select();
+}
+
+function dblclick(e: mapboxgl.MapMouseEvent): void {
+  if (localSelected.value.length !== 0) {
+    e.preventDefault();
+    nextTick(() => zoomToSelection());
+  }
 }
 
 function select(id?: string): void {
@@ -382,6 +392,7 @@ onMounted(() => {
   map.on('zoomend', () => zoomend(map));
   map.on('moveend', () => moveend(map));
   map.on('click', (ev) => click(map, ev));
+  map.on('dblclick', (ev) => dblclick(ev));
   map.once('idle', () => mapLoaded(map));
 });
 

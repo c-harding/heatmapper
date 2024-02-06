@@ -36,12 +36,11 @@ const props = withDefaults(
 );
 
 const emit = defineEmits<{
-  (e: 'zoom-to-selected'): void;
   (e: 'add-map-items', value: MapItem[]): void;
   (e: 'add-maps', value: Record<string, string>): void;
   (e: 'clear-map-items'): void;
   (e: 'update:selected', value: string[]): void;
-  (e: 'zoom-to-selected', value: string[]): void;
+  (e: 'zoom-to-selected'): void;
   (e: 'update:mapStyle', value: MapStyle): void;
   (e: 'update:terrain', value: boolean): void;
   (e: 'focus-sidebar'): void;
@@ -100,7 +99,7 @@ function select(id: string, e: MouseEvent): void {
 
 function forceSelect(): void {
   cancelTextSelection();
-  emit('zoom-to-selected', props.selected);
+  emit('zoom-to-selected');
 }
 
 watch(
