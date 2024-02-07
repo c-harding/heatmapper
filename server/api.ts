@@ -1,5 +1,3 @@
-import 'moment/min/locales';
-
 import type {
   Activity,
   ActivityMap,
@@ -13,15 +11,14 @@ import { TimeRange } from '@strava-heatmapper/shared/interfaces';
 import express from 'express';
 import type { Router } from 'express-ws';
 import { createReadStream } from 'fs';
-import moment from 'moment';
 
 import eagerIterator from './eager-iterator';
-import { completeInOrder, memoize } from './stateful-functions';
+import { completeInOrder } from './stateful-functions';
 import { Strava } from './strava';
 import type { DetailedGear, SummaryActivity, SummaryRoute } from './strava/model';
 import { tokenExchange, validTokenCallback } from './strava/token';
 
-const VERSION = 1;
+const VERSION = 2;
 
 async function* chunkAsync<T>(array: Promise<T>[], n = 10): AsyncGenerator<T[]> {
   for (let i = 0; i < array.length; i += n) {
@@ -29,58 +26,39 @@ async function* chunkAsync<T>(array: Promise<T>[], n = 10): AsyncGenerator<T[]> 
   }
 }
 
-const splitDateFormat = memoize((format) => {
-  // break at the last word boundary after year before day/month
-  const yearFirstRegex = /^([^DMY]*Y+(?:[^DMY]*[^DMY ])?(?:\b|(?= ))) ?([^MD]*[MD]+.*)$/;
-
-  // break at the first word boundary after day/month before year
-  const yearLastRegex = /^([^Y]*[MD](?:[^Y]*?[^Y ])??\b[.,]?) ?((?![,.]).*?Y+[^DMY]*)$/;
-  const matches = yearFirstRegex.exec(format) || yearLastRegex.exec(format);
-  if (matches) return matches.slice(1);
-  return [format];
-});
-
-function formatDateWithLineBreak(date: moment.MomentInput, locales: string | string[]): string[] {
-  const dateMoment = moment(date).locale(locales);
-  const format = moment.localeData(locales).longDateFormat('ll');
-  const splitFormat = splitDateFormat(format);
-  return splitFormat.map((line) => dateMoment.format(line));
-}
-
 function defined(...dependencies: unknown[]): true | undefined {
   return dependencies.every((dependency) => dependency !== undefined) ? true : undefined;
 }
 
-function convertActivitySummary(
-  {
-    id,
-    name,
-    start_date: startDate,
-    start_date_local: startDateLocal,
-    map: { summary_polyline: map },
-    sport_type,
-    distance,
-    gear_id: gear,
-    moving_time: movingTime,
-    elapsed_time: duration,
-    total_elevation_gain,
-    elev_high,
-    elev_low,
-  }: SummaryActivity,
-  locales: string | string[] = ['en'],
-): Activity {
+function convertActivitySummary({
+  id,
+  name,
+  start_date: startDate,
+  start_date_local: localStartDate,
+  map: { summary_polyline: map },
+  sport_type,
+  distance,
+  gear_id: gear,
+  moving_time: movingTime,
+  elapsed_time: duration,
+  total_elevation_gain,
+  elev_high,
+  elev_low,
+}: SummaryActivity): Activity {
   const date = +new Date(startDate);
+  const localDate = +new Date(localStartDate);
   return {
     route: false,
     id: String(id),
     name,
     date,
+    localDate,
     movingTime,
     end: date + duration * 1000,
+    localEnd: localDate + duration * 1000,
     map,
     distance,
     type: sport_type,
-    dateString: formatDateWithLineBreak(startDateLocal, locales),
     gear,
     elevation: defined(total_elevation_gain, elev_high, elev_low) && {
       max: elev_high,
@@ -95,20 +73,17 @@ function convertActivitySummary(
 const routeTypeMap = { 1: 'Ride', 2: 'Run', 3: 'Walk' } as const;
 const routeSubTypeMap = { 1: 'Road', 2: 'MountainBike', 3: 'Cross', 4: 'Trail', 5: 'Mixed' } as const;
 
-function convertRouteSummary(
-  {
-    id_str: id,
-    name,
-    created_at: date,
-    map: { summary_polyline: map },
-    type,
-    sub_type: subType,
-    starred,
-    distance,
-    elevation_gain,
-  }: SummaryRoute,
-  locales: string | string[] = ['en'],
-): Route {
+function convertRouteSummary({
+  id_str: id,
+  name,
+  created_at: date,
+  map: { summary_polyline: map },
+  type,
+  sub_type: subType,
+  starred,
+  distance,
+  elevation_gain,
+}: SummaryRoute): Route {
   return {
     route: true,
     id,
@@ -120,7 +95,6 @@ function convertRouteSummary(
     starred,
     type: routeTypeMap[type],
     subType: routeSubTypeMap[subType],
-    dateString: formatDateWithLineBreak(date, locales),
   };
 }
 
@@ -176,8 +150,6 @@ export default function apiRouter(domain: string): express.Router {
 
     const fetchedMaps: Map<string, string> = new Map();
 
-    const locales = req.acceptsLanguages();
-
     async function requestLogin(token: string, url: string) {
       send({ type: 'login', cookie: token, url });
     }
@@ -212,7 +184,7 @@ export default function apiRouter(domain: string): express.Router {
         sendStats();
 
         const newActivities = page
-          .map((activity) => convertActivitySummary(activity, locales))
+          .map((activity) => convertActivitySummary(activity))
           .filter((activity) => activity.map);
         if (newActivities.length) {
           yield newActivities;
@@ -234,7 +206,7 @@ export default function apiRouter(domain: string): express.Router {
         stats.finding.length = routes.length + page.length;
         sendStats();
 
-        const newRoutes = page.map((route) => convertRouteSummary(route, locales)).filter((route) => route.map);
+        const newRoutes = page.map((route) => convertRouteSummary(route)).filter((route) => route.map);
         routes.push(...newRoutes);
         yield newRoutes;
       }

@@ -16,10 +16,11 @@ export default interface Activity extends ActivityMap {
   route: false;
   name: string;
   date: number;
+  localDate: number;
+  localEnd: number;
   end: number;
   type: SportType;
   movingTime: number;
-  dateString: string[];
   distance: number;
   gear?: string;
   elevation?: Elevation;

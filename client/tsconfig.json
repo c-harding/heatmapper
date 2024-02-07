@@ -18,7 +18,7 @@
       "webpack-env",
     ],
     "lib": [
-      "es2019",
+      "ESNext",
       "DOM",
       "DOM.Iterable",
       "ScriptHost"

@@ -104,11 +104,6 @@ a {
   --background-strong: #ccc;
   --transition-speed: 0.5s;
   --link-color: blue;
-
-  --left-safe-area: env(safe-area-inset-left);
-  --right-safe-area: env(safe-area-inset-right);
-  --top-safe-area: env(safe-area-inset-top);
-  --bottom-safe-area: env(safe-area-inset-bottom);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -118,6 +113,18 @@ a {
     --background-slight: #333;
     --background-strong: #555;
     --link-color: lightblue;
+  }
+}
+
+#app {
+  --inline-start-safe-area: env(safe-area-inset-left);
+  --inline-end-safe-area: env(safe-area-inset-right);
+  --top-safe-area: env(safe-area-inset-top);
+  --bottom-safe-area: env(safe-area-inset-bottom);
+
+  &:dir(rtl) {
+    --inline-start-safe-area: env(safe-area-inset-right);
+    --inline-end-safe-area: env(safe-area-inset-left);
   }
 }
 </style>

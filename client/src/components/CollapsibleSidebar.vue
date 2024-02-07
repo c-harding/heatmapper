@@ -18,6 +18,8 @@ const emit = defineEmits<{
 const minimisedModel = useModel('minimised', props)(emit);
 
 const minimisedOverlay = ref<HTMLElement>();
+
+const backArrow = document.dir === 'rtl' ? 'arrow_forward' : 'arrow_back';
 </script>
 
 <template>
@@ -35,11 +37,15 @@ const minimisedOverlay = ref<HTMLElement>();
     <div class="tabs">
       <div class="tab-curve top" />
       <div class="tab map">
-        <p><Icon>map</Icon></p>
+        <p>
+          <Icon>map</Icon>
+        </p>
         <p>Map</p>
       </div>
       <div class="tab back">
-        <p><Icon>arrow_back</Icon></p>
+        <p>
+          <Icon>{{ backArrow }}</Icon>
+        </p>
         <p>Back</p>
       </div>
       <div class="tab-curve bottom" />
@@ -86,10 +92,10 @@ $padding-top: calc(0.5rem + var(--top-safe-area));
   transition: margin var(--transition-speed);
   z-index: 1;
   position: relative;
-  padding-left: var(--left-safe-area);
+  padding-inline-start: var(--inline-start-safe-area);
 
   .header {
-    margin-left: auto;
+    margin-inline-start: auto;
     width: 100%;
     display: flex;
     align-items: center;
@@ -134,11 +140,11 @@ $padding-top: calc(0.5rem + var(--top-safe-area));
   z-index: -2;
   height: $tab-height;
   width: $tab-width;
-  margin-left: auto;
+  margin-inline-start: auto;
   margin-bottom: -$tab-height;
   background: var(--background);
-  border-bottom-right-radius: $corner-radius;
-  border-top-right-radius: $corner-radius;
+  border-end-end-radius: $corner-radius;
+  border-start-end-radius: $corner-radius;
   transition:
     margin var(--transition-speed),
     width var(--transition-speed);
@@ -147,16 +153,15 @@ $padding-top: calc(0.5rem + var(--top-safe-area));
   &::after {
     @include pseudo-element;
     width: $tab-width;
-    right: 100%;
-    top: 0;
-    bottom: 0;
+    inset-inline-end: 100%;
+    inset-block: 0;
   }
 }
 
 .tab-curve {
   width: 0;
   position: relative;
-  margin-left: auto;
+  margin-inline-start: auto;
   transition: width var(--transition-speed);
 }
 
@@ -171,7 +176,7 @@ $padding-top: calc(0.5rem + var(--top-safe-area));
 
 .tab-curve::before {
   @include pseudo-element;
-  left: 0;
+  inset-inline-start: 0;
   height: 2em;
   background-color: transparent;
   width: $scaled-corner-radius;
@@ -180,15 +185,15 @@ $padding-top: calc(0.5rem + var(--top-safe-area));
 .tab-curve.top::before {
   bottom: 100%;
   box-shadow: 0 $corner-radius 0 0 var(--background);
-  border-bottom-left-radius: $pseudo-scaled-corner-radius;
-  transition: left var(--transition-speed);
+  border-end-start-radius: $pseudo-scaled-corner-radius;
+  transition: inset var(--transition-speed);
 }
 
 .tab-curve.bottom::before {
   top: 100%;
   box-shadow: 0 (-$corner-radius) 0 0 var(--background);
-  border-top-left-radius: $pseudo-scaled-corner-radius;
-  transition: left var(--transition-speed);
+  border-start-start-radius: $pseudo-scaled-corner-radius;
+  transition: inset var(--transition-speed);
 }
 
 .tab {
@@ -200,10 +205,10 @@ $padding-top: calc(0.5rem + var(--top-safe-area));
   flex-direction: column;
   align-items: end;
   justify-content: space-evenly;
-  margin-left: auto;
+  margin-inline-start: auto;
   text-align: center;
-  border-top-right-radius: $corner-radius;
-  border-bottom-right-radius: $corner-radius;
+  border-start-end-radius: $corner-radius;
+  border-end-end-radius: $corner-radius;
   transition:
     margin var(--transition-speed),
     width var(--transition-speed);
@@ -218,7 +223,7 @@ $padding-top: calc(0.5rem + var(--top-safe-area));
   // The rounded corners for the folding buttons
   &::before {
     @include pseudo-element;
-    right: 0;
+    inset-inline-end: 0;
     height: 2 * $corner-radius;
     width: 0;
     transition:
@@ -229,10 +234,10 @@ $padding-top: calc(0.5rem + var(--top-safe-area));
   // Used for filling in the gap when a rounded corner is reduced to zero width in the animation
   &::after {
     @include pseudo-element;
-    right: 0;
+    inset-inline-end: 0;
     width: $corner-radius;
     height: $corner-radius;
-    transition: right var(--transition-speed);
+    transition: inset var(--transition-speed);
   }
 
   // The top right corner
@@ -240,12 +245,12 @@ $padding-top: calc(0.5rem + var(--top-safe-area));
     &::before {
       top: 0;
       width: calc($tab-width * var(--top-curve, 0));
-      border-top-right-radius: $scaled-corner-radius;
+      border-start-end-radius: $scaled-corner-radius;
     }
 
     &::after {
       top: 0;
-      right: calc($tab-width * var(--top-curve, 0));
+      inset-inline-end: calc($tab-width * var(--top-curve, 0));
     }
   }
 
@@ -254,78 +259,77 @@ $padding-top: calc(0.5rem + var(--top-safe-area));
     &::before {
       bottom: 0;
       width: calc($tab-width * var(--bottom-curve, 0));
-      border-bottom-right-radius: $scaled-corner-radius;
+      border-end-end-radius: $scaled-corner-radius;
     }
 
     &::after {
       bottom: 0;
-      right: calc($tab-width * var(--bottom-curve, 0));
+      inset-inline-end: calc($tab-width * var(--bottom-curve, 0));
     }
   }
 }
 
 @media screen and (max-width: $max-size-to-minimise) {
-  .sidebar {
-    $sidebar-overlap: calc(#{$minimised-width} - #{$sidebar-width});
-    $sidebar-overlay-width: $minimised-width + $tab-width;
-    $sidebar-overlay-height: calc(#{$padding-top} + #{$logo-height} + #{$tab-height});
+  $sidebar-overlap: calc(#{$minimised-width} - #{$sidebar-width});
+  $sidebar-overlay-width: $minimised-width + $tab-width;
+  $sidebar-overlay-height: calc(#{$padding-top} + #{$logo-height} + #{$tab-height});
 
-    margin-right: $sidebar-overlap;
+  #app {
+    --sidebar-overlay-width: #{$sidebar-overlay-width};
+    --sidebar-overlay-height: #{$sidebar-overlay-height};
+  }
+
+  .sidebar {
+    margin-inline-end: $sidebar-overlap;
 
     .overlay {
       display: block;
       position: absolute;
-      top: 0;
-      bottom: 0;
-      left: 0;
+      inset-block: 0;
+      inset-inline-end: 0;
 
       &.expanded {
         position: absolute;
         z-index: 2;
-        left: 100%;
+        inset-inline-start: 100%;
         width: 100vw;
         width: 100dvw;
       }
 
       &.minimised {
-        left: 100%;
-        right: -$sidebar-overlay-width;
+        inset-inline-start: 100%;
+        inset-inline-end: -$sidebar-overlay-width;
         height: $sidebar-overlay-height;
       }
     }
 
     &.minimised {
-      margin-left: $sidebar-overlap;
-      margin-right: 0;
+      margin-inline-start: $sidebar-overlap;
+      margin-inline-end: 0;
 
       > .top-box,
       > .scrollable {
-        margin-left: -$minimised-width;
-        margin-right: $minimised-width;
+        margin-inline-start: -$minimised-width;
+        margin-inline-end: $minimised-width;
       }
 
       .header {
         width: $minimised-width + $tab-width;
-        margin-right: -$minimised-width - $tab-width;
+        margin-inline-end: -$minimised-width - $tab-width;
       }
 
       .minimised.overlay {
         pointer-events: all;
       }
-
-      + * {
-        --sidebar-overlay-width: #{$sidebar-overlay-width};
-        --sidebar-overlay-height: #{$sidebar-overlay-height};
-      }
     }
 
     .tabs {
-      margin-right: -$tab-width;
+      margin-inline-end: -$tab-width;
     }
 
     &:not(.minimised) {
       .tab.back {
-        margin-right: $tab-width;
+        margin-inline-end: $tab-width;
       }
 
       --top-curve: 1;

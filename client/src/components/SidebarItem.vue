@@ -1,3 +1,46 @@
+<script lang="ts">
+const locales = [navigator.language, ...navigator.languages];
+
+const fullDateFormat = new Intl.DateTimeFormat(locales, {
+  timeZone: 'UTC',
+  weekday: 'short',
+  day: 'numeric',
+  month: 'short',
+  year: 'numeric',
+  hour: 'numeric',
+  minute: 'numeric',
+});
+const yearFormat = new Intl.DateTimeFormat(locales, { timeZone: 'UTC', year: 'numeric' });
+const dateFormat = new Intl.DateTimeFormat(locales, {
+  timeZone: 'UTC',
+  month: 'short',
+  day: 'numeric',
+});
+
+const parts = fullDateFormat.formatToParts(0);
+const yearFirst =
+  parts.findIndex((part) => part.type === 'year') <
+  parts.findIndex((part) => part.type === 'month');
+
+const smallKilometerFormat = new Intl.NumberFormat(locales, {
+  style: 'unit',
+  unit: 'kilometer',
+  maximumSignificantDigits: 3,
+});
+const bigKilometerFormat = new Intl.NumberFormat(locales, {
+  style: 'unit',
+  unit: 'kilometer',
+  maximumFractionDigits: 0,
+});
+const meterFormat = new Intl.NumberFormat(locales, {
+  style: 'unit',
+  unit: 'meter',
+  maximumFractionDigits: 0,
+});
+
+const [ascentArrow, descentArrow] = document.dir === 'rtl' ? ['↖', '↙'] : ['↗', '↘'];
+</script>
+
 <script setup lang="ts">
 import type { MapItem, SportType } from '@strava-heatmapper/shared/interfaces';
 import { computed } from 'vue';
@@ -10,12 +53,10 @@ const props = withDefaults(
     item: MapItem;
     selected?: boolean;
     expanded?: boolean;
-    showTime?: boolean;
   }>(),
   {
     selected: false,
     expanded: true,
-    showTime: false,
   },
 );
 
@@ -32,13 +73,6 @@ const url = computed<string>(() => {
     return `https://www.strava.com/activities/${props.item.id}`;
   }
 });
-
-const time = computed(() =>
-  new Date(props.item.date).toLocaleTimeString(undefined, {
-    hour: 'numeric',
-    minute: 'numeric',
-  }),
-);
 
 const showElevationLoss: SportType[] = [
   // 'AlpineSki',
@@ -67,15 +101,11 @@ const hideElevationGain: SportType[] = [
   'Yoga',
 ];
 
-const metres = (value: number, prefix = '') => `${prefix}${value.toFixed(0)}\xa0m`;
-const suffix = (value: number | undefined, suffix: string, fixed = 0) =>
-  value !== undefined ? value.toFixed(fixed) + suffix : undefined;
-
 const distanceString = computed(() => {
-  const kilometres = props.item.distance / 1000;
-  const precision = 2 - Math.max(0, Math.min(Math.floor(Math.log10(kilometres)), 2));
+  const kilometers = props.item.distance / 1000;
 
-  return suffix(kilometres, '\xa0km', precision);
+  const format = kilometers >= 100 ? bigKilometerFormat : smallKilometerFormat;
+  return format.format(kilometers);
 });
 
 const movingTime = computed(() => {
@@ -85,17 +115,22 @@ const movingTime = computed(() => {
   // If any value is zero,
   // return undefined if the previous value was undefined,
   // otherwise return zero (with the suffix).
-  const days = suffix(Math.floor(time / 60 / 60 / 24) || undefined, 'd');
-  const hours = suffix(Math.floor((time / 60 / 60) % 24) || (days ? 0 : undefined), 'h');
-  const minutes = suffix(Math.floor((time / 60) % 60) || (hours ? 0 : undefined), 'm');
-  const seconds = suffix(Math.floor(time % 60) || (minutes ? 0 : undefined), 's');
+  const timeParts = {
+    day: Math.floor(time / 60 / 60 / 24),
+    hour: Math.floor((time / 60 / 60) % 24),
+    minute: Math.floor((time / 60) % 60),
+    second: Math.floor(time % 60),
+  };
+
+  const timePartPairs = Array.from(Object.entries(timeParts));
+  const firstValueIndex = timePartPairs.findIndex(([unit, value]) => value);
 
   return (
-    [days, hours, minutes, seconds]
-      // Ignore zero entries
-      .filter(Boolean)
-      // Take the most significant digits
-      .slice(0, 2)
+    timePartPairs
+      .slice(firstValueIndex, firstValueIndex + 2)
+      .map(([unit, value]) =>
+        value.toLocaleString(locales, { style: 'unit', unitDisplay: 'narrow', unit }),
+      )
       // join with non-breaking spaces
       .join('\xa0')
   );
@@ -104,13 +139,15 @@ const movingTime = computed(() => {
 const elevationString = computed(() => {
   if (!props.item.elevation) return;
   const elevationGain =
-    props.item.route || !hideElevationGain.includes(props.item.type)
-      ? metres(props.item.elevation.gain, '↗\xa0')
-      : undefined;
+    (props.item.route || !hideElevationGain.includes(props.item.type)) &&
+    props.item.elevation.gain !== undefined &&
+    `${ascentArrow} ${meterFormat.format(props.item.elevation.gain)}`;
+
   const elevationLoss =
-    !props.item.route && showElevationLoss.includes(props.item.type)
-      ? metres(props.item.elevation.loss, '↘\xa0')
-      : undefined;
+    !props.item.route &&
+    showElevationLoss.includes(props.item.type) &&
+    props.item.elevation.loss !== undefined &&
+    `${descentArrow} ${meterFormat.format(props.item.elevation.loss)}`;
 
   if (elevationGain && elevationLoss) {
     return `${elevationGain} ${elevationLoss}`;
@@ -122,6 +159,16 @@ const elevationString = computed(() => {
 const stats = computed(() =>
   [distanceString.value, elevationString.value, movingTime.value].filter(Boolean).join(' • '),
 );
+
+const startDate = computed(() => (!props.item.route && props.item.localDate) || props.item.date);
+
+const dateString = computed(() => {
+  const yearString = yearFormat.format(startDate.value);
+  const dayString = dateFormat.format(startDate.value);
+  return yearFirst ? [yearString, dayString] : [dayString, yearString];
+});
+
+const fullDate = computed(() => fullDateFormat.format(startDate.value));
 </script>
 
 <template>
@@ -139,17 +186,8 @@ const stats = computed(() =>
     <div v-if="!item.map" class="spinner">
       <Spinner size="tiny" line-fg-color="#888" />
     </div>
-    <div class="date">
-      <div v-text="item.dateString.join('\n')" />
-      <div v-if="showTime && expanded && !item.route" class="time" v-text="time" />
-    </div>
-    <a
-      :href="url"
-      target="_blank"
-      class="strava-link"
-      :class="{ padding: !showTime }"
-      @click="$event.stopPropagation()"
-    >
+    <div class="date" :title="fullDate" v-text="dateString.join('\n')" />
+    <a :href="url" target="_blank" class="strava-link" @click="$event.stopPropagation()">
       <img src="@/assets/strava.png" />
     </a>
   </li>
@@ -164,6 +202,7 @@ const stats = computed(() =>
   display: flex;
   align-items: center;
   gap: 0 4px;
+  min-height: 36px;
 
   &:hover {
     background: var(--background-slight);
@@ -210,24 +249,12 @@ const stats = computed(() =>
     &:not(:hover) > img {
       filter: grayscale(100%);
     }
-
-    &.padding {
-      padding-top: 8px;
-      padding-bottom: 8px;
-    }
   }
 
   .date {
-    display: flex;
     font-size: 0.75em;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
+    text-align: end;
     white-space: pre-line;
-
-    .time {
-      opacity: 0.5;
-    }
   }
 }
 </style>

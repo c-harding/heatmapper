@@ -415,10 +415,12 @@ function addMapElement(): mapboxgl.Map {
       zoom: props.zoom,
     });
 
-    newMap.addControl(new mapboxgl.FullscreenControl(), 'top-right');
+    const topCorner = document.dir === 'rtl' ? 'top-left' : 'top-right';
+
+    newMap.addControl(new mapboxgl.FullscreenControl(), topCorner);
     newMap.addControl(
       new mapboxgl.NavigationControl({ showZoom: false, visualizePitch: true }),
-      'top-right',
+      topCorner,
     );
     newMap.addControl(new mapboxgl.ScaleControl(), 'bottom-left');
   }
@@ -453,23 +455,31 @@ defineExpose({ zoomToSelection });
 .mapboxgl-canvas {
   cursor: pointer;
   outline: none;
-  left: 0;
-  right: 0;
-  margin-left: 50%;
+  inset-inline: 0;
+  margin-inline-start: 50%;
   transform: translateX(-50%);
-}
 
-.mapboxgl-ctrl-top-right {
-  padding-top: var(--top-safe-area);
-}
-
-.mapboxgl-ctrl-top-right {
-  padding-top: var(--top-safe-area);
+  &:dir(rtl) {
+    transform: translateX(50%);
+  }
 }
 
 .mapboxgl-ctrl-top-left {
-  padding-top: max(var(--top-safe-area), var(--sidebar-overlay-height, 0));
-  padding-left: var(--sidebar-overlay-width, 0);
+  padding-top: var(--top-safe-area);
+
+  &:dir(ltr) {
+    padding-top: max(var(--top-safe-area), var(--sidebar-overlay-height, 0));
+    padding-left: var(--sidebar-overlay-width, 0);
+  }
+}
+
+.mapboxgl-ctrl-top-right {
+  padding-top: var(--top-safe-area);
+
+  &:dir(rtl) {
+    padding-top: max(var(--top-safe-area), var(--sidebar-overlay-height, 0));
+    padding-right: var(--sidebar-overlay-width, 0);
+  }
 }
 
 .mapboxgl-ctrl-bottom-left,
@@ -477,8 +487,10 @@ defineExpose({ zoomToSelection });
   padding-bottom: var(--bottom-safe-area);
 }
 
-.mapboxgl-ctrl-top-right,
-.mapboxgl-ctrl-bottom-right {
-  padding-right: var(--right-safe-area);
+.mapboxgl-ctrl-top-right:dir(ltr),
+.mapboxgl-ctrl-bottom-right:dir(ltr),
+.mapboxgl-ctrl-top-left:dir(rtl),
+.mapboxgl-ctrl-bottom-left:dir(rtl) {
+  padding-left: var(--inline-end-safe-area);
 }
 </style>

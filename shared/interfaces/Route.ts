@@ -8,6 +8,5 @@ export default interface Route {
   elevation: { gain: number };
   type: 'Ride' | 'Run' | 'Walk';
   subType: 'Road' | 'MountainBike' | 'Cross' | 'Trail' | 'Mixed';
-  dateString: string[];
   starred: boolean;
 }
