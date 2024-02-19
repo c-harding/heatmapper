@@ -375,11 +375,26 @@ function dblclick(e: mapboxgl.MapMouseEvent): void {
   }
 }
 
-function select(id?: string, keepExisting = false): void {
-  const newSelected = id !== undefined ? [id] : [];
-  const selected = keepExisting ? localSelected.value.concat(newSelected) : newSelected;
-  localSelected.value = selected;
-  emit('update:selected', selected);
+function toggleSelect(id: string | undefined): void {
+  if (!id) return;
+
+  const index = localSelected.value.indexOf(id);
+  if (index !== -1) {
+    localSelected.value = localSelected.value.slice().toSpliced(index, 1);
+  } else {
+    localSelected.value = localSelected.value.concat(id);
+  }
+
+  emit('update:selected', localSelected.value);
+}
+
+function select(id: string | undefined, toggle: boolean): void {
+  if (toggle) {
+    return toggleSelect(id);
+  }
+  localSelected.value = id ? [id] : [];
+
+  emit('update:selected', localSelected.value);
 }
 
 function zoomend(map: mapboxgl.Map): void {
