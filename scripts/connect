@@ -22,7 +22,7 @@ esac
 
 if [ -f dist/"$ENV".env ]; then
   set -a
-  . dist/"$ENV".env
+  . "$(printf "dist/%q.env" "$ENV")"
   set +a
 elif [ ! -z "$ENV" ]; then
   printf 'The environment %q is not supported, the file dist/%q.env does not exist.\n' "$ENV" "$ENV" >&2

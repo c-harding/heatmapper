@@ -6,5 +6,4 @@ services:
     ports:
       - '${SERVER_PORT:-8080}:${SERVER_PORT:-8080}'
     volumes:
-      - .env:/usr/src/app/dist/.env
       - ./sessions:/usr/src/app/dist/server/sessions
