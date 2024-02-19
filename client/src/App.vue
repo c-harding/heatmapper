@@ -39,6 +39,9 @@ function addMaps(maps: Record<string, string>): void {
     const i = mapItems.value.findIndex(({ id }) => id.toString() === item);
     mapItems.value[i].map = map;
   });
+
+  // Trigger change detection for mapItems
+  mapItems.value = mapItems.value.slice();
 }
 
 function zoomToSelected(): void {
