@@ -19,6 +19,14 @@ case $1 in
     ;;
 esac
 
+if [ "$ENV" = "-" ]; then
+  ENV="$(git branch --show-current)"
+  if [ "$ENV" = "-" ]; then
+    printf 'Git currently has a detached HEAD, cannot deploy the branch.\n' "$ENV" "$ENV" >&2
+    echo >&2
+    exit 1
+  end
+end
 
 if [ -f dist/"$ENV".env ]; then
   set -a
@@ -35,7 +43,8 @@ if [ -z "$DEPLOY_HOST" ]; then
   echo 'Please add this to dist/.env or provide it on the command line.' >&2
   echo >&2
   echo 'To deploy to a specific environment, please use -e / --env,' >&2
-  echo 'e.g. "--env prod" to use dist/prod.env' >&2
+  echo 'e.g. "--env prod" to use dist/prod.env,' >&2
+  echo 'or "--env -" to use the current branch name.' >&2
   echo >&2
   exit 1
 fi
