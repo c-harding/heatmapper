@@ -1,7 +1,7 @@
 <script lang="tsx">
-import mapboxgl from 'mapbox-gl';
+import type { Map } from 'mapbox-gl';
 
-let cachedMapElement: mapboxgl.Map | undefined;
+let cachedMapElement: Map | undefined;
 
 type Properties = { id: string };
 </script>
@@ -10,8 +10,18 @@ type Properties = { id: string };
 import polyline from '@mapbox/polyline';
 import type { MapItem } from '@strava-heatmapper/shared/interfaces';
 import { useHead } from '@unhead/vue';
-import type { GeoJSON } from 'geojson';
-import { LngLatBounds } from 'mapbox-gl';
+import type { Feature, FeatureCollection, LineString } from 'geojson';
+import type {
+  AnyLayer,
+  Expression,
+  GeoJSONSource,
+  GeoJSONSourceRaw,
+  LngLatBounds,
+  LngLatLike,
+  MapMouseEvent,
+  Point,
+  PointLike,
+} from 'mapbox-gl';
 import type { VNode } from 'vue';
 import { computed, onBeforeUnmount, ref } from 'vue';
 import { nextTick, onMounted, watch } from 'vue';
@@ -19,26 +29,27 @@ import { nextTick, onMounted, watch } from 'vue';
 import { MapStyle } from '../MapStyle';
 import Viewport from '../Viewport';
 
+defineExpose({ zoomToSelection });
+
+const mapboxgl = await import('mapbox-gl');
+
 const colorOpacityFromZoom = (
   [r, g, b]: [r: number, g: number, b: number],
   ...pairs: [zoom: number, opacity: number][]
-): mapboxgl.Expression =>
-  fromZoom(...pairs.map(([zoom, a]) => [zoom, ['rgba', r, g, b, a]] as const));
+): Expression => fromZoom(...pairs.map(([zoom, a]) => [zoom, ['rgba', r, g, b, a]] as const));
 
-const fromZoom = (...pairs: (readonly [zoom: number, value: unknown])[]): mapboxgl.Expression => [
+const fromZoom = (...pairs: (readonly [zoom: number, value: unknown])[]): Expression => [
   'interpolate',
   ['linear'],
   ['zoom'],
   ...pairs.flatMap(([zoomLevel, value]) => [zoomLevel, value]),
 ];
 
-const makeGeoJsonData = (
-  mapItems: MapItem[] = [],
-): GeoJSON.FeatureCollection<GeoJSON.LineString, Properties> => ({
+const makeGeoJsonData = (mapItems: MapItem[] = []): FeatureCollection<LineString, Properties> => ({
   type: 'FeatureCollection',
   features: mapItems
     .filter((item) => item.map)
-    .map<GeoJSON.Feature<GeoJSON.LineString, Properties>>((item) => ({
+    .map<Feature<LineString, Properties>>((item) => ({
       type: 'Feature',
       properties: {
         id: item.id,
@@ -47,15 +58,15 @@ const makeGeoJsonData = (
     })),
 });
 
-const makeGeoJson = (mapItems: MapItem[] = []): mapboxgl.GeoJSONSourceRaw => ({
+const makeGeoJson = (mapItems: MapItem[] = []): GeoJSONSourceRaw => ({
   type: 'geojson',
   data: makeGeoJsonData(mapItems),
 });
 
 interface LayerDef {
   source: string;
-  color: mapboxgl.Expression | string;
-  width: mapboxgl.Expression | number;
+  color: Expression | string;
+  width: Expression | number;
 }
 
 const sources = ['lines', 'selected'];
@@ -99,7 +110,7 @@ const layers = (style: MapStyle): Record<'lines' | 'medium' | 'hot' | 'selected'
   },
 });
 
-const buildLineLayer = (id: string, layer: LayerDef): mapboxgl.AnyLayer => ({
+const buildLineLayer = (id: string, layer: LayerDef): AnyLayer => ({
   id,
   type: 'line',
   source: layer.source,
@@ -119,7 +130,7 @@ useHead({
   ],
 });
 
-const map = ref<mapboxgl.Map | undefined>();
+const map = ref<Map | undefined>();
 
 const container = ref<HTMLDivElement>();
 
@@ -151,7 +162,7 @@ const onTerrain = () => {
 
 const props = withDefaults(
   defineProps<{
-    center: mapboxgl.LngLatLike;
+    center: LngLatLike;
     zoom: number;
     selected?: string[];
     mapItems: MapItem[];
@@ -165,7 +176,7 @@ const props = withDefaults(
 );
 
 const emit = defineEmits<{
-  (e: 'update:center', value: mapboxgl.LngLatLike): void;
+  (e: 'update:center', value: LngLatLike): void;
   (e: 'update:zoom', value: number): void;
   (e: 'update:selected', value: string[]): void;
 }>();
@@ -219,7 +230,7 @@ watch(
  *
  * It compares the area of the bounding box of the activity in each case.
  */
-function optimiseViewport(map: mapboxgl.Map, bounds: LngLatBounds) {
+function optimiseViewport(map: Map, bounds: LngLatBounds) {
   const padding = 10;
 
   const { width, height } = map.getCanvas().getBoundingClientRect();
@@ -276,7 +287,7 @@ function flyTo(mapItems: MapItem[], zoom = false): void {
   );
   const bounds = coordinates.reduce(
     (acc, coord) => acc.extend(coord),
-    new LngLatBounds(coordinates[0], coordinates[0]),
+    new mapboxgl.LngLatBounds(coordinates[0], coordinates[0]),
   );
 
   const viewport = optimiseViewport(map.value, bounds);
@@ -289,7 +300,7 @@ function flyTo(mapItems: MapItem[], zoom = false): void {
     viewport.offsets.left,
     viewport.height - viewport.offsets.bottom,
   ]);
-  const screenBounds = new LngLatBounds(screenSouthWest, screenNorthEast);
+  const screenBounds = new mapboxgl.LngLatBounds(screenSouthWest, screenNorthEast);
 
   if (
     zoom ||
@@ -321,10 +332,10 @@ onBeforeUnmount(() => {
 
 function applyMapItems(next: MapItem[], sourceID: string): void {
   const source = map.value?.getSource(sourceID);
-  (source as mapboxgl.GeoJSONSource)?.setData(makeGeoJsonData(next));
+  (source as GeoJSONSource)?.setData(makeGeoJsonData(next));
 }
 
-async function mapLoaded(map: mapboxgl.Map): Promise<void> {
+async function mapLoaded(map: Map): Promise<void> {
   map.resize();
 
   sources.forEach((id) => map.addSource(id, makeGeoJson()));
@@ -338,14 +349,14 @@ async function mapLoaded(map: mapboxgl.Map): Promise<void> {
   applyMapItems(selectedMapItems.value, 'selected');
 }
 
-function surround(point: mapboxgl.Point, offset: number): [mapboxgl.PointLike, mapboxgl.PointLike] {
+function surround(point: Point, offset: number): [PointLike, PointLike] {
   return [
     [point.x - offset, point.y + offset],
     [point.x + offset, point.y - offset],
   ];
 }
 
-function click(map: mapboxgl.Map, e: mapboxgl.MapMouseEvent): void {
+function click(map: Map, e: MapMouseEvent): void {
   const originalEvent = e.originalEvent;
   // Ignore duplicate clicks
   if (originalEvent.detail > 1) return;
@@ -364,7 +375,7 @@ function click(map: mapboxgl.Map, e: mapboxgl.MapMouseEvent): void {
   select(undefined, keepExisting);
 }
 
-function dblclick(e: mapboxgl.MapMouseEvent): void {
+function dblclick(e: MapMouseEvent): void {
   if (localSelected.value.length !== 0) {
     e.preventDefault();
     nextTick(() => zoomToSelection());
@@ -393,11 +404,11 @@ function select(id: string | undefined, toggle: boolean): void {
   emit('update:selected', localSelected.value);
 }
 
-function zoomend(map: mapboxgl.Map): void {
+function zoomend(map: Map): void {
   emit('update:zoom', map.getZoom());
 }
 
-function moveend(map: mapboxgl.Map) {
+function moveend(map: Map) {
   emit('update:center', map.getCenter());
 }
 
@@ -411,8 +422,8 @@ onMounted(() => {
   map.once('idle', () => mapLoaded(map));
 });
 
-function addMapElement(): mapboxgl.Map {
-  let newMap: mapboxgl.Map;
+function addMapElement(): Map {
+  let newMap: Map;
   const cachedMap = cachedMapElement;
   if (cachedMap) {
     container.value?.appendChild(cachedMap.getContainer());
@@ -445,8 +456,6 @@ function render(): VNode {
   nextTick(() => addMapElement());
   return <div class="map-container">{!cachedMapElement && <div id="mapbox" />}</div>;
 }
-
-defineExpose({ zoomToSelection });
 </script>
 
 <template>

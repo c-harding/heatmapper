@@ -66,15 +66,17 @@ defineExpose({ mapItems });
         @add-maps="addMaps"
       />
     </CollapsibleSidebar>
-    <MapView
-      ref="map"
-      v-model:map-style="mapStyle"
-      v-model:center="location"
-      v-model:zoom="zoom"
-      v-model:selected="selected"
-      :terrain="terrain"
-      :map-items="mapItems"
-    />
+    <Suspense>
+      <MapView
+        ref="map"
+        v-model:map-style="mapStyle"
+        v-model:center="location"
+        v-model:zoom="zoom"
+        v-model:selected="selected"
+        :terrain="terrain"
+        :map-items="mapItems"
+      />
+    </Suspense>
   </div>
 </template>
 
