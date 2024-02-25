@@ -29,9 +29,5 @@
     "shared",
     "client",
     "server"
-  ],
-  "dependencies": {},
-  "resolutions": {
-    "fork-ts-checker-webpack-plugin": "^7.3.0"
-  }
+  ]
 }

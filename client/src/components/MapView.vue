@@ -1,11 +1,7 @@
 <script lang="tsx">
 import mapboxgl from 'mapbox-gl';
 
-declare global {
-  interface Window {
-    cachedMapElement?: mapboxgl.Map;
-  }
-}
+let cachedMapElement: mapboxgl.Map | undefined;
 
 type Properties = { id: string };
 </script>
@@ -417,7 +413,7 @@ onMounted(() => {
 
 function addMapElement(): mapboxgl.Map {
   let newMap: mapboxgl.Map;
-  const cachedMap = window.cachedMapElement;
+  const cachedMap = cachedMapElement;
   if (cachedMap) {
     container.value?.appendChild(cachedMap.getContainer());
     newMap = cachedMap;
@@ -441,13 +437,13 @@ function addMapElement(): mapboxgl.Map {
   }
   map.value = newMap;
 
-  window.cachedMapElement = newMap;
+  cachedMapElement = newMap;
   return newMap;
 }
 
 function render(): VNode {
   nextTick(() => addMapElement());
-  return <div class="map-container">{!window.cachedMapElement && <div id="mapbox" />}</div>;
+  return <div class="map-container">{!cachedMapElement && <div id="mapbox" />}</div>;
 }
 
 defineExpose({ zoomToSelection });

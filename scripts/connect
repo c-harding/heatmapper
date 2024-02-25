@@ -25,8 +25,8 @@ if [ "$ENV" = "-" ]; then
     printf 'Git currently has a detached HEAD, cannot deploy the branch.\n' "$ENV" "$ENV" >&2
     echo >&2
     exit 1
-  end
-end
+  fi
+fi
 
 if [ -f dist/"$ENV".env ]; then
   set -a

@@ -1,3 +1,7 @@
+<script lang="ts">
+declare const GIT_HASH: string | undefined;
+</script>
+
 <script setup lang="ts">
 import type { MapItem } from '@strava-heatmapper/shared/interfaces';
 import { computed, nextTick, onMounted, ref, watch } from 'vue';
@@ -70,7 +74,7 @@ const localSelected = ref<string[]>();
 
 const selectionBase = ref<string[]>();
 
-const gitHash = process.env.VUE_APP_GIT_HASH ?? null;
+const gitHash = GIT_HASH ?? null;
 
 const sidebarItemList = ref<HTMLUListElement>();
 

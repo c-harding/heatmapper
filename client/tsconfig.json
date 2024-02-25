@@ -14,21 +14,18 @@
     "declarationMap": true,
     "sourceMap": true,
     "baseUrl": ".",
-    "types": [
-      "webpack-env",
-    ],
     "lib": [
       "ESNext",
       "DOM",
       "DOM.Iterable",
       "ScriptHost"
     ],
-    "outDir": "../dist"
-  },
-  "paths": {
-    "@/*": [
-      "src/*"
-    ]
+    "outDir": "../dist",
+    "paths": {
+      "@/*": [
+        "src/*"
+      ]
+    },
   },
   "include": [
     "src/**/*.ts",
