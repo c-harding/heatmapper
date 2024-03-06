@@ -2,40 +2,38 @@
 import type { SportType } from '@strava-heatmapper/shared/interfaces';
 
 import { sportTypes } from '@/sportTypes';
+import { sportIconEmoji } from '@/utils/emoji';
 import { sportIconString } from '@/utils/icons';
 
 const props = withDefaults(
   defineProps<{
     sportType: SportType;
+    useEmoji?: boolean;
   }>(),
-  {},
+  {
+    useEmoji: false,
+  },
 );
 </script>
 
 <template>
-  <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor">
+  <div v-if="useEmoji" class="emoji" :title="sportTypes[sportType]">
+    {{ sportIconEmoji(sportType) }}
+  </div>
+  <svg v-else viewBox="0 0 16 16" width="16" height="16" fill="currentColor">
     <title v-text="sportTypes[sportType]" />
     <path fillRule="evenodd" :d="sportIconString(sportType)" />
   </svg>
 </template>
 
 <style lang="scss">
-.material-icons {
-  user-select: none;
-  width: 1em;
-  &.inline {
-    vertical-align: middle;
-    align-self: center;
-    font-size: 1em;
-  }
-  &.large {
-    font-size: 1.5em;
-  }
-  &.placeholder {
-    visibility: hidden;
-  }
-  &.bottom {
-    vertical-align: bottom;
-  }
+.emoji {
+  width: 1.5em;
+  height: 1.5em;
+
+  display: flex;
+  align-items: center;
+  font-variant-emoji: emoji;
+  justify-content: center;
 }
 </style>

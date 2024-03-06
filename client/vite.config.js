@@ -2,6 +2,7 @@ import {
   MAPBOX_STYLE,
   MAPBOX_TOKEN,
   SERVER_DOMAIN,
+  USE_EMOJI,
   VITE_DEV_PORT,
 } from '@strava-heatmapper/shared/config/dotenv';
 import vue from '@vitejs/plugin-vue';
@@ -24,6 +25,7 @@ export default defineConfig(({ mode }) => {
     define: {
       MAPBOX_TOKEN: JSON.stringify(MAPBOX_TOKEN),
       MAPBOX_STYLE: JSON.stringify(MAPBOX_STYLE),
+      USE_EMOJI: JSON.stringify(USE_EMOJI),
       GIT_HASH:
         mode === 'production' ? JSON.stringify(gitDescribe.gitDescribeSync().hash) : undefined,
     },

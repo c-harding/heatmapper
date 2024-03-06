@@ -53,10 +53,12 @@ const props = withDefaults(
     item: MapItem;
     selected?: boolean;
     expanded?: boolean;
+    useEmoji?: boolean;
   }>(),
   {
     selected: false,
     expanded: true,
+    useEmoji: false,
   },
 );
 
@@ -178,7 +180,7 @@ const fullDate = computed(() => fullDateFormat.format(startDate.value));
     @touchstart="emit('touchstart')"
     @dblclick="emit('dblclick', $event)"
   >
-    <StravaIcon v-if="expanded" class="strava-icon" :sport-type="item.type" />
+    <StravaIcon v-if="expanded" class="strava-icon" :use-emoji="useEmoji" :sport-type="item.type" />
     <div class="sidebar-item-info">
       <div class="sidebar-item-name" v-text="item.name" />
       <div v-if="expanded" class="sidebar-item-stats" v-text="stats" />
@@ -213,7 +215,7 @@ const fullDate = computed(() => fullDateFormat.format(startDate.value));
   }
 
   .strava-icon {
-    padding-right: 4px;
+    margin-right: 4px;
   }
 
   .sidebar-item-info {

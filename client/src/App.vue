@@ -1,3 +1,7 @@
+<script lang="ts">
+declare const USE_EMOJI: boolean | undefined;
+</script>
+
 <script setup lang="ts">
 import { ref } from 'vue';
 
@@ -18,6 +22,8 @@ const selected = ref<string[]>([]);
 
 const minimised = ref(false);
 
+const useEmoji = USE_EMOJI;
+
 function zoomToSelected(): void {
   map.value?.zoomToSelection();
 }
@@ -31,6 +37,7 @@ defineExpose({ mapItems });
       <SidebarContent
         v-model:selected="selected"
         :map-items="mapItems"
+        :use-emoji="useEmoji"
         @focus-sidebar="minimised = false"
         @zoom-to-selected="zoomToSelected"
       />
