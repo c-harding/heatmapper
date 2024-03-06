@@ -1,3 +1,8 @@
+<script lang="ts">
+// Set in vite.config.js
+declare const USE_EMOJI: boolean | undefined;
+</script>
+
 <script setup lang="ts">
 import type { SportType } from '@strava-heatmapper/shared/interfaces';
 
@@ -8,12 +13,11 @@ import { sportIconString } from '@/utils/icons';
 const props = withDefaults(
   defineProps<{
     sportType: SportType;
-    useEmoji?: boolean;
   }>(),
-  {
-    useEmoji: false,
-  },
+  {},
 );
+
+const useEmoji = USE_EMOJI;
 </script>
 
 <template>

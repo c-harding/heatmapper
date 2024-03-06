@@ -1,4 +1,7 @@
 <script lang="ts">
+// Set in vite.config.js
+declare const USE_EMOJI: boolean | undefined;
+
 const locales = [navigator.language, ...navigator.languages];
 
 const fullDateFormat = new Intl.DateTimeFormat(locales, {
@@ -53,12 +56,10 @@ const props = withDefaults(
     item: MapItem;
     selected?: boolean;
     expanded?: boolean;
-    useEmoji?: boolean;
   }>(),
   {
     selected: false,
     expanded: true,
-    useEmoji: false,
   },
 );
 
@@ -102,6 +103,8 @@ const hideElevationGain: SportType[] = [
   'Windsurf',
   'Yoga',
 ];
+
+const useTextLink = USE_EMOJI;
 
 const distanceString = computed(() => {
   const kilometers = props.item.distance / 1000;
@@ -180,7 +183,7 @@ const fullDate = computed(() => fullDateFormat.format(startDate.value));
     @touchstart="emit('touchstart')"
     @dblclick="emit('dblclick', $event)"
   >
-    <StravaIcon v-if="expanded" class="strava-icon" :use-emoji="useEmoji" :sport-type="item.type" />
+    <StravaIcon v-if="expanded" class="strava-icon" :sport-type="item.type" />
     <div class="sidebar-item-info">
       <div class="sidebar-item-name" v-text="item.name" />
       <div v-if="expanded" class="sidebar-item-stats" v-text="stats" />
@@ -189,8 +192,19 @@ const fullDate = computed(() => fullDateFormat.format(startDate.value));
       <Spinner size="tiny" line-fg-color="#888" />
     </div>
     <div class="date" :title="fullDate" v-text="dateString.join('\n')" />
-    <a :href="url" target="_blank" class="strava-link" @click="$event.stopPropagation()">
-      <img src="@/assets/strava.png" />
+    <a
+      :href="url"
+      target="_blank"
+      title="View in Strava"
+      class="strava-link"
+      :class="{ 'text-link': useTextLink }"
+      @click="$event.stopPropagation()"
+    >
+      <template v-if="useTextLink">
+        <div>View on</div>
+        <div>Strava</div></template
+      >
+      <img v-else src="@/assets/strava.png" />
     </a>
   </li>
 </template>
@@ -248,8 +262,15 @@ const fullDate = computed(() => fullDateFormat.format(startDate.value));
       height: $size;
     }
 
-    &:not(:hover) > img {
+    &:not(:hover) {
       filter: grayscale(100%);
+    }
+
+    &.text-link {
+      text-align: center;
+      width: auto;
+      font-size: 0.6rem;
+      color: #fc4c02;
     }
   }
 

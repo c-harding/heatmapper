@@ -28,11 +28,9 @@ function getRange(mapItems: readonly MapItem[], to: string, from?: string | stri
 const props = withDefaults(
   defineProps<{
     selected?: string[];
-    useEmoji?: boolean;
   }>(),
   {
     selected: () => [],
-    useEmoji: false,
   },
 );
 
@@ -104,7 +102,6 @@ watch(
         :key="item.id"
         :item="item"
         :selected="selected.includes(item.id)"
-        :use-emoji="useEmoji"
         @click="click(item.id, $event)"
         @dblclick="forceSelect"
       />
