@@ -411,11 +411,7 @@ defineExpose({ loadFromCache, gear });
         <option :value="MapStyle.SATELLITE">Satellite</option>
       </select>
     </div>
-    <Login
-      v-if="continueLogin"
-      @login="continueLogin?.(true)"
-      @login-without-cookies="continueLogin?.(false)"
-    />
+    <Login v-if="continueLogin" @login="continueLogin($event)" />
     <p v-else :class="[error && 'error']" v-text="statusMessage" />
   </aside>
 </template>

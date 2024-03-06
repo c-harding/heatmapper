@@ -32,6 +32,7 @@ const appName = import.meta.env.VITE_APP_NAME;
           <text x="55" y="13" text-anchor="middle" font-weight="bold">
             {{ appName }}
           </text>
+          <image x="10" y="20" width="90" href="@/assets/powered-by-strava.svg" />
         </svg>
       </div>
     </div>

@@ -36,7 +36,7 @@ export default defineConfig(({ mode }) => {
     server: {
       port: VITE_DEV_PORT,
       proxy: {
-        '^/api/': { target: SERVER_DOMAIN },
+        '^/api/': { target: SERVER_DOMAIN, ws: true },
       },
     },
     build: {

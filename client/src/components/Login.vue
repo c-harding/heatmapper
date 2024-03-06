@@ -1,25 +1,33 @@
 <script setup lang="ts">
+import { ref } from 'vue';
+
 const emit = defineEmits<{
-  (e: 'login'): void;
-  (e: 'login-without-cookies'): void;
+  (e: 'login', useCookie: boolean): void;
 }>();
+
+const useCookie = ref(true);
 </script>
 
 <template>
   <div class="not-logged-in-container">
     <div class="not-logged-in">
       <p>You are not logged in. Click to continue to log in with Strava.</p>
-      <p class="centered">
-        <button @click="emit('login')">Log in</button>
-      </p>
-      <p class="small">
-        This will use a cookie to remember who you are logged in as, which you can clear at any time
-        by clicking "Clear Cache". You may
-        <a href="#no-cookies" @click.prevent="emit('login-without-cookies')"
-          >proceed without cookies</a
-        >
-        if you wish to log in every time.
-      </p>
+      <img
+        class="connect-to-strava"
+        src="@/assets/connect-to-strava.svg"
+        @click="emit('login', useCookie)"
+      />
+
+      <label>
+        <input v-model="useCookie" type="checkbox" />
+        <div>
+          <p>Keep me logged in</p>
+          <p class="small">
+            This will use a cookie to remember who you are logged in as, which you can clear at any
+            time by clicking "Clear Cache".
+          </p>
+        </div>
+      </label>
     </div>
   </div>
 </template>
@@ -35,14 +43,33 @@ const emit = defineEmits<{
     background-color: var(--background-strong);
     border-radius: 1em;
     padding: 1em;
+
+    display: flex;
+    flex-direction: column;
+    gap: 0.5em;
   }
 
   p {
-    margin-top: 0;
+    margin: 0;
+  }
+
+  label {
+    display: flex;
+    align-items: baseline;
+    gap: 0.25em;
+  }
+
+  .connect-to-strava {
+    display: block;
+    margin-inline: auto;
   }
 
   .centered {
     text-align: center;
+  }
+
+  .small {
+    font-size: small;
   }
 }
 </style>
