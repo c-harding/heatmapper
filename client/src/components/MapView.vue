@@ -1,125 +1,30 @@
 <script lang="tsx">
-import type { Map } from 'mapbox-gl';
+import type { Map as MapboxMap } from 'mapbox-gl';
 
-let cachedMapElement: Map | undefined;
+declare global {
+  interface Window {
+    cachedMapElement?: MapboxMap;
+  }
+}
 
-type Properties = { id: string };
+// Set in vite.config.js
+declare const MAPBOX_TOKEN: string;
 </script>
 
 <script setup lang="tsx">
 import polyline from '@mapbox/polyline';
 import type { MapItem } from '@strava-heatmapper/shared/interfaces';
 import { useHead } from '@unhead/vue';
-import type { Feature, FeatureCollection, LineString } from 'geojson';
-import type {
-  AnyLayer,
-  Expression,
-  GeoJSONSource,
-  GeoJSONSourceRaw,
-  LngLatBounds,
-  LngLatLike,
-  MapMouseEvent,
-  Point,
-  PointLike,
-} from 'mapbox-gl';
-import type { VNode } from 'vue';
-import { computed, onBeforeUnmount, ref } from 'vue';
-import { nextTick, onMounted, watch } from 'vue';
+import type { LngLatBounds, LngLatLike, MapMouseEvent } from 'mapbox-gl';
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 
-import { MapStyle } from '../MapStyle';
+import { Toggle3DIconControl } from '@/Toggle3DIconControl';
+import { addLayersToMap, applyMapItems, MapSourceLayer, useMapSelection } from '@/utils/map';
+
+import type { MapStyle } from '../MapStyle';
 import Viewport from '../Viewport';
 
 defineExpose({ zoomToSelection });
-
-const mapboxgl = await import('mapbox-gl');
-
-const colorOpacityFromZoom = (
-  [r, g, b]: [r: number, g: number, b: number],
-  ...pairs: [zoom: number, opacity: number][]
-): Expression => fromZoom(...pairs.map(([zoom, a]) => [zoom, ['rgba', r, g, b, a]] as const));
-
-const fromZoom = (...pairs: (readonly [zoom: number, value: unknown])[]): Expression => [
-  'interpolate',
-  ['linear'],
-  ['zoom'],
-  ...pairs.flatMap(([zoomLevel, value]) => [zoomLevel, value]),
-];
-
-const makeGeoJsonData = (mapItems: MapItem[] = []): FeatureCollection<LineString, Properties> => ({
-  type: 'FeatureCollection',
-  features: mapItems
-    .filter((item) => item.map)
-    .map<Feature<LineString, Properties>>((item) => ({
-      type: 'Feature',
-      properties: {
-        id: item.id,
-      },
-      geometry: polyline.toGeoJSON(item.map),
-    })),
-});
-
-const makeGeoJson = (mapItems: MapItem[] = []): GeoJSONSourceRaw => ({
-  type: 'geojson',
-  data: makeGeoJsonData(mapItems),
-});
-
-interface LayerDef {
-  source: string;
-  color: Expression | string;
-  width: Expression | number;
-}
-
-const sources = ['lines', 'selected'];
-const lineWidth = fromZoom([5, 1], [14, 4], [22, 8]);
-const selectedWidth = fromZoom([5, 4], [14, 8]);
-const F = 255;
-const layers = (style: MapStyle): Record<'lines' | 'medium' | 'hot' | 'selected', LayerDef> => ({
-  lines: {
-    source: 'lines',
-
-    color: colorOpacityFromZoom(
-      style === MapStyle.STRAVA ? [0, 0, F] : [F, 0, F],
-      [5, 0.75],
-      [10, 0.35],
-    ),
-
-    width: lineWidth,
-  },
-  medium: {
-    source: 'lines',
-    color: colorOpacityFromZoom(
-      style === MapStyle.STRAVA ? [F, 0, 0] : [F, 0, F],
-      [5, 0.2],
-      [10, 0.08],
-    ),
-    width: lineWidth,
-  },
-  hot: {
-    source: 'lines',
-    color: colorOpacityFromZoom(
-      style === MapStyle.STRAVA ? [F, F, 0] : [F, 0, F],
-      [5, 0.1],
-      [10, 0.04],
-    ),
-    width: lineWidth,
-  },
-  selected: {
-    source: 'selected',
-    color: '#0CF',
-    width: selectedWidth,
-  },
-});
-
-const buildLineLayer = (id: string, layer: LayerDef): AnyLayer => ({
-  id,
-  type: 'line',
-  source: layer.source,
-  layout: { 'line-join': 'round', 'line-cap': 'round' },
-  paint: {
-    'line-color': layer.color,
-    'line-width': layer.width,
-  },
-});
 
 useHead({
   link: [
@@ -130,22 +35,22 @@ useHead({
   ],
 });
 
-const map = ref<Map | undefined>();
+const mapboxgl = await import('mapbox-gl');
 
-const container = ref<HTMLDivElement>();
+const map = ref<MapboxMap | undefined>();
 
-const token = ref(
-  'pk.eyJ1IjoiY2hhcmRpbmciLCJhIjoiY2tiYWp0cndkMDc0ZjJybXhlcHdoM2Z3biJ9.XUwOLV17ZBXE8dhp198dqg',
-);
+const container = ref<HTMLElement>();
+
+const token = MAPBOX_TOKEN;
 
 const selectedMapItems = computed<MapItem[]>(() =>
   props.mapItems.filter((item) => props.selected.includes(item.id)),
 );
 
-const localSelected = ref<string[]>([]);
+const terrain = ref(false);
 
 const onTerrain = () => {
-  if (props.terrain) {
+  if (terrain.value) {
     if (!map.value?.getSource('mapbox-dem')) {
       map.value?.addSource('mapbox-dem', {
         type: 'raster-dem',
@@ -166,12 +71,10 @@ const props = withDefaults(
     zoom: number;
     selected?: string[];
     mapItems: MapItem[];
-    terrain?: boolean;
     mapStyle: MapStyle;
   }>(),
   {
     selected: () => [],
-    terrain: false,
   },
 );
 
@@ -196,30 +99,18 @@ watch(
   },
 );
 
-watch(() => props.terrain, onTerrain);
+watch(terrain, onTerrain);
 
 watch(
   () => props.mapItems,
   (mapItems) => {
-    applyMapItems(mapItems, 'lines');
+    if (map.value) applyMapItems(map.value, mapItems, MapSourceLayer.LINES);
   },
 );
 
 watch(selectedMapItems, (selectedMapItems) => {
-  applyMapItems(selectedMapItems, 'selected');
+  if (map.value) applyMapItems(map.value, selectedMapItems, MapSourceLayer.SELECTED);
 });
-
-watch(
-  () => props.selected,
-  () => {
-    nextTick(() => {
-      if (props.selected !== localSelected.value) {
-        localSelected.value = props.selected;
-        flyTo(selectedMapItems.value);
-      }
-    });
-  },
-);
 
 /**
  * Calculate best way of zooming to fit the activity while avoiding the controls in the corners.
@@ -230,7 +121,7 @@ watch(
  *
  * It compares the area of the bounding box of the activity in each case.
  */
-function optimiseViewport(map: Map, bounds: LngLatBounds) {
+function optimiseViewport(map: MapboxMap, bounds: LngLatBounds) {
   const padding = 10;
 
   const { width, height } = map.getCanvas().getBoundingClientRect();
@@ -250,28 +141,27 @@ function optimiseViewport(map: Map, bounds: LngLatBounds) {
     // and 1 × padding is maintained from the controls
     new Viewport(width, height, { left: padding, top: padding, bottom: padding, right: padding }),
   ]
-    .flatMap((viewport) =>
-      [{ top: topLeft?.clientHeight }, { left: topLeft?.clientWidth ?? 0 }].map((offset) =>
-        viewport.withOffset(offset),
-      ),
-    )
-    .flatMap((viewport) =>
-      [{ bottom: bottomLeft?.clientHeight }, { left: bottomLeft?.clientWidth ?? 0 }].map((offset) =>
-        viewport.withOffset(offset),
-      ),
-    )
-    .flatMap((viewport) =>
-      [{ top: topRight?.clientHeight }, { right: topRight?.clientWidth ?? 0 }].map((offset) =>
-        viewport.withOffset(offset),
-      ),
-    )
-    .flatMap((viewport) =>
-      [{ bottom: bottomRight?.clientHeight }, { right: bottomRight?.clientWidth ?? 0 }].map(
-        (offset) =>
-          // Add padding once for every entry, after applying the bottom right offset
-          viewport.withOffset(offset).withPadding(padding),
-      ),
-    );
+    .flatMap((viewport) => [
+      viewport.withOffset({ top: topLeft?.clientHeight }),
+      viewport.withOffset({ left: topLeft?.clientWidth ?? 0 }),
+    ])
+    .flatMap((viewport) => [
+      viewport.withOffset({ top: topLeft?.clientHeight }),
+      viewport.withOffset({ left: topLeft?.clientWidth ?? 0 }),
+    ])
+    .flatMap((viewport) => [
+      viewport.withOffset({ bottom: bottomLeft?.clientHeight }),
+      viewport.withOffset({ left: bottomLeft?.clientWidth ?? 0 }),
+    ])
+    .flatMap((viewport) => [
+      viewport.withOffset({ top: topRight?.clientHeight }),
+      viewport.withOffset({ right: topRight?.clientWidth ?? 0 }),
+    ])
+    .flatMap((viewport) => [
+      viewport.withOffset({ bottom: bottomRight?.clientHeight }),
+      viewport.withOffset({ right: bottomRight?.clientWidth ?? 0 }),
+    ])
+    .map((viewport) => viewport.withPadding(padding));
 
   return viewports.reduce((best, current) =>
     best.screenArea(aspectRatio) > current.screenArea(aspectRatio) ? best : current,
@@ -279,8 +169,6 @@ function optimiseViewport(map: Map, bounds: LngLatBounds) {
 }
 
 function flyTo(mapItems: MapItem[], zoom = false): void {
-  const padding = 20;
-
   if (!map.value || mapItems.length === 0) return;
   const coordinates = mapItems.flatMap(({ map: line }) =>
     polyline.decode(line).map<[number, number]>(([y, x]) => [x, y]),
@@ -330,107 +218,57 @@ onBeforeUnmount(() => {
   window.removeEventListener('transitionend', resizeHandler);
 });
 
-function applyMapItems(next: MapItem[], sourceID: string): void {
-  const source = map.value?.getSource(sourceID);
-  (source as GeoJSONSource)?.setData(makeGeoJsonData(next));
-}
-
-async function mapLoaded(map: Map): Promise<void> {
+async function mapLoaded(map: MapboxMap): Promise<void> {
   map.resize();
 
-  sources.forEach((id) => map.addSource(id, makeGeoJson()));
-  Object.entries(layers(props.mapStyle)).forEach(([id, layer]) =>
-    map.addLayer(buildLineLayer(id, layer)),
-  );
+  addLayersToMap(map, props.mapStyle);
   onTerrain();
 
   await nextTick();
-  applyMapItems(props.mapItems, 'lines');
-  applyMapItems(selectedMapItems.value, 'selected');
+  applyMapItems(map, props.mapItems, MapSourceLayer.LINES);
+  applyMapItems(map, selectedMapItems.value, MapSourceLayer.SELECTED);
 }
 
-function surround(point: Point, offset: number): [PointLike, PointLike] {
-  return [
-    [point.x - offset, point.y + offset],
-    [point.x + offset, point.y - offset],
-  ];
-}
-
-function click(map: Map, e: MapMouseEvent): void {
-  const originalEvent = e.originalEvent;
-  // Ignore duplicate clicks
-  if (originalEvent.detail > 1) return;
-
-  const keepExisting = originalEvent.metaKey || originalEvent.ctrlKey;
-
-  for (let i = 0; i < 5; i += 1) {
-    const neighbours = map.queryRenderedFeatures(surround(e.point, i), {
-      layers: ['lines', 'selected'],
-    });
-    if (neighbours.length > 0) {
-      select((neighbours[neighbours.length - 1].properties as Properties).id, keepExisting);
-      return;
-    }
-  }
-  select(undefined, keepExisting);
-}
-
-function dblclick(e: MapMouseEvent): void {
-  if (localSelected.value.length !== 0) {
+function dblclick(e: MapMouseEvent) {
+  if (selectedMapItems.value.length !== 0) {
     e.preventDefault();
     nextTick(() => zoomToSelection());
   }
 }
 
-function toggleSelect(id: string | undefined): void {
-  if (!id) return;
-
-  const index = localSelected.value.indexOf(id);
-  if (index !== -1) {
-    localSelected.value = localSelected.value.slice().toSpliced(index, 1);
-  } else {
-    localSelected.value = localSelected.value.concat(id);
-  }
-
-  emit('update:selected', localSelected.value);
-}
-
-function select(id: string | undefined, toggle: boolean): void {
-  if (toggle) {
-    return toggleSelect(id);
-  }
-  localSelected.value = id ? [id] : [];
-
-  emit('update:selected', localSelected.value);
-}
-
-function zoomend(map: Map): void {
+function zoomend(map: MapboxMap): void {
   emit('update:zoom', map.getZoom());
 }
 
-function moveend(map: Map) {
+function moveend(map: MapboxMap) {
   emit('update:center', map.getCenter());
 }
+
+const { click } = useMapSelection({
+  getExternalSelection: () => props.selected,
+  flyToSelection: () => flyTo(selectedMapItems.value, false),
+  emitUpdate: (selected) => emit('update:selected', selected),
+});
 
 onMounted(() => {
   const map = addMapElement();
 
   map.on('zoomend', () => zoomend(map));
   map.on('moveend', () => moveend(map));
-  map.on('click', (ev) => click(map, ev));
+  map.on('click', (ev) => click(ev));
   map.on('dblclick', (ev) => dblclick(ev));
   map.once('idle', () => mapLoaded(map));
 });
 
-function addMapElement(): Map {
-  let newMap: Map;
-  const cachedMap = cachedMapElement;
+function addMapElement(): MapboxMap {
+  let newMap: MapboxMap;
+  const cachedMap = window.cachedMapElement;
   if (cachedMap) {
     container.value?.appendChild(cachedMap.getContainer());
     newMap = cachedMap;
   } else {
     newMap = new mapboxgl.Map({
-      accessToken: token.value,
+      accessToken: token,
       container: 'mapbox',
       style: props.mapStyle,
       center: props.center,
@@ -444,17 +282,17 @@ function addMapElement(): Map {
       new mapboxgl.NavigationControl({ showZoom: false, visualizePitch: true }),
       topCorner,
     );
+    newMap.addControl(new Toggle3DIconControl(terrain), topCorner);
     newMap.addControl(new mapboxgl.ScaleControl(), 'bottom-left');
   }
   map.value = newMap;
 
-  cachedMapElement = newMap;
+  window.cachedMapElement = newMap;
   return newMap;
 }
 
-function render(): VNode {
-  nextTick(() => addMapElement());
-  return <div class="map-container">{!cachedMapElement && <div id="mapbox" />}</div>;
+function render() {
+  return <div class="map-container">{!window.cachedMapElement && <div id="mapbox" />}</div>;
 }
 </script>
 

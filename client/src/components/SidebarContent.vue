@@ -1,4 +1,5 @@
 <script lang="ts">
+// Set in vite.config.js
 declare const GIT_HASH: string | undefined;
 </script>
 
@@ -6,7 +7,7 @@ declare const GIT_HASH: string | undefined;
 import type { MapItem } from '@strava-heatmapper/shared/interfaces';
 import { computed, nextTick, onMounted, ref, watch } from 'vue';
 
-import { MapStyle } from '../MapStyle';
+import type { MapStyle } from '../MapStyle';
 import { findLastIndex } from '../utils/arrays';
 import { cancelTextSelection } from '../utils/ui';
 import FormComponent from './Form.vue';
@@ -28,14 +29,11 @@ const props = withDefaults(
   defineProps<{
     mapItems: MapItem[];
     selected?: string[];
-    terrain?: boolean;
-    mapStyle?: MapStyle;
+    mapStyle: MapStyle;
   }>(),
   {
     mapItems: () => [],
     selected: () => [],
-    terrain: false,
-    mapStyle: MapStyle.STRAVA,
   },
 );
 
@@ -46,25 +44,16 @@ const emit = defineEmits<{
   (e: 'update:selected', value: string[]): void;
   (e: 'zoom-to-selected'): void;
   (e: 'update:mapStyle', value: MapStyle): void;
-  (e: 'update:terrain', value: boolean): void;
   (e: 'focus-sidebar'): void;
 }>();
 
+// TODO: extract
 const mapStyleModel = computed<MapStyle>({
   get() {
     return props.mapStyle;
   },
   set(value) {
     emit('update:mapStyle', value);
-  },
-});
-
-const terrainModel = computed<boolean>({
-  get() {
-    return props.terrain;
-  },
-  set(value) {
-    emit('update:terrain', value);
   },
 });
 
@@ -131,7 +120,6 @@ onMounted(() => {
   <div class="sidebar-content">
     <FormComponent
       ref="form"
-      v-model:terrain="terrainModel"
       v-model:map-style="mapStyleModel"
       @clear-map-items="emit('clear-map-items')"
       @add-map-items="emit('add-map-items', $event)"

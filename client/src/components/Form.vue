@@ -3,6 +3,8 @@ import type { Activity, Gear, MapItem, Route } from '@strava-heatmapper/shared/i
 import { TimeRange } from '@strava-heatmapper/shared/interfaces';
 import { computed, reactive, ref, watch } from 'vue';
 
+import { useHasBeenTrue } from '@/utils/useHasBeenTrue';
+
 import { MapStyle } from '../MapStyle';
 import Socket from '../socket';
 import { sportGroups, sportTypes } from '../sportTypes';
@@ -23,13 +25,9 @@ import Login from './Login.vue';
 
 const props = withDefaults(
   defineProps<{
-    terrain?: boolean;
-    mapStyle?: MapStyle;
+    mapStyle: MapStyle;
   }>(),
-  {
-    terrain: false,
-    mapStyle: MapStyle.STRAVA,
-  },
+  {},
 );
 
 /** A map of all gear, where null represents gear that is not yet fetched */
@@ -39,7 +37,6 @@ const emit = defineEmits<{
   (e: 'add-map-items', value: MapItem[]): void;
   (e: 'clear-map-items'): void;
   (e: 'add-maps', value: Record<string, string>): void;
-  (e: 'update:terrain', value: boolean): void;
   (e: 'update:mapStyle', value: MapStyle): void;
 }>();
 
@@ -57,6 +54,8 @@ const mapStyleModel = computed<MapStyle>({
     emit('update:mapStyle', value);
   },
 });
+
+const stravaStyleEnabled = useHasBeenTrue(() => mapStyleModel.value === MapStyle.STRAVA);
 
 function findingString(
   { started = false, finished = false, length = 0 }: LoadingStats['finding'] = {},
@@ -403,10 +402,11 @@ defineExpose({ loadFromCache, gear });
       <button @click="clearCache">Clear cache</button>
     </div>
     <div class="buttons">
-      <button v-if="terrain" @click="emit('update:terrain', false)">Disable 3D</button>
-      <button v-else @click="emit('update:terrain', true)">Enable 3D</button>
       <select v-model="mapStyleModel">
-        <option :value="MapStyle.STRAVA">Strava style</option>
+        <option v-if="stravaStyleEnabled" :value="MapStyle.STRAVA">Strava style</option>
+        <option :value="MapStyle.STANDARD">Standard style</option>
+        <option :value="MapStyle.LIGHT">Light style</option>
+        <option :value="MapStyle.OUTDOOR">Outdoor style</option>
         <option :value="MapStyle.HYBRID">Hybrid</option>
         <option :value="MapStyle.SATELLITE">Satellite</option>
       </select>
