@@ -10,6 +10,8 @@ import gitDescribe from 'git-describe';
 import { resolve } from 'path';
 import { defineConfig } from 'vite';
 
+process.env.VITE_APP_NAME ||= 'Heatmapper';
+
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
   return {
@@ -20,7 +22,6 @@ export default defineConfig(({ mode }) => {
       }),
     ],
     define: {
-      APP_NAME: JSON.stringify('Heatmapper'),
       MAPBOX_TOKEN: JSON.stringify(MAPBOX_TOKEN),
       MAPBOX_STYLE: JSON.stringify(MAPBOX_STYLE),
       GIT_HASH:

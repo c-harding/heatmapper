@@ -20,6 +20,8 @@ const minimisedModel = useModel('minimised', props)(emit);
 const minimisedOverlay = ref<HTMLElement>();
 
 const backArrow = document.dir === 'rtl' ? 'arrow_forward' : 'arrow_back';
+
+const appName = import.meta.env.VITE_APP_NAME;
 </script>
 
 <template>
@@ -27,9 +29,8 @@ const backArrow = document.dir === 'rtl' ? 'arrow_forward' : 'arrow_back';
     <div class="top-box">
       <div class="header">
         <svg viewBox="0 0 110 36">
-          <text x="55" text-anchor="middle" font-weight="bold">
-            <tspan x="55" y="13">Strava</tspan>
-            <tspan x="55" dy="18">Heatmapper</tspan>
+          <text x="55" y="13" text-anchor="middle" font-weight="bold">
+            {{ appName }}
           </text>
         </svg>
       </div>

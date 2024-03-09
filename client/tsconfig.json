@@ -20,6 +20,7 @@
       "DOM.Iterable",
       "ScriptHost"
     ],
+    "types": ["vite/client"],
     "outDir": "../dist",
     "paths": {
       "@/*": [
