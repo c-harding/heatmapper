@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 
-require('dotenv').config({ path: require('path').resolve(process.cwd(), '../.env') });
+require('dotenv').config({
+  path: process.env.DOTENV_FILE || require('path').resolve(process.cwd(), '../.env'),
+});
 
 const SERVER_PORT = process.env.SERVER_PORT || 8080;
 const VITE_DEV_PORT = process.env.VITE_DEV_PORT || 8081;

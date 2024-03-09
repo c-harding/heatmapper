@@ -1,0 +1,35 @@
+set -e
+
+cd "$(dirname "$0")/.."
+
+case $1 in
+  -e|--env)
+    ENV="$2"
+    shift 2 # past argument and value
+    ;;
+  -e*)
+    ENV="${$1#-e}"
+    shift
+    ;;
+  --env=*)
+    ENV="${$1#*=}"
+    shift
+    ;;
+esac
+
+if [ "$ENV" = "-" ]; then
+  ENV="$(git branch --show-current)"
+  if [ "$ENV" = "-" ]; then
+    printf 'Git currently has a detached HEAD, cannot deploy the branch.\n' "$ENV" "$ENV" >&2
+    echo >&2
+    exit 1
+  fi
+fi
+
+if [ -f dist/"$ENV".env ]; then
+  DOTENV_FILE="$(readlink -f "$(printf "dist/%q.env" "$ENV")")"
+elif [ ! -z "$ENV" ]; then
+  printf 'The environment %q is not supported, the file dist/%q.env does not exist.\n' "$ENV" "$ENV" >&2
+  echo >&2
+  exit 1
+fi

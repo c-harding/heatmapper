@@ -5,5 +5,5 @@ set -e
 
 cd "$(dirname "$0")/.."
 
-scripts/build
+scripts/build "$@"
 scripts/deploy "$@"
