@@ -13,9 +13,10 @@ const props = withDefaults(
 
 const emit = defineEmits<{
   (e: 'update:minimised', value: boolean): void;
+  (e: 'update:xminimised', value: boolean): void;
 }>();
 
-const minimisedModel = useModel('minimised', props)(emit);
+const minimisedModel = useModel('minimised', props, emit);
 
 const minimisedOverlay = ref<HTMLElement>();
 

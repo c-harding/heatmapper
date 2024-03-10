@@ -38,7 +38,7 @@
     "prettier": "^3.1.1",
     "sass": "^1.22.10",
     "ts-loader": "^9.5.1",
-    "typescript": "~5.3.3",
+    "typescript": "~5.4.2",
     "vite": "^5.1.4",
     "vue-eslint-parser": "^9.4.2"
   },
