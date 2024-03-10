@@ -1,10 +1,9 @@
 <script setup lang="ts">
-import { provide, ref } from 'vue';
+import { ref } from 'vue';
 
 import CollapsibleSidebar from './components/CollapsibleSidebar.vue';
 import MapView from './components/MapView.vue';
 import SidebarContent from './components/SidebarContent.vue';
-import { activityServiceToken } from './services/ActivityService';
 import { useActivityService } from './services/useActivityService';
 
 const map = ref<typeof MapView>();
@@ -13,9 +12,7 @@ const location = ref({ lat: 51.45, lng: -2.6 });
 
 const zoom = ref(10);
 
-const activityService = useActivityService();
-const { mapItems } = activityService;
-provide(activityServiceToken, activityService);
+const { mapItems } = useActivityService();
 
 const selected = ref<string[]>([]);
 

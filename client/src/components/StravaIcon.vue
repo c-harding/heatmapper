@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import type { SportType } from '@strava-heatmapper/shared/interfaces';
 
-import { sportTypes } from '../sportTypes';
-import { sportIconString } from '../utils/icons';
+import { sportTypes } from '@/sportTypes';
+import { sportIconString } from '@/utils/icons';
 
 const props = withDefaults(
   defineProps<{

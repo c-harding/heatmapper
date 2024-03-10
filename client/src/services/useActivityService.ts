@@ -1,6 +1,6 @@
 import type { Activity, Gear, MapItem, Route } from '@strava-heatmapper/shared/interfaces';
 import { TimeRange } from '@strava-heatmapper/shared/interfaces';
-import { reactive, readonly, ref } from 'vue';
+import { computed, inject, provide, reactive, readonly, ref } from 'vue';
 
 import Socket from '@/socket';
 import {
@@ -15,7 +15,7 @@ import {
   saveCachedMaps,
 } from '@/utils/storage';
 
-import type { ActivityService, LoadingStats } from './ActivityService';
+import { type ActivityService, activityServiceToken, type LoadingStats } from './ActivityService';
 
 /** One day in milliseconds */
 const DAY = 24 * 60 * 60 * 1000;
@@ -23,19 +23,23 @@ const DAY = 24 * 60 * 60 * 1000;
 const MIN_TIMEZONE_ADJUSTMENT = 14 * 60 * 60 * 1000;
 const MAX_TIMEZONE_ADJUSTMENT = -12 * 60 * 60 * 1000;
 
-export const useActivityService = (): ActivityService => {
+function makeActivityService(): ActivityService {
   let starting = false;
-  const mapItems = ref<MapItem[]>([]);
+  const allMapItems = ref<MapItem[]>([]);
 
   const continueLogin = ref<((withCookies: boolean) => void) | null>(null);
 
   const stats = ref<LoadingStats>({});
 
   const sportType = ref('');
-  const start = ref<Date>();
-  const end = ref<Date>();
 
   const error = ref<string>();
+
+  const visibleMapItems = computed<readonly MapItem[]>(() =>
+    sportType.value
+      ? allMapItems.value.filter((item) => sportType.value.split(',').includes(item.type))
+      : allMapItems.value,
+  );
 
   /** A map of all gear, where null represents gear that is not yet fetched */
   const gear = reactive(new Map<string, Gear | null>());
@@ -51,29 +55,27 @@ export const useActivityService = (): ActivityService => {
     clientStats.value.mapsLoaded += Object.keys(maps).length;
 
     Object.entries(maps).forEach(([item, map]) => {
-      const i = mapItems.value.findIndex(({ id }) => id.toString() === item);
-      mapItems.value[i].map = map;
+      const i = allMapItems.value.findIndex(({ id }) => id.toString() === item);
+      if (i > -1) {
+        allMapItems.value[i].map = map;
+      }
     });
 
     // Trigger change detection for mapItems
-    mapItems.value = mapItems.value.slice();
+    allMapItems.value = allMapItems.value.slice();
   }
 
   function addMapItems(newItems: readonly MapItem[]): void {
     const newIDs = new Set(newItems.map((item) => item.id));
-    mapItems.value = mapItems.value
+    allMapItems.value = allMapItems.value
       .filter((item) => !newIDs.has(item.id))
       .concat(newItems)
       .sort((a, b) => b.date - a.date);
   }
 
-  function filterActivities<T extends MapItem>(mapItems: T[]): T[] {
-    return mapItems.filter((item) =>
-      [
-        !sportType.value || sportType.value.split(',').includes(item.type),
-        !start.value || item.date >= +start.value,
-        !end.value || item.date <= +end.value + DAY,
-      ].every(Boolean),
+  function filterActivities<T extends MapItem>(mapItems: T[], start?: Date, end?: Date): T[] {
+    return mapItems.filter(
+      (item) => (!start || item.date >= +start) && (!end || item.date <= +end + DAY),
     );
   }
 
@@ -128,8 +130,8 @@ export const useActivityService = (): ActivityService => {
     });
   }
 
-  function receiveRoutes(routes: Route[], socket?: Socket): void {
-    const filteredRoutes = filterActivities(routes);
+  function receiveRoutes(routes: Route[], socket: Socket, start?: Date, end?: Date): void {
+    const filteredRoutes = filterActivities(routes, start, end);
     addMapItems(filteredRoutes);
     requestMaps(
       filteredRoutes.map(({ id }) => id),
@@ -137,8 +139,13 @@ export const useActivityService = (): ActivityService => {
     );
   }
 
-  function receiveActivities(activities: Activity[], socket?: Socket): void {
-    const filteredActivities = filterActivities(activities);
+  function receiveActivities(
+    activities: Activity[],
+    socket: Socket | undefined,
+    start: Date | undefined,
+    end: Date | undefined,
+  ): void {
+    const filteredActivities = filterActivities(activities, start, end);
     addMapItems(filteredActivities);
     requestGear(
       filteredActivities.map(({ gear }) => gear),
@@ -150,7 +157,7 @@ export const useActivityService = (): ActivityService => {
     );
   }
 
-  function loadFromCache(partial = false): void {
+  function loadFromCache(partial = false, start?: Date | undefined, end?: Date | undefined): void {
     const activities = getCachedActivities();
     if (activities && activities.length) {
       if (!partial) {
@@ -158,18 +165,30 @@ export const useActivityService = (): ActivityService => {
       }
       const cachedActivities = activities.filter(({ id }) => getCachedMap(id));
       clientStats.value.mapsNotCached = activities.length - cachedActivities.length;
-      receiveActivities(cachedActivities);
+      receiveActivities(cachedActivities, undefined, start, end);
     }
   }
 
   function clearMapItems() {
-    mapItems.value = [];
+    allMapItems.value = [];
   }
 
-  async function sockets({ partial = false, routes = false } = {}): Promise<void> {
+  interface SocketOptions {
+    partial?: boolean;
+    routes?: boolean;
+    start?: Date;
+    end?: Date;
+  }
+
+  async function sockets({
+    partial = false,
+    routes = false,
+    start,
+    end,
+  }: SocketOptions = {}): Promise<void> {
     clearMapItems();
 
-    if (partial) loadFromCache(partial);
+    if (partial) loadFromCache(partial, start, end);
     clientStats.value = {
       mapsRequested: 0,
       mapsLoaded: 0,
@@ -184,11 +203,9 @@ export const useActivityService = (): ActivityService => {
     // the end timestamp represents the latest point that this date ends anywhere on Earth.
     // Note that the dates are then filtered in the frontend to ensure that only those which were
     // started on the correct day according to activity-local time are shown.
-    const startTimestamp = start.value
-      ? (start.value.getTime() - MIN_TIMEZONE_ADJUSTMENT) / 1000
-      : 0;
-    const endTimestamp = end.value
-      ? (end.value.getTime() + DAY - MAX_TIMEZONE_ADJUSTMENT) / 1000
+    const startTimestamp = start ? (start.getTime() - MIN_TIMEZONE_ADJUSTMENT) / 1000 : 0;
+    const endTimestamp = end
+      ? (end.getTime() + DAY - MAX_TIMEZONE_ADJUSTMENT) / 1000
       : Date.now() / 1000;
 
     let latestActivityDate = startTimestamp;
@@ -209,7 +226,7 @@ export const useActivityService = (): ActivityService => {
           case 'activities': {
             const activityCount = data.activities.length;
             if (activityCount === 0) break;
-            receiveActivities(data.activities, socket);
+            receiveActivities(data.activities, socket, start, end);
 
             // API returns roughly in descending order
             const latestDate = new Date(data.activities[0].date).getTime() / 1000;
@@ -221,7 +238,7 @@ export const useActivityService = (): ActivityService => {
           case 'routes': {
             const routeCount = data.routes.length;
             if (routeCount === 0) break;
-            receiveRoutes(data.routes, socket);
+            receiveRoutes(data.routes, socket, start, end);
             break;
           }
           case 'maps': {
@@ -260,7 +277,7 @@ export const useActivityService = (): ActivityService => {
 
     const storeVersion = getActivityStore().version;
     if (storeVersion !== serverVersion) {
-      mapItems.value = [];
+      allMapItems.value = [];
       resetActivityStore(serverVersion);
     }
 
@@ -274,7 +291,7 @@ export const useActivityService = (): ActivityService => {
       const { covered, activities, version: storeVersion } = getActivityStore();
       if (partial) {
         ranges = TimeRange.cap(TimeRange.invert(covered), startTimestamp ?? 0, endTimestamp);
-        receiveActivities(activities, socket);
+        receiveActivities(activities, socket, start, end);
       } else {
         ranges = [{ start: startTimestamp, end: endTimestamp }];
       }
@@ -284,12 +301,12 @@ export const useActivityService = (): ActivityService => {
     }
   }
 
-  async function loadPartial(): Promise<void> {
-    await sockets({ partial: true });
+  async function loadPartial(start?: Date, end?: Date): Promise<void> {
+    await sockets({ partial: true, start, end });
   }
 
-  async function loadRoutes(): Promise<void> {
-    await sockets({ routes: true });
+  async function loadRoutes(start?: Date, end?: Date): Promise<void> {
+    await sockets({ routes: true, start, end });
   }
 
   loadFromCache();
@@ -299,15 +316,23 @@ export const useActivityService = (): ActivityService => {
     stats,
     clientStats,
     sportType,
-    start,
-    end,
     error,
     gear: readonly(gear),
 
-    mapItems: readonly(mapItems),
+    mapItems: visibleMapItems,
 
     clearMapItems,
     loadPartial,
     loadRoutes,
   };
-};
+}
+
+function provideActivityService() {
+  const service = makeActivityService();
+  provide(activityServiceToken, service);
+  return service;
+}
+
+export function useActivityService() {
+  return inject(activityServiceToken, provideActivityService, true);
+}

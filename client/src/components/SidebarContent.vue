@@ -7,7 +7,9 @@ declare const GIT_HASH: string | undefined;
 import type { MapItem } from '@strava-heatmapper/shared/interfaces';
 import { nextTick, ref, watch } from 'vue';
 
-import { cancelTextSelection } from '../utils/ui';
+import { useActivityService } from '@/services/useActivityService';
+import { cancelTextSelection } from '@/utils/ui';
+
 import FormComponent from './Form.vue';
 import SidebarItem from './SidebarItem.vue';
 
@@ -25,11 +27,9 @@ function getRange(mapItems: readonly MapItem[], to: string, from?: string | stri
 
 const props = withDefaults(
   defineProps<{
-    mapItems: readonly MapItem[];
     selected?: string[];
   }>(),
   {
-    mapItems: () => [],
     selected: () => [],
   },
 );
@@ -37,9 +37,10 @@ const props = withDefaults(
 const emit = defineEmits<{
   (e: 'update:selected', value: string[]): void;
   (e: 'zoom-to-selected'): void;
-
   (e: 'focus-sidebar'): void;
 }>();
+
+const { mapItems } = useActivityService();
 
 const localSelected = ref<string[]>();
 
@@ -56,7 +57,7 @@ function toggleInArray<T>(array: T[], item: T): T[] {
 
 function getSelection(id: string, e: MouseEvent): string[] {
   if (e.metaKey || e.ctrlKey) return toggleInArray(props.selected, id);
-  if (e.shiftKey) return getRange(props.mapItems, id, selectionBase.value);
+  if (e.shiftKey) return getRange(mapItems.value, id, selectionBase.value);
   return [id];
 }
 

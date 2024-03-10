@@ -1,27 +1,29 @@
 <script setup lang="ts">
-import { computed, inject } from 'vue';
+import { computed, ref } from 'vue';
 
-import { activityServiceToken, type LoadingStatsFinding } from '@/services/ActivityService';
+import { type LoadingStatsFinding } from '@/services/ActivityService';
+import { useActivityService } from '@/services/useActivityService';
+import { capitalise, count, countActivities, nonEmpties } from '@/utils/strings';
 
 import { sportGroups, sportTypes } from '../sportTypes';
-import { capitalise, count, countActivities, nonEmpties } from '../utils/strings';
 import DateInput from './DateInput.vue';
 import Dropdown from './Dropdown.vue';
 import Login from './Login.vue';
+
+const start = ref<Date>();
+const end = ref<Date>();
 
 const {
   error,
   clientStats,
   stats,
-  start,
-  end,
   sportType,
   gear,
   clearMapItems,
   loadPartial,
   loadRoutes,
   continueLogin,
-} = inject(activityServiceToken)!;
+} = useActivityService();
 
 function findingString(
   { started = false, finished = false, length = 0 }: LoadingStatsFinding = {},
@@ -89,6 +91,15 @@ defineExpose({ gear });
         <span>End date</span>
         <DateInput v-model="end" name="end" />
       </label>
+    </div>
+    <div class="buttons">
+      <button @click="loadPartial(start, end)">Load</button>
+      <button @click="loadRoutes(start, end)">Routes</button>
+      <button @click="clearCache">Clear cache</button>
+    </div>
+    <Login v-if="continueLogin" @login="continueLogin($event)" />
+    <p v-else :class="{ error }" v-text="statusMessage" />
+    <div class="controls">
       <label>
         <span>Sport type</span>
         <Dropdown
@@ -99,13 +110,6 @@ defineExpose({ gear });
         />
       </label>
     </div>
-    <div class="buttons">
-      <button @click="loadPartial">Load</button>
-      <button @click="loadRoutes">Routes</button>
-      <button @click="clearCache">Clear cache</button>
-    </div>
-    <Login v-if="continueLogin" @login="continueLogin($event)" />
-    <p v-else :class="[error && 'error']" v-text="statusMessage" />
   </aside>
 </template>
 
@@ -133,9 +137,5 @@ aside > .buttons {
 
 .error {
   color: red;
-}
-
-p.small {
-  font-size: 0.8em;
 }
 </style>

@@ -247,6 +247,7 @@ export default function apiRouter(domain: string): express.Router {
 
         for (const { start, end } of TimeRange.cap(message.activities)) {
           sendStats();
+          // TODO: add error handling (offline)
           for await (const activities of activitiesIterator(start, end)) {
             if (!live) return;
             activities.forEach(({ map, id }) => {

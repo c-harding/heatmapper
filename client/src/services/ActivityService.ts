@@ -31,16 +31,14 @@ export interface ActivityService {
   stats: Ref<LoadingStats>;
   clientStats: Ref<ClientStats>;
   sportType: Ref<string>;
-  start: Ref<Date | undefined>;
-  end: Ref<Date | undefined>;
   error: Ref<string | undefined>;
   gear: ReadonlyMap<string, Gear | null>;
 
   mapItems: Readonly<Ref<readonly MapItem[]>>;
 
   clearMapItems(): void;
-  loadPartial(): Promise<void>;
-  loadRoutes(): Promise<void>;
+  loadPartial(start?: Date, end?: Date): Promise<void>;
+  loadRoutes(start?: Date, end?: Date): Promise<void>;
 }
 
 export const activityServiceToken: InjectionKey<ActivityService> = Symbol('ActivityService');
