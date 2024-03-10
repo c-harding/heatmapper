@@ -20,7 +20,6 @@ declare const MAPBOX_STYLE: keyof typeof MapStyle;
 <script setup lang="tsx">
 import polyline from '@mapbox/polyline';
 import type { MapItem } from '@strava-heatmapper/shared/interfaces';
-import { useHead } from '@unhead/vue';
 import type { LngLatBounds, LngLatLike, MapMouseEvent } from 'mapbox-gl';
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 
@@ -30,15 +29,6 @@ import type { MapStyle } from '../MapStyle';
 import Viewport from '../Viewport';
 
 defineExpose({ zoomToSelection });
-
-useHead({
-  link: [
-    {
-      href: 'https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.css',
-      rel: 'stylesheet',
-    },
-  ],
-});
 
 const mapboxgl = await import('mapbox-gl');
 
@@ -323,11 +313,13 @@ function render() {
 </template>
 
 <style>
+@import 'https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.css' layer(mapbox);
+
 .map-container {
   display: contents;
 }
 
-#mapbox {
+.mapboxgl-map {
   flex: 1;
   z-index: 0;
 }
@@ -341,6 +333,18 @@ function render() {
 
   &:dir(rtl) {
     transform: translateX(50%);
+  }
+}
+
+.mapboxgl-ctrl-group {
+  background-color: var(--background);
+
+  button {
+    color: var(--color-slight);
+  }
+
+  &:not(empty) {
+    box-shadow: 0 0 0 2px color-mix(in srgb, currentColor 20%, transparent);
   }
 }
 
@@ -372,5 +376,29 @@ function render() {
 .mapboxgl-ctrl-top-left:dir(rtl),
 .mapboxgl-ctrl-bottom-left:dir(rtl) {
   padding-left: var(--inline-end-safe-area);
+}
+
+/* Override colors of the fullscreen and compass controls to support dark mode */
+.mapboxgl-ctrl-fullscreen .mapboxgl-ctrl-icon {
+  background: currentColor;
+  mask: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 29 29'%3E%3Cpath d='M24 16v5.5c0 1.75-.75 2.5-2.5 2.5H16v-1l3-1.5-4-5.5 1-1 5.5 4 1.5-3h1zM6 16l1.5 3 5.5-4 1 1-4 5.5 3 1.5v1H7.5C5.75 24 5 23.25 5 21.5V16h1zm7-11v1l-3 1.5 4 5.5-1 1-5.5-4L6 13H5V7.5C5 5.75 5.75 5 7.5 5H13zm11 2.5c0-1.75-.75-2.5-2.5-2.5H16v1l3 1.5-4 5.5 1 1 5.5-4 1.5 3h1V7.5z'/%3E%3C/svg%3E");
+}
+
+.mapboxgl-ctrl-compass .mapboxgl-ctrl-icon {
+  background: currentColor;
+  mask: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 29 29'%3E%3Cpath d='M10.5 14l4-8 4 8h-8z'/%3E%3Cpath id='south' d='M10.5 16l4 8 4-8h-8z' opacity='0.25'/%3E%3C/svg%3E");
+}
+
+.mapboxgl-ctrl-attrib {
+  background-color: color-mix(in srgb, var(--background-pure) 50%, transparent);
+}
+
+.mapboxgl-ctrl-attrib a {
+  color: inherit;
+}
+
+.mapboxgl-ctrl-attrib-button {
+  background: var(--color);
+  mask: url("data:image/svg+xml;charset=utf-8,%3Csvg viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg' fill-rule='evenodd'%3E%3Cpath d='M4 10a6 6 0 1 0 12 0 6 6 0 1 0-12 0m5-3a1 1 0 1 0 2 0 1 1 0 1 0-2 0m0 3a1 1 0 1 1 2 0v3a1 1 0 1 1-2 0'/%3E%3C/svg%3E");
 }
 </style>

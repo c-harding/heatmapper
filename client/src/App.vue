@@ -96,6 +96,7 @@ a {
 :root {
   --color: #222;
   --background: #fff;
+  --background-pure: #fff;
   --background-slight: #eee;
   --background-strong: #ccc;
   --transition-speed: 0.5s;
@@ -106,6 +107,7 @@ a {
   :root {
     --color: #fff;
     --background: #222;
+    --background-pure: #000;
     --background-slight: #333;
     --background-strong: #555;
     --link-color: lightblue;
