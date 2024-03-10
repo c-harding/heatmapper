@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import type { MapItem } from '@strava-heatmapper/shared/interfaces';
-import { ref } from 'vue';
+import { provide, ref } from 'vue';
 
 import CollapsibleSidebar from './components/CollapsibleSidebar.vue';
 import MapView from './components/MapView.vue';
 import SidebarContent from './components/SidebarContent.vue';
+import { activityServiceToken } from './services/ActivityService';
+import { useActivityService } from './services/useActivityService';
 
 const map = ref<typeof MapView>();
 
@@ -12,32 +13,13 @@ const location = ref({ lat: 51.45, lng: -2.6 });
 
 const zoom = ref(10);
 
-const mapItems = ref<MapItem[]>([]);
+const activityService = useActivityService();
+const { mapItems } = activityService;
+provide(activityServiceToken, activityService);
 
 const selected = ref<string[]>([]);
 
 const minimised = ref(false);
-
-function clearMapItems(): void {
-  mapItems.value = [];
-}
-function addMapItems(newItems: MapItem[]): void {
-  const newIDs = new Set(newItems.map((item) => item.id));
-  mapItems.value = mapItems.value
-    .filter((item) => !newIDs.has(item.id))
-    .concat(newItems)
-    .sort((a, b) => b.date - a.date);
-}
-
-function addMaps(maps: Record<string, string>): void {
-  Object.entries(maps).forEach(([item, map]) => {
-    const i = mapItems.value.findIndex(({ id }) => id.toString() === item);
-    mapItems.value[i].map = map;
-  });
-
-  // Trigger change detection for mapItems
-  mapItems.value = mapItems.value.slice();
-}
 
 function zoomToSelected(): void {
   map.value?.zoomToSelection();
@@ -54,9 +36,6 @@ defineExpose({ mapItems });
         :map-items="mapItems"
         @focus-sidebar="minimised = false"
         @zoom-to-selected="zoomToSelected"
-        @clear-map-items="clearMapItems"
-        @add-map-items="addMapItems"
-        @add-maps="addMaps"
       />
     </CollapsibleSidebar>
     <Suspense>

@@ -37,7 +37,7 @@ const fromZoom = (...pairs: (readonly [zoom: number, value: unknown])[]): Expres
 ];
 
 const makeGeoJsonData = (
-  mapItems: MapItem[] = [],
+  mapItems: readonly MapItem[] = [],
 ): FeatureCollection<LineString, MapProperties> => ({
   type: 'FeatureCollection',
   features: mapItems
@@ -51,7 +51,7 @@ const makeGeoJsonData = (
     })),
 });
 
-const makeGeoJson = (mapItems: MapItem[] = []): GeoJSONSourceRaw => ({
+const makeGeoJson = (mapItems: readonly MapItem[] = []): GeoJSONSourceRaw => ({
   type: 'geojson',
   data: makeGeoJsonData(mapItems),
 });
@@ -125,7 +125,11 @@ export const addLayersToMap = (map: MapboxMap, style: MapStyle) => {
   });
 };
 
-export const applyMapItems = (map: MapboxMap, next: MapItem[], sourceID: MapSourceLayer): void => {
+export const applyMapItems = (
+  map: MapboxMap,
+  next: readonly MapItem[],
+  sourceID: MapSourceLayer,
+): void => {
   const source = map.getSource(sourceID) as GeoJSONSource | undefined;
   source?.setData(makeGeoJsonData(next));
 };

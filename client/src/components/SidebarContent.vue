@@ -5,14 +5,13 @@ declare const GIT_HASH: string | undefined;
 
 <script setup lang="ts">
 import type { MapItem } from '@strava-heatmapper/shared/interfaces';
-import { nextTick, onMounted, ref, watch } from 'vue';
+import { nextTick, ref, watch } from 'vue';
 
-import { findLastIndex } from '../utils/arrays';
 import { cancelTextSelection } from '../utils/ui';
 import FormComponent from './Form.vue';
 import SidebarItem from './SidebarItem.vue';
 
-function getRange(mapItems: MapItem[], to: string, from?: string | string[]): string[] {
+function getRange(mapItems: readonly MapItem[], to: string, from?: string | string[]): string[] {
   if (to === undefined) return [];
   if (from === undefined) return [to];
   const fromArray: string[] = [from].flat();
@@ -20,13 +19,13 @@ function getRange(mapItems: MapItem[], to: string, from?: string | string[]): st
 
   const start = mapItems.findIndex(({ id }) => to === id || fromArray.includes(id));
   if (start === -1) return [to, ...fromArray];
-  const end = findLastIndex(mapItems, ({ id }) => to === id || fromArray.includes(id));
+  const end = mapItems.findLastIndex(({ id }) => to === id || fromArray.includes(id));
   return mapItems.slice(start, end + 1).map(({ id }) => id);
 }
 
 const props = withDefaults(
   defineProps<{
-    mapItems: MapItem[];
+    mapItems: readonly MapItem[];
     selected?: string[];
   }>(),
   {
@@ -36,16 +35,11 @@ const props = withDefaults(
 );
 
 const emit = defineEmits<{
-  (e: 'add-map-items', value: MapItem[]): void;
-  (e: 'add-maps', value: Record<string, string>): void;
-  (e: 'clear-map-items'): void;
   (e: 'update:selected', value: string[]): void;
   (e: 'zoom-to-selected'): void;
 
   (e: 'focus-sidebar'): void;
 }>();
-
-const form = ref<InstanceType<typeof FormComponent>>();
 
 const localSelected = ref<string[]>();
 
@@ -96,22 +90,11 @@ watch(
     }
   },
 );
-
-onMounted(() => {
-  if (!props.mapItems || props.mapItems.length === 0) {
-    form.value?.loadFromCache();
-  }
-});
 </script>
 
 <template>
   <div class="sidebar-content">
-    <FormComponent
-      ref="form"
-      @clear-map-items="emit('clear-map-items')"
-      @add-map-items="emit('add-map-items', $event)"
-      @add-maps="emit('add-maps', $event)"
-    />
+    <FormComponent />
     <ul ref="sidebarItemList">
       <SidebarItem
         v-for="item of mapItems"

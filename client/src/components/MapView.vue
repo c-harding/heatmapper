@@ -30,7 +30,7 @@ const props = withDefaults(
     center: LngLatLike;
     zoom: number;
     selected?: string[];
-    mapItems: MapItem[];
+    mapItems: readonly MapItem[];
   }>(),
   {
     selected: () => [],
@@ -83,7 +83,7 @@ onMounted(() => {
   container.value?.appendChild(map.getContainer());
 });
 
-const selectedMapItems = computed<MapItem[]>(() =>
+const selectedMapItems = computed<readonly MapItem[]>(() =>
   props.mapItems.filter((item) => props.selected.includes(item.id)),
 );
 
@@ -180,7 +180,7 @@ function optimiseViewport(map: MapboxMap, bounds: LngLatBounds) {
   );
 }
 
-function flyTo(mapItems: MapItem[], zoom = false): void {
+function flyTo(mapItems: readonly MapItem[], zoom = false): void {
   if (mapItems.length === 0) return;
   const coordinates = mapItems.flatMap(({ map: line }) =>
     polyline.decode(line).map<[number, number]>(([y, x]) => [x, y]),

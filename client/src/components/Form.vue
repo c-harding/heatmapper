@@ -1,42 +1,30 @@
 <script setup lang="ts">
-import type { Activity, Gear, MapItem, Route } from '@strava-heatmapper/shared/interfaces';
-import { TimeRange } from '@strava-heatmapper/shared/interfaces';
-import { computed, reactive, ref, watch } from 'vue';
+import { computed, inject } from 'vue';
 
-import Socket from '../socket';
+import { activityServiceToken, type LoadingStatsFinding } from '@/services/ActivityService';
+
 import { sportGroups, sportTypes } from '../sportTypes';
-import {
-  appendCachedActivities,
-  getCachedActivities,
-  getCachedGear,
-  getCachedMap,
-  getCachedMaps,
-  resetActivityStore,
-  saveCachedGear,
-} from '../utils/storage';
-import { getActivityStore, saveCachedMaps } from '../utils/storage';
 import { capitalise, count, countActivities, nonEmpties } from '../utils/strings';
 import DateInput from './DateInput.vue';
 import Dropdown from './Dropdown.vue';
 import Login from './Login.vue';
 
-/** A map of all gear, where null represents gear that is not yet fetched */
-const gear = reactive(new Map<string, Gear | null>());
-
-const emit = defineEmits<{
-  (e: 'add-map-items', value: MapItem[]): void;
-  (e: 'clear-map-items'): void;
-  (e: 'add-maps', value: Record<string, string>): void;
-}>();
-
-/** One day in milliseconds */
-const DAY = 24 * 60 * 60 * 1000;
-
-const MIN_TIMEZONE_ADJUSTMENT = 14 * 60 * 60 * 1000;
-const MAX_TIMEZONE_ADJUSTMENT = -12 * 60 * 60 * 1000;
+const {
+  error,
+  clientStats,
+  stats,
+  start,
+  end,
+  sportType,
+  gear,
+  clearMapItems,
+  loadPartial,
+  loadRoutes,
+  continueLogin,
+} = inject(activityServiceToken)!;
 
 function findingString(
-  { started = false, finished = false, length = 0 }: LoadingStats['finding'] = {},
+  { started = false, finished = false, length = 0 }: LoadingStatsFinding = {},
   inCache = false,
 ) {
   // TODO: generic for activities/routes
@@ -56,47 +44,9 @@ function mapString(requested = 0, length = 0, uncached = 0) {
   return '';
 }
 
-function filterActivities<T extends MapItem>(
-  mapItems: T[],
-  type?: string,
-  start?: Date | null,
-  end?: Date | null,
-): T[] {
-  return mapItems.filter((item) =>
-    [
-      !type || type.split(',').includes(item.type),
-      !start || item.date >= +start,
-      !end || item.date <= +end + DAY,
-    ].every(Boolean),
-  );
-}
-
-const start = ref<Date | null>(null);
-const end = ref<Date | null>(null);
-const continueLogin = ref<((withCookies: boolean) => void) | null>(null);
-const sportType = ref('');
 const sortedSportTypes = [...Object.entries(sportGroups), ...Object.entries(sportTypes)]
   .map(([value, label]) => ({ value, label }))
   .sort((a, b) => a.label.localeCompare(b.label));
-
-interface LoadingStats {
-  status?: string;
-  finding?: { started?: boolean; finished?: boolean; length?: number };
-  cleared?: boolean;
-}
-
-const stats = ref<LoadingStats>({});
-
-const clientStats = ref({
-  mapsRequested: 0,
-  mapsLoaded: 0,
-  mapsNotCached: 0,
-  inCache: true,
-});
-
-const error = ref<string | null>(null);
-
-const starting = ref(false);
 
 const statusMessage = computed(() => {
   return error.value || statsMessage();
@@ -118,239 +68,14 @@ function statsMessage(): string {
   );
 }
 
-function setError(message: string): void {
-  error.value = message;
-}
-
 function clearCache(): void {
   localStorage.clear();
   document.cookie = `token=;expires=${new Date(0).toUTCString()}`;
   stats.value = { cleared: true };
-  emit('clear-map-items');
+  clearMapItems();
 }
 
-function receiveMaps(maps: Record<string, string>): void {
-  clientStats.value.mapsLoaded += Object.keys(maps).length;
-  emit('add-maps', maps);
-}
-
-watch(sportType, () => {
-  emit('clear-map-items');
-  loadFromCache();
-});
-
-async function requestMaps(ids: string[], socket?: Socket) {
-  clientStats.value.mapsRequested += ids.length;
-  const { cached, notCached } = getCachedMaps(ids);
-  receiveMaps(cached);
-  if (socket && notCached.length) {
-    await socket.sendRequest({
-      maps: notCached,
-    });
-  }
-  checkFinished(socket);
-}
-
-function requestGear(ids: (string | undefined)[], socket?: Socket) {
-  const validIds = ids.filter((id?: string): id is string => !!id);
-
-  for (const gearId of validIds) {
-    if (gear.has(gearId)) continue;
-    if (socket) {
-      gear.set(gearId, null);
-      void socket.sendRequest({
-        gear: gearId,
-      });
-    } else {
-      gear.set(gearId, getCachedGear(gearId) ?? null);
-    }
-  }
-}
-
-function receiveActivities(activities: Activity[], socket?: Socket): void {
-  const filteredActivities = filterActivities(activities, sportType.value, start.value, end.value);
-  requestGear(
-    filteredActivities.map(({ gear }) => gear),
-    socket,
-  );
-  emit('add-map-items', filteredActivities);
-  requestMaps(
-    filteredActivities.map(({ id }) => id),
-    socket,
-  );
-}
-
-function receiveRoutes(routes: Route[], socket?: Socket): void {
-  const filteredRoutes = filterActivities(routes, sportType.value, start.value, end.value);
-  emit('add-map-items', filteredRoutes);
-  requestMaps(
-    filteredRoutes.map(({ id }) => id),
-    socket,
-  );
-}
-
-function checkFinished(socket?: Socket): void {
-  if (
-    socket &&
-    !starting.value &&
-    clientStats.value.mapsRequested === clientStats.value.mapsLoaded &&
-    stats.value.finding?.finished
-  ) {
-    socket.close();
-  }
-}
-
-function loadFromCache(partial = false): void {
-  const activities = getCachedActivities();
-  if (activities && activities.length) {
-    if (!partial) {
-      stats.value = { finding: { finished: true, length: activities.length } };
-    }
-    const cachedActivities = activities.filter(({ id }) => getCachedMap(id));
-    clientStats.value.mapsNotCached = activities.length - cachedActivities.length;
-    receiveActivities(cachedActivities);
-  }
-}
-
-async function startLoading(socket: Socket, ranges: TimeRange[]) {
-  await socket.sendRequest({
-    activities: ranges,
-  });
-}
-
-async function startLoadingRoutes(socket: Socket) {
-  await socket.sendRequest({
-    routes: true,
-  });
-}
-
-async function load(): Promise<void> {
-  await sockets();
-}
-
-async function loadPartial(): Promise<void> {
-  await sockets({ partial: true });
-}
-
-async function loadRoutes(): Promise<void> {
-  await sockets({ routes: true });
-}
-
-async function sockets({ partial = false, routes = false } = {}): Promise<void> {
-  emit('clear-map-items');
-  if (partial) loadFromCache(partial);
-  clientStats.value = {
-    mapsRequested: 0,
-    mapsLoaded: 0,
-    mapsNotCached: 0,
-    inCache: false,
-  };
-  error.value = null;
-
-  // The dates shown in the UI are formatted in event-local time.
-  // In order to ensure that all events are correctly shown, we need to ensure that the start
-  // timestamp represents the earliest point that this date is reached anywhere on Earth, and that
-  // the end timestamp represents the latest point that this date ends anywhere on Earth.
-  // Note that the dates are then filtered in the frontend to ensure that only those which were
-  // started on the correct day according to activity-local time are shown.
-  const startTimestamp = start.value ? (start.value.getTime() - MIN_TIMEZONE_ADJUSTMENT) / 1000 : 0;
-  const endTimestamp =
-    (end.value ? end.value.getTime() + DAY - MAX_TIMEZONE_ADJUSTMENT : Date.now()) / 1000;
-
-  let latestActivityDate = startTimestamp;
-
-  const protocol = window.location.protocol.includes('https') ? 'wss' : 'ws';
-  const socket = new Socket(
-    `${protocol}://${window.location.host}/api/activities`,
-    (data) => {
-      switch (data.type) {
-        case 'stats': {
-          const oldStats = stats.value;
-          stats.value = data;
-          if (!oldStats?.finding?.finished && data.finding.finished) {
-            appendCachedActivities([], latestActivityDate, startTimestamp);
-          }
-          break;
-        }
-        case 'activities': {
-          const activityCount = data.activities.length;
-          if (activityCount === 0) break;
-          receiveActivities(data.activities, socket);
-
-          // API returns roughly in descending order
-          const latestDate = new Date(data.activities[0].date).getTime() / 1000;
-          const earliestDate = new Date(data.activities[activityCount - 1].date).getTime() / 1000;
-          latestActivityDate = Math.max(latestActivityDate, latestDate);
-          appendCachedActivities(data.activities, latestDate, earliestDate);
-          break;
-        }
-        case 'routes': {
-          const routeCount = data.routes.length;
-          if (routeCount === 0) break;
-          receiveRoutes(data.routes, socket);
-          break;
-        }
-        case 'maps': {
-          saveCachedMaps(data.chunk);
-          receiveMaps(data.chunk);
-          break;
-        }
-        case 'gear': {
-          gear.set(data.id, data.gear);
-          saveCachedGear(data.id, data.gear);
-          break;
-        }
-        case 'login': {
-          continueLogin.value = (cookies = true) => {
-            if (cookies) document.cookie = `token=${data.cookie};max-age=31536000`;
-            continueLogin.value = null;
-            window.open(data.url, 'menubar=false,toolbar=false,width=300, height=300');
-          };
-          break;
-        }
-        default:
-          console.warn(`Unknown message ${data}`);
-      }
-      checkFinished(socket);
-    },
-    (errored) => {
-      if (errored) {
-        setError('Error fetching activities');
-      } else {
-        stats.value = { status: 'disconnected' };
-      }
-    },
-  );
-
-  const { version: serverVersion } = await socket.sendRequest({ version: true }, 'version');
-
-  const storeVersion = getActivityStore().version;
-  if (storeVersion !== serverVersion) {
-    emit('clear-map-items');
-    resetActivityStore(serverVersion);
-  }
-
-  if (routes) {
-    // TODO: send ranges
-    startLoadingRoutes(socket);
-  } else {
-    starting.value = true;
-
-    let ranges: TimeRange[];
-    const { covered, activities, version: storeVersion } = getActivityStore();
-    if (partial) {
-      ranges = TimeRange.cap(TimeRange.invert(covered), startTimestamp ?? 0, endTimestamp);
-      receiveActivities(activities, socket);
-    } else {
-      ranges = [{ start: startTimestamp, end: endTimestamp }];
-    }
-
-    startLoading(socket, ranges);
-    starting.value = false;
-  }
-}
-
-defineExpose({ loadFromCache, gear });
+defineExpose({ gear });
 </script>
 
 <template>
