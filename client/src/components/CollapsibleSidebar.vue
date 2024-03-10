@@ -1,22 +1,9 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 
-import { useModel } from '../utils/useModel';
 import Icon from './Icon.vue';
 
-const props = withDefaults(
-  defineProps<{
-    minimised: boolean;
-  }>(),
-  {},
-);
-
-const emit = defineEmits<{
-  (e: 'update:minimised', value: boolean): void;
-  (e: 'update:xminimised', value: boolean): void;
-}>();
-
-const minimisedModel = useModel('minimised', props, emit);
+const minimised = defineModel<boolean>();
 
 const minimisedOverlay = ref<HTMLElement>();
 
@@ -26,7 +13,7 @@ const appName = import.meta.env.VITE_APP_NAME;
 </script>
 
 <template>
-  <div class="sidebar" :class="{ minimised: minimisedModel }">
+  <div class="sidebar" :class="{ minimised }">
     <div class="top-box">
       <div class="header">
         <svg viewBox="0 0 110 36">
@@ -58,7 +45,7 @@ const appName = import.meta.env.VITE_APP_NAME;
       <slot />
     </section>
 
-    <div class="overlays" @click="minimisedModel = !minimisedModel" @wheel="minimisedModel = true">
+    <div class="overlays" @click="minimised = !minimised" @wheel="minimised = true">
       <div class="expanded overlay" />
       <div ref="minimisedOverlay" class="minimised overlay" />
     </div>
