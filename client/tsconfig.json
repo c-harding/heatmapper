@@ -4,6 +4,7 @@
     "target": "es2020",
     "strict": true,
     "jsx": "preserve",
+    "jsxImportSource": "vue",
     "importHelpers": true,
     "moduleResolution": "node",
     "experimentalDecorators": true,

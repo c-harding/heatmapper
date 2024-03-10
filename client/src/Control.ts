@@ -1,29 +1,23 @@
+import { createHead } from '@unhead/vue';
 import type { IControl, Map as MapboxMap } from 'mapbox-gl';
-import { type Ref, watch } from 'vue';
+import type { RenderFunction } from 'vue';
+import { createApp, defineComponent } from 'vue';
 
-export class Toggle3DIconControl implements IControl {
-  constructor(private terrain: Ref<boolean>) {}
-
+export class Control implements IControl {
   disposeCallbacks = new Map<MapboxMap, () => void>();
+
+  constructor(private readonly component: () => RenderFunction) {}
 
   onAdd(map: MapboxMap): HTMLElement {
     const element = document.createElement('div');
     element.classList.add('mapboxgl-ctrl');
     element.classList.add('mapboxgl-ctrl-group');
-    const button = document.createElement('button');
-    button.addEventListener('click', () => {
-      this.terrain.value = !this.terrain.value;
-    });
-    const unwatchTerrain = watch(
-      this.terrain,
-      (enabled) => {
-        button.innerText = enabled ? '2D' : '3D';
-      },
-      { immediate: true },
-    );
-    element.append(button);
+
+    const controlApp = createApp(defineComponent(this.component)).use(createHead());
+
+    controlApp.mount(element);
     this.disposeCallbacks.set(map, () => {
-      unwatchTerrain();
+      controlApp.unmount();
     });
     return element;
   }

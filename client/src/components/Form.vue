@@ -3,9 +3,6 @@ import type { Activity, Gear, MapItem, Route } from '@strava-heatmapper/shared/i
 import { TimeRange } from '@strava-heatmapper/shared/interfaces';
 import { computed, reactive, ref, watch } from 'vue';
 
-import { useHasBeenTrue } from '@/utils/useHasBeenTrue';
-
-import { MapStyle } from '../MapStyle';
 import Socket from '../socket';
 import { sportGroups, sportTypes } from '../sportTypes';
 import {
@@ -23,13 +20,6 @@ import DateInput from './DateInput.vue';
 import Dropdown from './Dropdown.vue';
 import Login from './Login.vue';
 
-const props = withDefaults(
-  defineProps<{
-    mapStyle: MapStyle;
-  }>(),
-  {},
-);
-
 /** A map of all gear, where null represents gear that is not yet fetched */
 const gear = reactive(new Map<string, Gear | null>());
 
@@ -37,7 +27,6 @@ const emit = defineEmits<{
   (e: 'add-map-items', value: MapItem[]): void;
   (e: 'clear-map-items'): void;
   (e: 'add-maps', value: Record<string, string>): void;
-  (e: 'update:mapStyle', value: MapStyle): void;
 }>();
 
 /** One day in milliseconds */
@@ -45,17 +34,6 @@ const DAY = 24 * 60 * 60 * 1000;
 
 const MIN_TIMEZONE_ADJUSTMENT = 14 * 60 * 60 * 1000;
 const MAX_TIMEZONE_ADJUSTMENT = -12 * 60 * 60 * 1000;
-
-const mapStyleModel = computed<MapStyle>({
-  get() {
-    return props.mapStyle;
-  },
-  set(value) {
-    emit('update:mapStyle', value);
-  },
-});
-
-const stravaStyleEnabled = useHasBeenTrue(() => mapStyleModel.value === MapStyle.STRAVA);
 
 function findingString(
   { started = false, finished = false, length = 0 }: LoadingStats['finding'] = {},
@@ -400,16 +378,6 @@ defineExpose({ loadFromCache, gear });
       <button @click="loadPartial">Load</button>
       <button @click="loadRoutes">Routes</button>
       <button @click="clearCache">Clear cache</button>
-    </div>
-    <div class="buttons">
-      <select v-model="mapStyleModel">
-        <option v-if="stravaStyleEnabled" :value="MapStyle.STRAVA">Strava style</option>
-        <option :value="MapStyle.STANDARD">Standard style</option>
-        <option :value="MapStyle.LIGHT">Light style</option>
-        <option :value="MapStyle.OUTDOOR">Outdoor style</option>
-        <option :value="MapStyle.HYBRID">Hybrid</option>
-        <option :value="MapStyle.SATELLITE">Satellite</option>
-      </select>
     </div>
     <Login v-if="continueLogin" @login="continueLogin($event)" />
     <p v-else :class="[error && 'error']" v-text="statusMessage" />

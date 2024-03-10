@@ -5,9 +5,8 @@ declare const GIT_HASH: string | undefined;
 
 <script setup lang="ts">
 import type { MapItem } from '@strava-heatmapper/shared/interfaces';
-import { computed, nextTick, onMounted, ref, watch } from 'vue';
+import { nextTick, onMounted, ref, watch } from 'vue';
 
-import type { MapStyle } from '../MapStyle';
 import { findLastIndex } from '../utils/arrays';
 import { cancelTextSelection } from '../utils/ui';
 import FormComponent from './Form.vue';
@@ -29,7 +28,6 @@ const props = withDefaults(
   defineProps<{
     mapItems: MapItem[];
     selected?: string[];
-    mapStyle: MapStyle;
   }>(),
   {
     mapItems: () => [],
@@ -43,19 +41,9 @@ const emit = defineEmits<{
   (e: 'clear-map-items'): void;
   (e: 'update:selected', value: string[]): void;
   (e: 'zoom-to-selected'): void;
-  (e: 'update:mapStyle', value: MapStyle): void;
+
   (e: 'focus-sidebar'): void;
 }>();
-
-// TODO: extract
-const mapStyleModel = computed<MapStyle>({
-  get() {
-    return props.mapStyle;
-  },
-  set(value) {
-    emit('update:mapStyle', value);
-  },
-});
 
 const form = ref<InstanceType<typeof FormComponent>>();
 
@@ -120,7 +108,6 @@ onMounted(() => {
   <div class="sidebar-content">
     <FormComponent
       ref="form"
-      v-model:map-style="mapStyleModel"
       @clear-map-items="emit('clear-map-items')"
       @add-map-items="emit('add-map-items', $event)"
       @add-maps="emit('add-maps', $event)"

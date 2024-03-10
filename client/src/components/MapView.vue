@@ -1,6 +1,10 @@
 <script lang="tsx">
 import type { Map as MapboxMap } from 'mapbox-gl';
 
+import { Control } from '@/Control';
+
+import LayerPicker from './LayerPicker.vue';
+
 declare global {
   interface Window {
     cachedMapElement?: MapboxMap;
@@ -9,6 +13,7 @@ declare global {
 
 // Set in vite.config.js
 declare const MAPBOX_TOKEN: string;
+declare const MAPBOX_STYLE: keyof typeof MapStyle;
 </script>
 
 <script setup lang="tsx">
@@ -18,10 +23,9 @@ import { useHead } from '@unhead/vue';
 import type { LngLatBounds, LngLatLike, MapMouseEvent } from 'mapbox-gl';
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 
-import { Toggle3DIconControl } from '@/Toggle3DIconControl';
 import { addLayersToMap, applyMapItems, MapSourceLayer, useMapSelection } from '@/utils/map';
 
-import type { MapStyle } from '../MapStyle';
+import { MapStyle } from '../MapStyle';
 import Viewport from '../Viewport';
 
 defineExpose({ zoomToSelection });
@@ -71,7 +75,6 @@ const props = withDefaults(
     zoom: number;
     selected?: string[];
     mapItems: MapItem[];
-    mapStyle: MapStyle;
   }>(),
   {
     selected: () => [],
@@ -84,20 +87,19 @@ const emit = defineEmits<{
   (e: 'update:selected', value: string[]): void;
 }>();
 
-watch(
-  () => props.mapStyle,
-  (style) => {
-    if (map.value) {
-      const loadedMap = map.value;
-      loadedMap.setStyle(style);
+const mapStyle = ref(MapStyle[MAPBOX_STYLE] ?? MapStyle.LIGHT);
 
-      map.value.once('styledata', () => {
-        mapLoaded(loadedMap);
-        return onTerrain();
-      });
-    }
-  },
-);
+watch(mapStyle, (style) => {
+  if (map.value) {
+    const loadedMap = map.value;
+    loadedMap.setStyle(style);
+
+    map.value.once('styledata', () => {
+      mapLoaded(loadedMap);
+      return onTerrain();
+    });
+  }
+});
 
 watch(terrain, onTerrain);
 
@@ -221,7 +223,7 @@ onBeforeUnmount(() => {
 async function mapLoaded(map: MapboxMap): Promise<void> {
   map.resize();
 
-  addLayersToMap(map, props.mapStyle);
+  addLayersToMap(map, mapStyle.value);
   onTerrain();
 
   await nextTick();
@@ -270,7 +272,7 @@ function addMapElement(): MapboxMap {
     newMap = new mapboxgl.Map({
       accessToken: token,
       container: 'mapbox',
-      style: props.mapStyle,
+      style: mapStyle.value,
       center: props.center,
       zoom: props.zoom,
     });
@@ -282,7 +284,26 @@ function addMapElement(): MapboxMap {
       new mapboxgl.NavigationControl({ showZoom: false, visualizePitch: true }),
       topCorner,
     );
-    newMap.addControl(new Toggle3DIconControl(terrain), topCorner);
+    newMap.addControl(
+      new Control(() => {
+        const onClick = () => {
+          terrain.value = !terrain.value;
+        };
+        return () => <button onClick={onClick}>{terrain.value ? '2D' : '3D'}</button>;
+      }),
+      topCorner,
+    );
+    newMap.addControl(
+      new Control(() => {
+        return () => (
+          <LayerPicker
+            modelValue={mapStyle.value}
+            onUpdate:modelValue={(val) => (mapStyle.value = val)}
+          />
+        );
+      }),
+      topCorner,
+    );
     newMap.addControl(new mapboxgl.ScaleControl(), 'bottom-left');
   }
   map.value = newMap;

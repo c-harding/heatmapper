@@ -1,10 +1,3 @@
-<script lang="ts">
-import { MapStyle } from './MapStyle';
-
-// Set in vite.config.js
-declare const MAPBOX_STYLE: keyof typeof MapStyle;
-</script>
-
 <script setup lang="ts">
 import type { MapItem } from '@strava-heatmapper/shared/interfaces';
 import { ref } from 'vue';
@@ -24,8 +17,6 @@ const mapItems = ref<MapItem[]>([]);
 const selected = ref<string[]>([]);
 
 const minimised = ref(false);
-
-const mapStyle = ref(MapStyle[MAPBOX_STYLE] ?? MapStyle.LIGHT);
 
 function clearMapItems(): void {
   mapItems.value = [];
@@ -59,7 +50,6 @@ defineExpose({ mapItems });
   <div id="app">
     <CollapsibleSidebar v-model:minimised="minimised">
       <SidebarContent
-        v-model:map-style="mapStyle"
         v-model:selected="selected"
         :map-items="mapItems"
         @focus-sidebar="minimised = false"
@@ -72,7 +62,6 @@ defineExpose({ mapItems });
     <Suspense>
       <MapView
         ref="map"
-        v-model:map-style="mapStyle"
         v-model:center="location"
         v-model:zoom="zoom"
         v-model:selected="selected"
@@ -97,7 +86,7 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  color: #2c3e50;
+  color: var(--color);
 }
 
 a {
