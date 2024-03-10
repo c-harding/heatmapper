@@ -4,7 +4,9 @@ set -e
 
 cd "$(dirname "$0")/.."
 
-. scripts/get-env
+set -a
+. scripts/get-env "$@"
+set +a
 
 (echo "building client"; yarn --cwd client build)
 

@@ -5,7 +5,7 @@ set -e
 
 cd "$(dirname "$0")/.."
 
-. scripts/connect
+. scripts/connect "$@"
 
 if [ ! -z "$ENV" ]; then
   ENV_CMD="$(printf 'rm -r .env && mv -T %q.env .env' $ENV)"
