@@ -1,7 +1,6 @@
 <script lang="tsx">
 import type { Map as MapboxMap } from 'mapbox-gl';
 
-import { Control } from '@/Control';
 import { useMapStyle } from '@/utils/useMapStyle';
 
 import LayerPicker from './LayerPicker.vue';
@@ -28,38 +27,6 @@ import { addLayersToMap, applyMapItems, MapSourceLayer, useMapSelection } from '
 import type { MapStyle } from '../MapStyle';
 import Viewport from '../Viewport';
 
-defineExpose({ zoomToSelection });
-
-const mapboxgl = await import('mapbox-gl');
-
-const map = ref<MapboxMap | undefined>();
-
-const container = ref<HTMLElement>();
-
-const token = MAPBOX_TOKEN;
-
-const selectedMapItems = computed<MapItem[]>(() =>
-  props.mapItems.filter((item) => props.selected.includes(item.id)),
-);
-
-const terrain = ref(false);
-
-const onTerrain = () => {
-  if (terrain.value) {
-    if (!map.value?.getSource('mapbox-dem')) {
-      map.value?.addSource('mapbox-dem', {
-        type: 'raster-dem',
-        url: 'mapbox://mapbox.mapbox-terrain-dem-v1',
-      });
-    }
-    map.value?.setTerrain({ source: 'mapbox-dem' });
-    map.value?.setProjection('globe');
-  } else {
-    map.value?.setTerrain(null);
-    map.value?.setProjection('mercator');
-  }
-};
-
 const props = withDefaults(
   defineProps<{
     center: LngLatLike;
@@ -72,6 +39,14 @@ const props = withDefaults(
   },
 );
 
+defineExpose({ zoomToSelection });
+
+const mapboxgl = await import('mapbox-gl');
+
+const container = ref<HTMLElement>();
+
+const token = MAPBOX_TOKEN;
+
 const emit = defineEmits<{
   (e: 'update:center', value: LngLatLike): void;
   (e: 'update:zoom', value: number): void;
@@ -80,30 +55,76 @@ const emit = defineEmits<{
 
 const mapStyle = useMapStyle();
 
-watch(mapStyle, (style) => {
-  if (map.value) {
-    const loadedMap = map.value;
-    loadedMap.setStyle(style);
+const terrain = ref(false);
 
-    map.value.once('styledata', () => {
-      mapLoaded(loadedMap);
-      return onTerrain();
-    });
-  }
+const topCorner = document.dir === 'rtl' ? 'top-left' : 'top-right';
+
+if (!window.cachedMapElement) {
+  const newMap = new mapboxgl.Map({
+    accessToken: token,
+    container: document.createElement('div'),
+    style: mapStyle.value,
+    center: props.center,
+    zoom: props.zoom,
+  });
+
+  newMap.addControl(new mapboxgl.FullscreenControl(), topCorner);
+  newMap.addControl(
+    new mapboxgl.NavigationControl({ showZoom: false, visualizePitch: true }),
+    topCorner,
+  );
+
+  newMap.addControl(new mapboxgl.ScaleControl(), 'bottom-left');
+
+  window.cachedMapElement = newMap;
+}
+
+const map = window.cachedMapElement;
+
+onMounted(() => {
+  container.value?.appendChild(map.getContainer());
 });
 
-watch(terrain, onTerrain);
+const selectedMapItems = computed<MapItem[]>(() =>
+  props.mapItems.filter((item) => props.selected.includes(item.id)),
+);
 
 watch(
   () => props.mapItems,
   (mapItems) => {
-    if (map.value) applyMapItems(map.value, mapItems, MapSourceLayer.LINES);
+    applyMapItems(map, mapItems, MapSourceLayer.LINES);
   },
 );
 
 watch(selectedMapItems, (selectedMapItems) => {
-  if (map.value) applyMapItems(map.value, selectedMapItems, MapSourceLayer.SELECTED);
+  applyMapItems(map, selectedMapItems, MapSourceLayer.SELECTED);
 });
+
+watch(mapStyle, (style) => {
+  map.setStyle(style);
+  map.once('styledata', () => {
+    mapLoaded(map);
+    return onTerrain();
+  });
+});
+
+const onTerrain = () => {
+  if (terrain.value) {
+    if (!map.getSource('mapbox-dem')) {
+      map.addSource('mapbox-dem', {
+        type: 'raster-dem',
+        url: 'mapbox://mapbox.mapbox-terrain-dem-v1',
+      });
+    }
+    map.setTerrain({ source: 'mapbox-dem' });
+    map.setProjection('globe');
+  } else {
+    map.setTerrain(null);
+    map.setProjection('mercator');
+  }
+};
+
+watch(terrain, onTerrain);
 
 /**
  * Calculate best way of zooming to fit the activity while avoiding the controls in the corners.
@@ -162,7 +183,7 @@ function optimiseViewport(map: MapboxMap, bounds: LngLatBounds) {
 }
 
 function flyTo(mapItems: MapItem[], zoom = false): void {
-  if (!map.value || mapItems.length === 0) return;
+  if (mapItems.length === 0) return;
   const coordinates = mapItems.flatMap(({ map: line }) =>
     polyline.decode(line).map<[number, number]>(([y, x]) => [x, y]),
   );
@@ -171,13 +192,13 @@ function flyTo(mapItems: MapItem[], zoom = false): void {
     new mapboxgl.LngLatBounds(coordinates[0], coordinates[0]),
   );
 
-  const viewport = optimiseViewport(map.value, bounds);
+  const viewport = optimiseViewport(map, bounds);
 
-  const screenNorthEast = map.value.unproject([
+  const screenNorthEast = map.unproject([
     viewport.width - viewport.offsets.right,
     viewport.offsets.top,
   ]);
-  const screenSouthWest = map.value.unproject([
+  const screenSouthWest = map.unproject([
     viewport.offsets.left,
     viewport.height - viewport.offsets.bottom,
   ]);
@@ -188,8 +209,8 @@ function flyTo(mapItems: MapItem[], zoom = false): void {
     !screenBounds.contains(bounds.getSouthWest()) ||
     !screenBounds.contains(bounds.getNorthEast())
   ) {
-    const maxZoom = zoom ? 30 : map.value.getZoom();
-    map.value.fitBounds(bounds, {
+    const maxZoom = zoom ? 30 : map.getZoom();
+    map.fitBounds(bounds, {
       padding: viewport.offsets,
       linear: true,
       maxZoom,
@@ -201,7 +222,7 @@ function zoomToSelection(): void {
   flyTo(selectedMapItems.value, true);
 }
 
-const resizeHandler = () => map.value?.resize();
+const resizeHandler = () => map.resize();
 
 onMounted(() => {
   window.addEventListener('transitionend', resizeHandler, { passive: true });
@@ -217,7 +238,6 @@ async function mapLoaded(map: MapboxMap): Promise<void> {
   addLayersToMap(map, mapStyle.value);
   onTerrain();
 
-  await nextTick();
   applyMapItems(map, props.mapItems, MapSourceLayer.LINES);
   applyMapItems(map, selectedMapItems.value, MapSourceLayer.SELECTED);
 }
@@ -243,73 +263,26 @@ const { click } = useMapSelection({
   emitUpdate: (selected) => emit('update:selected', selected),
 });
 
-onMounted(() => {
-  const map = addMapElement();
+const buttonTarget = map.getContainer().querySelector(`.mapboxgl-ctrl-${topCorner}`);
 
-  map.on('zoomend', () => zoomend(map));
-  map.on('moveend', () => moveend(map));
-  map.on('click', (ev) => click(ev));
-  map.on('dblclick', (ev) => dblclick(ev));
-  map.once('idle', () => mapLoaded(map));
-});
-
-function addMapElement(): MapboxMap {
-  let newMap: MapboxMap;
-  const cachedMap = window.cachedMapElement;
-  if (cachedMap) {
-    container.value?.appendChild(cachedMap.getContainer());
-    newMap = cachedMap;
-  } else {
-    newMap = new mapboxgl.Map({
-      accessToken: token,
-      container: 'mapbox',
-      style: mapStyle.value,
-      center: props.center,
-      zoom: props.zoom,
-    });
-
-    const topCorner = document.dir === 'rtl' ? 'top-left' : 'top-right';
-
-    newMap.addControl(new mapboxgl.FullscreenControl(), topCorner);
-    newMap.addControl(
-      new mapboxgl.NavigationControl({ showZoom: false, visualizePitch: true }),
-      topCorner,
-    );
-    newMap.addControl(
-      new Control(() => {
-        const onClick = () => {
-          terrain.value = !terrain.value;
-        };
-        return () => <button onClick={onClick}>{terrain.value ? '2D' : '3D'}</button>;
-      }),
-      topCorner,
-    );
-    newMap.addControl(
-      new Control(() => {
-        return () => (
-          <LayerPicker
-            modelValue={mapStyle.value}
-            onUpdate:modelValue={(val) => (mapStyle.value = val)}
-          />
-        );
-      }),
-      topCorner,
-    );
-    newMap.addControl(new mapboxgl.ScaleControl(), 'bottom-left');
-  }
-  map.value = newMap;
-
-  window.cachedMapElement = newMap;
-  return newMap;
-}
-
-function render() {
-  return <div class="map-container">{!window.cachedMapElement && <div id="mapbox" />}</div>;
-}
+map.on('zoomend', () => zoomend(map));
+map.on('moveend', () => moveend(map));
+map.on('click', (ev) => click(ev));
+map.on('dblclick', (ev) => dblclick(ev));
+map.once('idle', () => mapLoaded(map));
 </script>
 
 <template>
-  <render ref="container" />
+  <div ref="container" class="map-container" />
+  <Teleport :to="buttonTarget">
+    <div class="mapboxgl-ctrl mapboxgl-ctrl-group">
+      <button @click="terrain = !terrain">{{ terrain ? '2D' : '3D' }}</button>
+    </div>
+
+    <div class="mapboxgl-ctrl mapboxgl-ctrl-group">
+      <LayerPicker v-model="mapStyle" />
+    </div>
+  </Teleport>
 </template>
 
 <style>
