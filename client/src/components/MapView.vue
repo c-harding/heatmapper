@@ -2,6 +2,7 @@
 import type { Map as MapboxMap } from 'mapbox-gl';
 
 import { Control } from '@/Control';
+import { useMapStyle } from '@/utils/useMapStyle';
 
 import LayerPicker from './LayerPicker.vue';
 
@@ -25,7 +26,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
 import { addLayersToMap, applyMapItems, MapSourceLayer, useMapSelection } from '@/utils/map';
 
-import { MapStyle } from '../MapStyle';
+import type { MapStyle } from '../MapStyle';
 import Viewport from '../Viewport';
 
 defineExpose({ zoomToSelection });
@@ -87,7 +88,7 @@ const emit = defineEmits<{
   (e: 'update:selected', value: string[]): void;
 }>();
 
-const mapStyle = ref(MapStyle[MAPBOX_STYLE] ?? MapStyle.LIGHT);
+const mapStyle = useMapStyle();
 
 watch(mapStyle, (style) => {
   if (map.value) {
