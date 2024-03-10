@@ -21,6 +21,7 @@ const stravaStyle: Layer = { style: MapStyle.STRAVA, label: 'Strava style' };
 const mapboxStyles: Layer[] = [
   { style: MapStyle.STANDARD, label: 'Standard style' },
   { style: MapStyle.LIGHT, label: 'Light style' },
+  { style: MapStyle.DARK, label: 'Dark style' },
   { style: MapStyle.OUTDOOR, label: 'Outdoor style' },
   { style: MapStyle.HYBRID, label: 'Hybrid' },
   { style: MapStyle.SATELLITE, label: 'Satellite' },

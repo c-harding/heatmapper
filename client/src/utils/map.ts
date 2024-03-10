@@ -17,13 +17,15 @@ import { MapStyle } from '../MapStyle';
 
 export type MapProperties = { id: string };
 
+type RGB = [r: number, g: number, b: number];
+
 export enum MapSourceLayer {
   LINES = 'lines',
   SELECTED = 'selected',
 }
 
 const colorOpacityFromZoom = (
-  [r, g, b]: [r: number, g: number, b: number],
+  [r, g, b]: RGB,
   ...pairs: [zoom: number, opacity: number][]
 ): Expression => fromZoom(...pairs.map(([zoom, a]) => [zoom, ['rgba', r, g, b, a]] as const));
 
@@ -65,37 +67,33 @@ const selectedWidth = fromZoom([5, 4], [14, 8]);
 
 const satelliteViews = new Set([MapStyle.SATELLITE, MapStyle.HYBRID]);
 
-const F = 255;
+const colorsForStyle = (style: MapStyle): Record<'lines' | 'medium' | 'hot', RGB> => {
+  const F = 255;
+  if (satelliteViews.has(style)) {
+    return { lines: [F, 0, F], medium: [F, 0, F], hot: [F, 0, F] };
+  } else if (style === MapStyle.DARK) {
+    return { lines: [0xb2, 0xb2, F], medium: [0xf8, 0, 0], hot: [0x2f, 0x2f, 0] };
+  } else {
+    return { lines: [0, 0, F], medium: [F, 0, 0], hot: [F, F, 0] };
+  }
+};
+
 export const getLayersForStyle = (
   style: MapStyle,
 ): Record<'lines' | 'medium' | 'hot' | 'selected', LayerDef> => ({
   lines: {
     source: MapSourceLayer.LINES,
-
-    color: colorOpacityFromZoom(
-      satelliteViews.has(style) ? [F, 0, F] : [0, 0, F],
-      [5, 0.75],
-      [10, 0.35],
-    ),
-
+    color: colorOpacityFromZoom(colorsForStyle(style).lines, [5, 0.75], [10, 0.35]),
     width: lineWidth,
   },
   medium: {
     source: MapSourceLayer.LINES,
-    color: colorOpacityFromZoom(
-      satelliteViews.has(style) ? [F, 0, F] : [F, 0, 0],
-      [5, 0.2],
-      [10, 0.08],
-    ),
+    color: colorOpacityFromZoom(colorsForStyle(style).medium, [5, 0.2], [10, 0.08]),
     width: lineWidth,
   },
   hot: {
     source: MapSourceLayer.LINES,
-    color: colorOpacityFromZoom(
-      satelliteViews.has(style) ? [F, 0, F] : [F, F, 0],
-      [5, 0.1],
-      [10, 0.04],
-    ),
+    color: colorOpacityFromZoom(colorsForStyle(style).hot, [5, 0.1], [10, 0.04]),
     width: lineWidth,
   },
   selected: {
@@ -121,10 +119,10 @@ export const addLayersToMap = (map: MapboxMap, style: MapStyle) => {
     (id) => map.getSource(id) || map.addSource(id, makeGeoJson()),
   );
 
-  // TODO: do we need to watch the layer?
-  Object.entries(getLayersForStyle(style)).forEach(([id, layer]) =>
-    map.addLayer(buildLineLayer(id, layer)),
-  );
+  Object.entries(getLayersForStyle(style)).forEach(([id, layer]) => {
+    if (map.getLayer(id)) map.removeLayer(id);
+    map.addLayer(buildLineLayer(id, layer));
+  });
 };
 
 export const applyMapItems = (map: MapboxMap, next: MapItem[], sourceID: MapSourceLayer): void => {

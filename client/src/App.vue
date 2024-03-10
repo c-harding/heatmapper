@@ -95,6 +95,7 @@ a {
 
 :root {
   --color: #222;
+  --color-slight: #333;
   --background: #fff;
   --background-pure: #fff;
   --background-slight: #eee;
@@ -106,6 +107,7 @@ a {
 @media (prefers-color-scheme: dark) {
   :root {
     --color: #fff;
+    --color-slight: #eee;
     --background: #222;
     --background-pure: #000;
     --background-slight: #333;
