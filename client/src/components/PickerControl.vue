@@ -1,35 +1,22 @@
-<script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref } from 'vue';
-
-import { MapStyle } from '@/MapStyle';
-import { useHasBeenTrue } from '@/utils/useHasBeenTrue';
+<script setup lang="ts" generic="T extends string">
+import { onMounted, onUnmounted, ref } from 'vue';
 
 import Icon from './Icon.vue';
 
-interface Layer {
-  style: MapStyle;
-  label: string;
+export interface DropdownChoice<T> {
+  readonly value: T;
+  readonly label: string;
 }
+
+type Choice = DropdownChoice<T>;
 
 const clickedOpen = ref(false);
 
-const mapStyle = defineModel<MapStyle>({ required: true });
+const value = defineModel<T>({ required: true });
 
-const stravaStyleEnabled = useHasBeenTrue(() => mapStyle.value === MapStyle.STRAVA);
-
-const stravaStyle: Layer = { style: MapStyle.STRAVA, label: 'Strava style' };
-const mapboxStyles: Layer[] = [
-  { style: MapStyle.STANDARD, label: 'Standard style' },
-  { style: MapStyle.LIGHT, label: 'Light style' },
-  { style: MapStyle.DARK, label: 'Dark style' },
-  { style: MapStyle.OUTDOOR, label: 'Outdoor style' },
-  { style: MapStyle.HYBRID, label: 'Hybrid' },
-  { style: MapStyle.SATELLITE, label: 'Satellite' },
-];
-
-const styleOptions = computed<{ style: MapStyle; label: string }[]>(() => {
-  return [...(stravaStyleEnabled ? [stravaStyle] : []), ...mapboxStyles];
-});
+const props = defineProps<{
+  choices: readonly Choice[];
+}>();
 
 const layerButton = ref<HTMLButtonElement>();
 const layerPicker = ref<HTMLDivElement>();
@@ -64,18 +51,14 @@ onUnmounted(() => {
   </button>
   <div ref="layerPicker" class="layer-picker" :class="{ open: clickedOpen }">
     <menu>
-      <li
-        v-for="styleOption of styleOptions"
-        :key="styleOption.style"
-        :aria-selected="mapStyle === styleOption.style"
-      >
+      <li v-for="choice of choices" :key="choice.value" :aria-selected="value === choice.value">
         <a
           @click.prevent="
-            mapStyle = styleOption.style;
+            value = choice.value;
             clickedOpen = false;
           "
         >
-          {{ styleOption.label }}
+          {{ choice.label }}
         </a>
       </li>
     </menu>

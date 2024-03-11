@@ -1,9 +1,7 @@
 <script lang="tsx">
 import type { Map as MapboxMap } from 'mapbox-gl';
 
-import { useMapStyle } from '@/utils/useMapStyle';
-
-import LayerPicker from './LayerPicker.vue';
+import PickerControl from './PickerControl.vue';
 
 declare global {
   interface Window {
@@ -22,9 +20,9 @@ import type { MapItem } from '@strava-heatmapper/shared/interfaces';
 import type { LngLatBounds, LngLatLike, MapMouseEvent } from 'mapbox-gl';
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 
+import { type MapStyle, useMapStyle } from '@/MapStyle';
 import { addLayersToMap, applyMapItems, MapSourceLayer, useMapSelection } from '@/utils/map';
 
-import type { MapStyle } from '../MapStyle';
 import Viewport from '../Viewport';
 
 const props = withDefaults(
@@ -53,7 +51,7 @@ const emit = defineEmits<{
   (e: 'update:selected', value: string[]): void;
 }>();
 
-const mapStyle = useMapStyle();
+const { mapStyleUrl, mapChoice, mapStyle, mapStyleChoices } = useMapStyle();
 
 const terrain = ref(false);
 
@@ -63,7 +61,7 @@ if (!window.cachedMapElement) {
   const newMap = new mapboxgl.Map({
     accessToken: token,
     container: document.createElement('div'),
-    style: mapStyle.value,
+    style: mapStyleUrl.value,
     center: props.center,
     zoom: props.zoom,
   });
@@ -100,7 +98,7 @@ watch(selectedMapItems, (selectedMapItems) => {
   applyMapItems(map, selectedMapItems, MapSourceLayer.SELECTED);
 });
 
-watch(mapStyle, (style) => {
+watch(mapStyleUrl, (style) => {
   map.setStyle(style);
   map.once('styledata', () => {
     mapLoaded(map);
@@ -280,7 +278,7 @@ map.once('idle', () => mapLoaded(map));
     </div>
 
     <div class="mapboxgl-ctrl mapboxgl-ctrl-group">
-      <LayerPicker v-model="mapStyle" />
+      <PickerControl v-model="mapChoice" :choices="mapStyleChoices" />
     </div>
   </Teleport>
 </template>
