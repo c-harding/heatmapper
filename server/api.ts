@@ -190,8 +190,6 @@ export default function apiRouter(domain: string): express.Router {
           yield newActivities;
         }
       }
-
-      stats.finding.finished = true;
     }
 
     /**
@@ -210,8 +208,6 @@ export default function apiRouter(domain: string): express.Router {
         routes.push(...newRoutes);
         yield newRoutes;
       }
-
-      stats.finding.finished = true;
     }
 
     const sendMaps = completeInOrder(async (activities: string[]) => {
@@ -263,6 +259,10 @@ export default function apiRouter(domain: string): express.Router {
           if (!live) return;
           sendStats();
         }
+
+        if (!live) return;
+        stats.finding.finished = true;
+        sendStats();
       }
 
       if (message.routes) {
@@ -282,6 +282,7 @@ export default function apiRouter(domain: string): express.Router {
         }
 
         if (!live) return;
+        stats.finding.finished = true;
         sendStats();
       }
 
