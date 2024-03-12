@@ -81,6 +81,7 @@ const map = window.cachedMapElement;
 
 onMounted(() => {
   container.value?.appendChild(map.getContainer());
+  map.resize();
 });
 
 const selectedMapItems = computed<readonly MapItem[]>(() =>
