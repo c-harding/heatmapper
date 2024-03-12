@@ -241,6 +241,14 @@ export default function apiRouter(domain: string): express.Router {
       if (message.activities) {
         stats.finding.started = true;
 
+        const printTimeRange = (range: TimeRange) =>
+          `TimeRange { start: ${range.start ? new Date(range.start * 1000).toISOString() : undefined}, end: ${
+            range.end ? new Date(range.end * 1000).toISOString() : undefined
+          } }`;
+
+        console.debug('Got', message.activities.map(printTimeRange));
+        console.debug('Fetching', TimeRange.cap(message.activities).map(printTimeRange));
+
         for (const { start, end } of TimeRange.cap(message.activities)) {
           sendStats();
           // TODO: add error handling (offline)

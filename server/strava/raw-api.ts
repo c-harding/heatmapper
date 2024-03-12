@@ -96,6 +96,8 @@ export default class RawStravaApi {
       stravaExpiry: data.expires_at,
     }));
 
+    console.debug(`ref: ${data.refresh_token?.substring(0, 6)}`);
+
     return cache.stravaAccessToken;
   }
 
