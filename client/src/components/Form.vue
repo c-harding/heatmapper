@@ -1,7 +1,7 @@
 <script setup lang="ts">
+import type { FindingStats } from '@strava-heatmapper/shared/interfaces';
 import { computed, ref } from 'vue';
 
-import { type LoadingStatsFinding } from '@/services/ActivityService';
 import { useActivityService } from '@/services/useActivityService';
 import { capitalise, count, countActivities, nonEmpties } from '@/utils/strings';
 
@@ -25,8 +25,9 @@ const {
   continueLogin,
 } = useActivityService();
 
+function findingString(stats?: FindingStats, inCache?: boolean): string;
 function findingString(
-  { started = false, finished = false, length = 0 }: LoadingStatsFinding = {},
+  { started = false, finished = false, length = 0 }: Partial<FindingStats> = {},
   inCache = false,
 ) {
   // TODO: generic for activities/routes
@@ -55,8 +56,6 @@ const statusMessage = computed(() => {
 });
 
 function statsMessage(): string {
-  // TODO: lift finding up
-
   if (stats.value.cleared) return 'Cleared cache';
   return capitalise(
     nonEmpties(

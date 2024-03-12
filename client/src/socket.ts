@@ -1,10 +1,13 @@
 import type {
   RequestMessage,
   ResponseMessage,
+  ResponseMessageOfType,
   ResponseMessageType,
 } from '@strava-heatmapper/shared/interfaces';
 
 let socketID = 0;
+
+type ResponseCallback<T extends ResponseMessageType> = (data: ResponseMessageOfType<T>) => void;
 
 export default class Socket {
   readonly id = (socketID += 1);
@@ -72,7 +75,7 @@ export default class Socket {
   /** Send a request without waiting for a response */
   async sendRequest(message: RequestMessage): Promise<undefined>;
 
-  /** Send a request and wait for the first response of  */
+  /** Send a request and wait for the first response of the given type */
   async sendRequest<T extends ResponseMessageType>(
     message: RequestMessage,
     responseType: T,
@@ -81,16 +84,16 @@ export default class Socket {
   async sendRequest<T extends ResponseMessageType>(
     message: RequestMessage,
     responseType?: T,
-  ): Promise<(ResponseMessage & { type: T }) | undefined> {
+  ): Promise<ResponseMessageOfType<T> | undefined> {
     this.log('Socket', this.id, 'sending', message);
     let promise: Promise<ResponseMessage & { type: T }> | undefined;
     if (responseType) {
-      promise = new Promise<ResponseMessage>((resolve) => {
-        const promisedResponseQueue: ((data: ResponseMessage) => void)[] = (this.promisedResponses[
+      promise = new Promise<ResponseMessageOfType<T>>((resolve) => {
+        const promisedResponseQueue: ResponseCallback<T>[] = (this.promisedResponses[
           responseType
         ] ??= []);
         promisedResponseQueue.push(resolve);
-      }) as Promise<ResponseMessage & { type: T }>;
+      });
     }
     await this.send(JSON.stringify(message));
     return await promise;

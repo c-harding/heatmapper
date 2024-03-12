@@ -25,9 +25,15 @@ interface LoginMessage {
   url: string;
 }
 
+export interface FindingStats {
+  started: boolean;
+  finished: boolean;
+  length: number;
+}
+
 export interface StatsMessage {
   type: 'stats';
-  finding: { started: boolean; finished: boolean; length: number };
+  finding: FindingStats;
 }
 
 export interface GearMessage {
@@ -46,5 +52,7 @@ type ResponseMessage =
   | GearMessage;
 
 export type ResponseMessageType = ResponseMessage['type'];
+
+export type ResponseMessageOfType<T extends ResponseMessageType> = ResponseMessage & { type: T };
 
 export default ResponseMessage;

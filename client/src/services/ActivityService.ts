@@ -1,15 +1,8 @@
-import type { Gear, MapItem } from '@strava-heatmapper/shared/interfaces';
+import type { FindingStats, Gear, MapItem } from '@strava-heatmapper/shared/interfaces';
 import type { InjectionKey, Ref } from 'vue';
-
-export interface LoadingStatsFinding {
-  started?: boolean;
-  finished?: boolean;
-  length?: number;
-}
-
 export interface LoadingStats {
   status?: string;
-  finding?: LoadingStatsFinding;
+  finding?: FindingStats;
   cleared?: boolean;
 }
 
@@ -19,6 +12,7 @@ export interface FilterModel {
   end?: Date;
 }
 
+// TODO: combine LoadingStats and ClientStats
 export interface ClientStats {
   mapsRequested: number;
   mapsLoaded: number;

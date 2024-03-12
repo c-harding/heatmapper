@@ -1,4 +1,10 @@
-import type { Activity, Gear, MapItem, Route } from '@strava-heatmapper/shared/interfaces';
+import type {
+  Activity,
+  Gear,
+  MapItem,
+  ResponseMessage,
+  Route,
+} from '@strava-heatmapper/shared/interfaces';
 import { TimeRange } from '@strava-heatmapper/shared/interfaces';
 import { computed, inject, provide, reactive, readonly, ref } from 'vue';
 
@@ -15,7 +21,8 @@ import {
   saveCachedMaps,
 } from '@/utils/storage';
 
-import { type ActivityService, activityServiceToken, type LoadingStats } from './ActivityService';
+import type { LoadingStats } from './ActivityService';
+import { type ActivityService, activityServiceToken } from './ActivityService';
 
 /** One day in milliseconds */
 const DAY = 24 * 60 * 60 * 1000;
@@ -24,7 +31,6 @@ const MIN_TIMEZONE_ADJUSTMENT = 14 * 60 * 60 * 1000;
 const MAX_TIMEZONE_ADJUSTMENT = -12 * 60 * 60 * 1000;
 
 function makeActivityService(): ActivityService {
-  let starting = false;
   const allMapItems = ref<MapItem[]>([]);
 
   const continueLogin = ref<((withCookies: boolean) => void) | null>(null);
@@ -81,12 +87,10 @@ function makeActivityService(): ActivityService {
 
   function checkFinished(socket?: Socket): void {
     if (
-      socket &&
-      !starting &&
       clientStats.value.mapsRequested === clientStats.value.mapsLoaded &&
       stats.value.finding?.finished
     ) {
-      socket.close();
+      socket?.close();
     }
   }
 
@@ -161,7 +165,7 @@ function makeActivityService(): ActivityService {
     const activities = getCachedActivities();
     if (activities && activities.length) {
       if (!partial) {
-        stats.value = { finding: { finished: true, length: activities.length } };
+        stats.value = { finding: { started: true, finished: true, length: activities.length } };
       }
       const cachedActivities = activities.filter(({ id }) => getCachedMap(id));
       clientStats.value.mapsNotCached = activities.length - cachedActivities.length;
@@ -213,7 +217,7 @@ function makeActivityService(): ActivityService {
     const protocol = window.location.protocol.includes('https') ? 'wss' : 'ws';
     const socket = new Socket(
       `${protocol}://${window.location.host}/api/activities`,
-      (data) => {
+      (data: ResponseMessage) => {
         switch (data.type) {
           case 'stats': {
             const oldStats = stats.value;
@@ -285,8 +289,6 @@ function makeActivityService(): ActivityService {
       // TODO: send ranges
       startLoadingRoutes(socket);
     } else {
-      starting = true;
-
       let ranges: TimeRange[];
       const { covered, activities, version: storeVersion } = getActivityStore();
       if (partial) {
@@ -297,7 +299,6 @@ function makeActivityService(): ActivityService {
       }
 
       startLoading(socket, ranges);
-      starting = false;
     }
   }
 

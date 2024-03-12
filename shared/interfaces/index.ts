@@ -5,7 +5,9 @@ export type { default as RequestMessage } from './RequestMessage';
 export type {
   default as ResponseMessage,
   ResponseMessageType,
+  ResponseMessageOfType,
   StatsMessage,
+  FindingStats,
 } from './ResponseMessage';
 export type { default as Route } from './Route';
 export type { default as SportType } from './SportType';
