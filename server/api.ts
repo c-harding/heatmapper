@@ -148,7 +148,7 @@ export default function apiRouter(domain: string): express.Router {
       if (live) ws.send(JSON.stringify(data));
     }
 
-    const fetchedMaps: Map<string, string> = new Map();
+    const fetchedMaps = new Map<string, string>();
 
     async function requestLogin(token: string, url: string) {
       send({ type: 'login', cookie: token, url });

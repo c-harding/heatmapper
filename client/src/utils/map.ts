@@ -15,7 +15,9 @@ import { nextTick, ref, watch } from 'vue';
 
 import { MapStyle } from '../MapStyle';
 
-export type MapProperties = { id: string };
+export interface MapProperties {
+  id: string;
+}
 
 type RGB = [r: number, g: number, b: number];
 

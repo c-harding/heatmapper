@@ -3,11 +3,10 @@
   "extends": [
     "eslint:recommended",
     "plugin:@typescript-eslint/recommended",
+    "plugin:@typescript-eslint/stylistic",
     "plugin:prettier/recommended"
   ],
   "plugins": [
-    "prettier",
-    "@typescript-eslint/eslint-plugin",
     "simple-import-sort",
     "unused-imports"
   ],
