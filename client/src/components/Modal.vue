@@ -39,7 +39,10 @@ dialog {
   border-radius: 1rem;
   position: relative;
 
-  filter: drop-shadow(0 1em 2em rgb(0 0 0 / 50%));
+  background-color: var(--background);
+  color: var(--color);
+
+  filter: drop-shadow(0 1em 2em color-mix(in srgb, var(--color) 10%, transparent));
 
   &::backdrop {
     background-color: color-mix(in srgb, var(--color) 10%, transparent);

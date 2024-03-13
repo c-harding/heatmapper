@@ -38,14 +38,16 @@ export default class RawStravaApi {
     try {
       const jsonStr = await readFile(sessionCacheFile(this.token), 'utf-8');
       const cache: Cache = JSON.parse(jsonStr);
-      if (!cache.stravaAthlete || !cache.stravaRefreshToken) throw new NeedsLogin();
+      if (!cache.stravaAthlete || !cache.stravaRefreshToken) {
+        throw new NeedsLogin('Loaded from cache, but athlete or refresh token is missing');
+      }
       const currentEpochSeconds = Date.now() / 1e3;
       if (cache.stravaExpiry && cache.stravaExpiry < currentEpochSeconds) {
         delete cache.stravaAccessToken;
       }
       return cache;
     } catch (e) {
-      throw new NeedsLogin();
+      throw new NeedsLogin('Could not load from cache', { cause: e });
     }
   }
 
@@ -170,7 +172,7 @@ export default class RawStravaApi {
   }
 
   private async getAccessTokenFromBrowser(): Promise<void> {
-    if (!this.requestLogin) throw new CannotLogin();
+    if (!this.requestLogin) throw new CannotLogin('requestLogin is null');
     const athleteInfoPromise = addCallback(this.token, (oauthResponse) => {
       return this.getStravaToken({
         code: oauthResponse.code,

@@ -174,15 +174,17 @@ function makeActivityService(): ActivityService {
     }
   }
 
-  function discardCache() {
+  function discardCache(clearStorage = false) {
     socketController.abort();
-    resetData();
+    clearMapItems(clearStorage);
     socketController = new AbortController();
   }
 
-  function resetData() {
-    localStorage.clear();
-    stats.value = { cleared: true };
+  function clearMapItems(clearStorage = false) {
+    if (clearStorage) {
+      localStorage.clear();
+      stats.value = { cleared: true };
+    }
     allMapItems.value = [];
   }
 
@@ -199,7 +201,7 @@ function makeActivityService(): ActivityService {
     start,
     end,
   }: SocketOptions = {}): Promise<void> {
-    discardCache();
+    discardCache(false);
 
     if (partial) loadFromCache(partial, start, end);
     clientStats.value = {

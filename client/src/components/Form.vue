@@ -76,7 +76,7 @@ function statsMessage(): string {
 
 function onLogout(): void {
   document.cookie = `token=;expires=${new Date(0).toUTCString()}`;
-  discardCache();
+  discardCache(true);
   settingsOpen.value = false;
 }
 
@@ -99,10 +99,10 @@ defineExpose({ gear });
       <div class="buttons">
         <UIButton @click="loadPartial(start, end)">Load</UIButton>
         <UIButton @click="loadRoutes(start, end)">Routes</UIButton>
-        <UIButton icon="delete" @click="discardCache">Discard cache</UIButton>
       </div>
       <div class="buttons">
         <UIButton icon="settings" @click="settingsOpen = true">User</UIButton>
+        <UIButton icon="delete" @click="discardCache">Discard cache</UIButton>
       </div>
     </div>
     <Login v-if="continueLogin" @login="continueLogin($event)" />
@@ -146,7 +146,7 @@ aside {
   }
 }
 
-aside > .buttons {
+aside .buttons {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-evenly;

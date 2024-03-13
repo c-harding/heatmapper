@@ -76,9 +76,9 @@ const otherSessions = computed<number>(() =>
 const logout = async (global = false) => {
   const url = global ? '/api/user?global' : '/api/user';
   const response = await fetch(url, { method: 'DELETE' });
+  loggingOut.value = undefined;
   if (response.status >= 200 && response.status < 300) emit('logout');
   else {
-    loggingOut.value = undefined;
     // TODO: handle error
   }
 };
@@ -92,13 +92,13 @@ const loggingOut = ref<{ global: boolean }>();
   <template v-else>
     <div class="flex-line">
       <img class="profile-pic" :srcset="imgSrcSet" :src="imgSrc" />
-      <a :href="profileLink" target="_blank">{{ fullName }}</a>
-      <UIButton @click="logout(false)"> Sign out </UIButton>
+      <a :href="profileLink" class="user-name" target="_blank">{{ fullName }}</a>
+      <UIButton @click="logout(false)">Sign out</UIButton>
     </div>
     <div class="flex-line">
       <p v-if="otherSessions">You are signed in in {{ countOtherSessions(otherSessions) }}.</p>
       <p v-else>You are not signed in anywhere else.</p>
-      <UIButton :disabled="!otherSessions" @click="logout(true)"> Sign out everywhere </UIButton>
+      <UIButton :disabled="!otherSessions" @click="logout(true)">Sign out everywhere</UIButton>
     </div>
   </template>
 </template>
@@ -120,8 +120,9 @@ const loggingOut = ref<{ global: boolean }>();
   }
 }
 
-a {
+a.user-name {
   color: var(--bold-color);
+  font-weight: 600;
 
   &:not(:hover) {
     text-decoration: none;

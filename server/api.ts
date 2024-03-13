@@ -310,10 +310,10 @@ export default function apiRouter(domain: string): express.Router {
   });
 
   router.get('/user', async (req, res) => {
-    const requestLogin = async (token, url) => {
+    async function requestLogin(token: string, url: string) {
       res.status(403).cookie('token', token, { maxAge: 31536000 }).header('location', url).send({ token });
       return false;
-    };
+    }
 
     const stravaApi = new Strava(domain, req.cookies.token, requestLogin);
     try {

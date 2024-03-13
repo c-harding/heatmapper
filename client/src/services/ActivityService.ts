@@ -30,7 +30,7 @@ export interface ActivityService {
 
   mapItems: Readonly<Ref<readonly MapItem[]>>;
 
-  discardCache(): void;
+  discardCache(clearStorage?: boolean): void;
   loadPartial(start?: Date, end?: Date): Promise<void>;
   loadRoutes(start?: Date, end?: Date): Promise<void>;
 }
