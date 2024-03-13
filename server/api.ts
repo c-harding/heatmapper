@@ -8,7 +8,7 @@ import {
   type StatsMessage,
   TimeRange,
 } from '@strava-heatmapper/shared/interfaces';
-import express from 'express';
+import express, { type Request } from 'express';
 import { type Router } from 'express-ws';
 import { createReadStream } from 'fs';
 
@@ -28,6 +28,14 @@ async function* chunkAsync<T>(array: Promise<T>[], n = 10): AsyncGenerator<T[]> 
 
 function defined(...dependencies: unknown[]): true | undefined {
   return dependencies.every((dependency) => dependency !== undefined) ? true : undefined;
+}
+
+function getToken(req: Request): string | undefined {
+  if (req.headers.authorization?.startsWith('Bearer ')) {
+    return req.headers.authorization.split(' ', 2)[2];
+  } else {
+    return req.cookies.token;
+  }
 }
 
 function convertActivitySummary({
@@ -155,7 +163,7 @@ export default function apiRouter(domain: string): express.Router {
       return true;
     }
 
-    const strava = new Strava(domain, req.cookies.token, requestLogin);
+    const strava = new Strava(domain, getToken(req), requestLogin);
 
     const stats: StatsMessage = {
       type: 'stats',
@@ -311,11 +319,11 @@ export default function apiRouter(domain: string): express.Router {
 
   router.get('/user', async (req, res) => {
     async function requestLogin(token: string, url: string) {
-      res.status(403).cookie('token', token, { maxAge: 31536000 }).header('location', url).send({ token });
+      res.status(403).header('location', url).send({ token });
       return false;
     }
 
-    const stravaApi = new Strava(domain, req.cookies.token, requestLogin);
+    const stravaApi = new Strava(domain, getToken(req), requestLogin);
     try {
       const athlete = await stravaApi.getUserInfo();
       res.send(athlete);
@@ -328,7 +336,7 @@ export default function apiRouter(domain: string): express.Router {
   router.delete('/user', async (req, res) => {
     const global = 'global' in req.query;
 
-    const stravaApi = new Strava(domain, req.cookies.token, null);
+    const stravaApi = new Strava(domain, getToken(req), null);
     try {
       await stravaApi.logout(global);
       res.status(204).send();

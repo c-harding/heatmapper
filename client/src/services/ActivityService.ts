@@ -21,7 +21,7 @@ export interface ClientStats {
 }
 
 export interface ActivityService {
-  continueLogin: Ref<((withCookies: boolean) => void) | null>;
+  continueLogin: Readonly<Ref<((withCookies: boolean) => void) | undefined>>;
   stats: Readonly<Ref<LoadingStats>>;
   clientStats: Readonly<Ref<ClientStats>>;
   sportType: Ref<string>;

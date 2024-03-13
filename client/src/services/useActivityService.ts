@@ -22,6 +22,7 @@ import {
 } from '@/utils/storage';
 
 import { type ActivityService, activityServiceToken, type LoadingStats } from './ActivityService';
+import { useContinueLogin } from './useContinueLogin';
 
 /** One day in milliseconds */
 const DAY = 24 * 60 * 60 * 1000;
@@ -32,7 +33,7 @@ const MAX_TIMEZONE_ADJUSTMENT = -12 * 60 * 60 * 1000;
 function makeActivityService(): ActivityService {
   const allMapItems = ref<MapItem[]>([]);
 
-  const continueLogin = ref<((withCookies: boolean) => void) | null>(null);
+  const { continueLogin, waitForLogin } = useContinueLogin();
 
   const stats = ref<LoadingStats>({});
 
@@ -268,11 +269,7 @@ function makeActivityService(): ActivityService {
             break;
           }
           case 'login': {
-            continueLogin.value = (cookies = true) => {
-              if (cookies) document.cookie = `token=${data.cookie};max-age=31536000`;
-              continueLogin.value = null;
-              window.open(data.url, 'menubar=false,toolbar=false,width=300, height=300');
-            };
+            waitForLogin(data.cookie, data.url);
             break;
           }
           default:
