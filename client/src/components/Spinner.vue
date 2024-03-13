@@ -16,11 +16,11 @@ const props = defineProps({
   },
   lineBgColor: {
     type: String,
-    default: '#eee',
+    default: 'transparent',
   },
   lineFgColor: {
     type: String,
-    default: '#2196f3', // match .blue color to Material Design's 'Blue 500' color
+    default: 'currentColor',
   },
   speed: {
     type: Number,
@@ -111,37 +111,38 @@ const textFontSize = computed(() => {
   return isNumber(props.fontSize) ? props.fontSize : 13;
 });
 const spinnerStyle = computed(() => ({
-  margin: '0 auto',
-  'border-radius': '100%',
   border: lineSizePx.value + 'px solid ' + props.lineBgColor,
   'border-top': lineSizePx.value + 'px solid ' + props.lineFgColor,
   width: sizePx.value + 'px',
   height: sizePx.value + 'px',
-  animation: 'vue-simple-spinner-spin ' + props.speed + 's linear infinite',
-}));
-const textStyle = computed(() => ({
-  'margin-top': textMarginTop.value + 'px',
-  color: props.textFgColor,
-  'font-size': textFontSize.value + 'px',
-  'text-align': 'center' as const,
 }));
 </script>
 
 <template>
-  <div>
-    <div class="vue-simple-spinner" :style="spinnerStyle" />
-    <div v-if="message.length > 0" class="vue-simple-spinner-text" :style="textStyle">
+  <div class="spinner-container">
+    <div class="spinner" :style="spinnerStyle" />
+    <div v-if="message.length > 0" class="spinner-text">
       {{ message }}
     </div>
   </div>
 </template>
 
-<style>
-.vue-simple-spinner {
-  transition: all 0.3s linear;
+<style scoped>
+.spinner-container {
+  display: flex;
 }
 
-@keyframes vue-simple-spinner-spin {
+.spinner {
+  transition: all 0.3s linear;
+  margin: auto;
+  border-radius: 100%;
+  animation: spinner-spin linear infinite;
+  animation-duration: calc(v-bind(speed) * 1s);
+  border: calc(v-bind(lineSize) * 1px) solid v-bind(lineFgColor);
+  border-top-color: v-bind(lineFgColor);
+}
+
+@keyframes spinner-spin {
   0% {
     transform: rotate(0deg);
   }

@@ -9,6 +9,7 @@ import { sportGroups, sportTypes } from '../sportTypes';
 import DateInput from './DateInput.vue';
 import Dropdown from './Dropdown.vue';
 import Login from './Login.vue';
+import UIButton from './UIButton.vue';
 
 const start = ref<Date>();
 const end = ref<Date>();
@@ -92,9 +93,9 @@ defineExpose({ gear });
       </label>
     </div>
     <div class="buttons">
-      <button @click="loadPartial(start, end)">Load</button>
-      <button @click="loadRoutes(start, end)">Routes</button>
-      <button @click="clearCache">Clear cache</button>
+      <UIButton @click="loadPartial(start, end)">Load</UIButton>
+      <UIButton @click="loadRoutes(start, end)">Routes</UIButton>
+      <UIButton @click="clearCache">Clear cache</UIButton>
     </div>
     <Login v-if="continueLogin" @login="continueLogin($event)" />
     <p v-else class="small" :class="{ error }" v-text="statusMessage" />

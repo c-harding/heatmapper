@@ -33,7 +33,7 @@ useHead({
 </script>
 
 <template>
-  <i v-bind="$attrs" class="material-icons" :class="{ inline, large, placeholder, bottom }"
+  <i v-bind="$attrs" class="icon material-icons" :class="{ inline, large, placeholder, bottom }"
     >{{ generated }}<slot v-if="!generated"
   /></i>
 </template>
@@ -42,6 +42,8 @@ useHead({
 .material-icons {
   user-select: none;
   width: 1em;
+  overflow: hidden;
+
   &.inline {
     vertical-align: middle;
     align-self: center;

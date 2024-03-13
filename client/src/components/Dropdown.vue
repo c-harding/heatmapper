@@ -65,7 +65,7 @@ const model = computed<string | null>({
   margin: 1ex;
 
   border-radius: 0.3em;
-  border: 1px solid gray;
+  border: 1px solid var(--color-weak);
   background-color: var(--background-slight);
 
   max-width: min-content;

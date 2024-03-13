@@ -14,11 +14,18 @@ export default class Socket {
 
   private errored = false;
 
-  readonly url: string;
-
   private _connection?: Promise<WebSocket>;
 
   private verbose: boolean;
+
+  constructor(
+    readonly url: string,
+    private messageHandler: (data: ResponseMessage, socket: Socket) => void,
+    private closedHandler: (errored: boolean) => void,
+    { verbose = false, signal }: { verbose?: boolean; signal?: AbortSignal } = {},
+  ) {
+    this.verbose = verbose;
+  }
 
   private log(...args: unknown[]) {
     if (this.verbose) console.log(...args);
@@ -32,15 +39,15 @@ export default class Socket {
     return (this._connection ??= new Promise((resolve, reject) => {
       this.log('Socket', this.id, 'opening');
       const connection = new WebSocket(this.url);
-      connection.onerror = () => {
+      connection.addEventListener('error', () => {
         reject();
         this.errored = true;
-      };
-      connection.onopen = () => {
+      });
+      connection.addEventListener('open', () => {
         this.log('Socket', this.id, 'opened to state', connection.readyState);
         resolve(connection);
-      };
-      connection.onmessage = (message: MessageEvent<string>) => {
+      });
+      connection.addEventListener('message', (message: MessageEvent<string>) => {
         const data = JSON.parse(message.data) as ResponseMessage;
         const promisedResponse = this.promisedResponses[data.type]?.shift();
         if (promisedResponse) {
@@ -48,19 +55,9 @@ export default class Socket {
         } else {
           this.messageHandler(data, this);
         }
-      };
-      connection.onclose = () => this.closedHandler(this.errored);
+      });
+      connection.addEventListener('close', () => this.closedHandler(this.errored));
     }));
-  }
-
-  constructor(
-    url: string,
-    private messageHandler: (data: ResponseMessage, socket: Socket) => void,
-    private closedHandler: (errored: boolean) => void,
-    { verbose = false } = {},
-  ) {
-    this.url = url;
-    this.verbose = verbose;
   }
 
   private async send(data: string | ArrayBuffer | SharedArrayBuffer | Blob | ArrayBufferView) {
@@ -101,5 +98,19 @@ export default class Socket {
 
   async close(): Promise<void> {
     if (this._connection) (await this.connection).close();
+  }
+
+  async completion() {
+    const connection = await this.connection;
+    if (
+      connection.readyState === connection.CLOSING ||
+      connection.readyState === connection.CLOSED
+    ) {
+      return;
+    } else {
+      return new Promise<void>((resolve) => {
+        connection.addEventListener('close', () => resolve());
+      });
+    }
   }
 }

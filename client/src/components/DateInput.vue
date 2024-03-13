@@ -36,7 +36,7 @@ function dateToYYYYMMDD(date: Date | null): string | null {
       :value="dateToYYYYMMDD(modelValue)"
       @change="emit('update:modelValue', input!.valueAsDate)"
     />
-    <Icon class="icon"> expand_more </Icon>
+    <Icon class="icon">expand_more</Icon>
   </div>
 </template>
 
@@ -46,7 +46,7 @@ function dateToYYYYMMDD(date: Date | null): string | null {
   margin: 1ex;
 
   border-radius: 0.3em;
-  border: 1px solid gray;
+  border: 1px solid var(--color-weak);
   background-color: var(--background-slight);
 
   max-width: max-content;

@@ -72,22 +72,29 @@ a {
 :root {
   --color: #222;
   --color-slight: #333;
+  --color-weak: #808080;
   --background: #fff;
   --background-pure: #fff;
   --background-slight: #eee;
   --background-strong: #ccc;
   --transition-speed: 0.5s;
+  --bold-color: #fc4c02;
   --link-color: blue;
+
+  background-color: var(--background);
+  color: var(--color);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
     --color: #fff;
     --color-slight: #eee;
+    --color-weak: #808080;
     --background: #222;
     --background-pure: #000;
     --background-slight: #333;
     --background-strong: #555;
+    --bold-color: #fc4c02;
     --link-color: lightblue;
   }
 }

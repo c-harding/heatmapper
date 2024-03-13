@@ -198,6 +198,7 @@ function makeActivityService(): ActivityService {
       mapsNotCached: 0,
       inCache: false,
     };
+    stats.value = {};
     error.value = undefined;
 
     // The dates shown in the UI are formatted in event-local time.
@@ -271,7 +272,7 @@ function makeActivityService(): ActivityService {
         if (errored) {
           error.value = 'Error fetching activities';
         } else {
-          stats.value = { status: 'disconnected' };
+          stats.value.status = 'disconnected';
         }
       },
     );
@@ -289,7 +290,7 @@ function makeActivityService(): ActivityService {
       startLoadingRoutes(socket);
     } else {
       let ranges: TimeRange[];
-      const { covered, activities, version: storeVersion } = getActivityStore();
+      const { covered, activities } = getActivityStore();
       if (partial) {
         ranges = TimeRange.cap(TimeRange.invert(covered), startTimestamp ?? 0, endTimestamp);
         receiveActivities(activities, socket, start, end);
@@ -298,6 +299,8 @@ function makeActivityService(): ActivityService {
       }
 
       startLoading(socket, ranges);
+
+      return await socket.completion();
     }
   }
 

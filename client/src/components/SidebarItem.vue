@@ -193,7 +193,7 @@ const fullDate = computed(() => fullDateFormat.format(startDate.value));
       <div v-if="expanded" class="sidebar-item-stats" v-text="stats" />
     </div>
     <div v-if="!item.map" class="spinner">
-      <Spinner size="tiny" line-fg-color="#888" />
+      <Spinner size="tiny" />
     </div>
     <div class="date" :title="fullDate" v-text="dateString.join('\n')" />
     <a
@@ -274,7 +274,7 @@ const fullDate = computed(() => fullDateFormat.format(startDate.value));
       text-align: center;
       width: auto;
       font-size: 0.6rem;
-      color: #fc4c02;
+      color: var(--bold-color);
     }
   }
 
