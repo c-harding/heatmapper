@@ -303,5 +303,21 @@ export default function apiRouter(domain: string): express.Router {
     createReadStream(html).pipe(res);
   });
 
+  router.get('/user', async (req, res) => {
+    const requestLogin = async (token, url) => {
+      // TODO: handle cookie-free login
+      res.status(403).cookie('token', token, { maxAge: 31536000 }).header('location', url).send();
+    };
+
+    const stravaApi = new Strava(domain, req.cookies.token, requestLogin);
+    try {
+      const athlete = await stravaApi.getAthlete();
+      res.send(athlete);
+    } catch (e) {
+      // TODO: handle this better
+      res.status(500).send({ type: 'Internal Server Error', error: e });
+    }
+  });
+
   return router;
 }

@@ -25,6 +25,11 @@ export class Strava {
     return await this.rawApi.get(`/gear/${id}`);
   }
 
+  // TODO: is this information safe to reveal?
+  async getAthlete(): Promise<SummaryAthlete> {
+    return await this.rawApi.get(`/athlete`);
+  }
+
   /**
    * Fetches your data from the Strava API
    */
