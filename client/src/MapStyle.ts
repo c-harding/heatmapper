@@ -58,7 +58,7 @@ function validateMapChoice(choice: string): choice is MapStyleSelection {
  * @returns a ref to the map style
  */
 export function useMapStyle() {
-  const initialStyleName = localStorage[STYLE_NAME_KEY] || MAPBOX_STYLE;
+  const initialStyleName = localStorage.getItem(STYLE_NAME_KEY) || MAPBOX_STYLE;
   const initialStyle: MapStyleSelection = validateMapChoice(initialStyleName)
     ? initialStyleName
     : 'light-dark';
@@ -81,7 +81,7 @@ export function useMapStyle() {
 
   const mapStyleUrl = computed(() => mapboxStyleUrls[mapStyle.value]);
 
-  const stravaStyleEnabled = useHasBeenTrue(() => mapChoice.value === 'STRAVA');
+  const stravaStyleEnabled = useHasBeenTrue(() => mapChoice.value === MapStyle.STRAVA);
 
   const mapStyleChoices = computed<readonly DropdownChoice<MapStyleSelection>[]>(() => [
     ...(stravaStyleEnabled.value ? [stravaStyleChoice] : []),

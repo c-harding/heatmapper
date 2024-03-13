@@ -1,5 +1,5 @@
 export function cancelTextSelection() {
-  if (window.getSelection) {
+  if ('getSelection' in window) {
     const selection = window.getSelection();
     if (selection) selection.removeAllRanges();
   }

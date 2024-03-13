@@ -9,7 +9,7 @@ const minimisedOverlay = ref<HTMLElement>();
 
 const backArrow = document.dir === 'rtl' ? 'arrow_forward' : 'arrow_back';
 
-const appName = import.meta.env.VITE_APP_NAME;
+const appName = import.meta.env.VITE_APP_NAME as string;
 </script>
 
 <template>

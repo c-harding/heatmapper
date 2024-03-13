@@ -182,7 +182,8 @@ export const useMapSelection = ({
 
   function select(id: string | undefined, toggle: boolean): void {
     if (toggle) {
-      return toggleSelect(id);
+      toggleSelect(id);
+      return;
     }
     localSelected.value = id ? [id] : [];
 

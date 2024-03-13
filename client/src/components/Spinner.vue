@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { computed } from 'vue';
 
-var isNumber = (n: number | string): n is number => !isNaN(parseFloat(`${n}`)) && isFinite(+n);
+const isNumber = (n: number | string): n is number => !isNaN(parseFloat(`${n}`)) && isFinite(+n);
 
 const props = defineProps({
   size: {

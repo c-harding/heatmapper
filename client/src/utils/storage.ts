@@ -25,12 +25,17 @@ export function saveCachedGear(id: string, gear: Gear) {
 
 export function getCachedGear(id: string): Gear | undefined {
   const json = localStorage.getItem(`gear:${id}`);
-  if (json) return JSON.parse(json);
+  if (json) return JSON.parse(json) as Gear;
 }
 
 export function getActivityStore(): ActivityStore {
-  const cache = localStorage.getItem('activities');
-  return cache ? (JSON.parse(cache) as ActivityStore) : { version: 0, covered: [], activities: [] };
+  const rawCache = localStorage.getItem('activities');
+  const cache = rawCache ? (JSON.parse(rawCache) as Partial<ActivityStore>) : undefined;
+  return {
+    version: cache?.version ?? 0,
+    covered: cache?.covered ?? [],
+    activities: cache?.activities ?? [],
+  };
 }
 
 export function resetActivityStore(version: number) {
@@ -49,8 +54,8 @@ export function appendCachedActivities(activities: Activity[], end: number, star
   const ids = new Set(activities.map((activity) => activity.id));
   const newStore: ActivityStore = {
     version: existingStore.version,
-    covered: TimeRange.merge((existingStore.covered || []).concat({ start, end })),
-    activities: (existingStore.activities || [])
+    covered: TimeRange.merge(existingStore.covered.concat({ start, end })),
+    activities: existingStore.activities
       .filter((existingActivity) => !ids.has(existingActivity.id))
       .concat(activities.map((activity) => ({ ...activity, map: '' })))
       .sort((a, b) => b.date - a.date),

@@ -37,10 +37,10 @@ export default class Socket {
         this.errored = true;
       };
       connection.onopen = () => {
-        this.log('Socket', this.id, 'opened to state', connection?.readyState);
+        this.log('Socket', this.id, 'opened to state', connection.readyState);
         resolve(connection);
       };
-      connection.onmessage = (message) => {
+      connection.onmessage = (message: MessageEvent<string>) => {
         const data = JSON.parse(message.data) as ResponseMessage;
         const promisedResponse = this.promisedResponses[data.type]?.shift();
         if (promisedResponse) {
@@ -65,7 +65,7 @@ export default class Socket {
 
   private async send(data: string | ArrayBuffer | SharedArrayBuffer | Blob | ArrayBufferView) {
     const connection = await this.connection;
-    this.log('Socket', this.id, 'is in state', connection?.readyState);
+    this.log('Socket', this.id, 'is in state', connection.readyState);
     if (connection.readyState !== connection.OPEN)
       throw new Error(`Cannot send data, socket #${this.id} is in state ${connection.readyState}`);
     connection.send(data);

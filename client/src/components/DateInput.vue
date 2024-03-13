@@ -22,7 +22,7 @@ const input = ref<HTMLInputElement>();
 
 // Set to the start of the UTC day provided
 function dateToYYYYMMDD(date: Date | null): string | null {
-  return date && date.toISOString().split('T', 1)[0];
+  return date?.toISOString().split('T', 1)[0] ?? null;
 }
 </script>
 

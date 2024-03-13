@@ -103,7 +103,6 @@ watch(mapStyleUrl, (style) => {
   map.setStyle(style);
   map.once('styledata', () => {
     mapLoaded(map);
-    return onTerrain();
   });
 });
 
@@ -231,7 +230,7 @@ onBeforeUnmount(() => {
   window.removeEventListener('transitionend', resizeHandler);
 });
 
-async function mapLoaded(map: MapboxMap): Promise<void> {
+function mapLoaded(map: MapboxMap): void {
   map.resize();
 
   addLayersToMap(map, mapStyle.value);
