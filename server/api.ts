@@ -241,7 +241,7 @@ export default function apiRouter(domain: string): express.Router {
       if (message.activities) {
         stats.finding.started = true;
 
-        for (const { start, end } of TimeRange.cap(message.activities)) {
+        for (const { start, end } of TimeRange.cap(message.activities).reverse()) {
           sendStats();
           // TODO: add error handling (offline)
           for await (const activities of activitiesIterator(start, end)) {
