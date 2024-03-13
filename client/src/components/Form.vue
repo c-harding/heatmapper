@@ -97,7 +97,7 @@ defineExpose({ gear });
       <button @click="clearCache">Clear cache</button>
     </div>
     <Login v-if="continueLogin" @login="continueLogin($event)" />
-    <p v-else :class="{ error }" v-text="statusMessage" />
+    <p v-else class="small" :class="{ error }" v-text="statusMessage" />
     <div class="controls">
       <label>
         <span>Sport type</span>
@@ -113,8 +113,14 @@ defineExpose({ gear });
 </template>
 
 <style scoped lang="scss">
-.controls {
+aside {
   padding: 1em;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+}
+
+.controls {
   min-width: 0;
   display: flex;
   flex-direction: column;
@@ -128,7 +134,6 @@ defineExpose({ gear });
 }
 
 aside > .buttons {
-  margin: 5px auto;
   display: flex;
   flex-wrap: wrap;
   justify-content: space-evenly;
@@ -136,5 +141,10 @@ aside > .buttons {
 
 .error {
   color: red;
+}
+
+p.small {
+  font-size: 0.8em;
+  margin: 0;
 }
 </style>
