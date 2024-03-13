@@ -123,17 +123,26 @@ export default class RawStravaApi {
     }
     try {
       const jsonStr = await readFile(userCacheFile(cache.stravaAthlete), 'utf-8');
-      return JSON.parse(jsonStr) as User;
+      const user = JSON.parse(jsonStr) as User;
+      // if the ID is missing, we refetch the data,
+      // because the existing cache file comes from a manual migration script
+      // and it does not include the username
+      if (user.id) return user;
+      else {
+        // ID is missing, fallthrough to after the try-catch
+      }
     } catch (err: unknown) {
       if (err && typeof err === 'object' && 'code' in err && err.code === 'ENOENT') {
-        const athlete = await this.get<SummaryAthlete>('/athlete');
-        return await updateFile(
-          userCacheFile(athlete.id),
-          {},
-          (oldUser: Partial<User>): User => this.athleteToUser(athlete, oldUser.sessions),
-        );
+        // Cache is missing, fallthrough to after the try-catch
       } else throw err;
     }
+
+    const athlete = await this.get<SummaryAthlete>('/athlete');
+    return await updateFile(
+      userCacheFile(athlete.id),
+      {},
+      (oldUser: Partial<User>): User => this.athleteToUser(athlete, oldUser.sessions),
+    );
   }
 
   private athleteToUser(athlete: SummaryAthlete, existingSessions?: string[]) {
