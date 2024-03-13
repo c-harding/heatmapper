@@ -4,9 +4,7 @@
     "es2022": true,
     "vue/setup-compiler-macros": true
   },
-  "extends": [
-    "plugin:vue/vue3-recommended"
-  ],
+  "extends": ["plugin:vue/vue3-recommended"],
   "parser": "vue-eslint-parser",
   "parserOptions": {
     "parser": "@typescript-eslint/parser",
@@ -32,8 +30,20 @@
     "vue/custom-event-name-casing": "off",
     "no-restricted-syntax": "off",
     "class-methods-use-this": "off",
-    "vue/multi-word-component-names": "off",  
-    "no-redeclare":"off",
-    "@typescript-eslint/prefer-function-type": "off"
+    "vue/multi-word-component-names": "off",
+    "no-redeclare": "off",
+    "@typescript-eslint/prefer-function-type": "off",
+
+    // START disabled because of prettier
+    "comma-dangle": "off",
+    "vue/html-closing-bracket-spacing": "off",
+    "vue/html-end-tags": "off",
+    "vue/html-quotes": "off",
+    "vue/multiline-html-element-content-newline": "off",
+    "vue/mustache-interpolation-spacing": "off",
+    "vue/no-multi-spaces": "off",
+    "vue/no-spaces-around-equal-signs-in-attribute": "off",
+    "vue/singleline-html-element-content-newline": "off"
+    // END disabled because of prettier
   }
 }

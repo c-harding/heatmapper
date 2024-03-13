@@ -1,21 +1,21 @@
-import type {
-  Activity,
-  ActivityMap,
-  Gear,
-  RequestMessage,
-  ResponseMessage,
-  Route,
-  StatsMessage,
+import {
+  type Activity,
+  type ActivityMap,
+  type Gear,
+  type RequestMessage,
+  type ResponseMessage,
+  type Route,
+  type StatsMessage,
+  TimeRange,
 } from '@strava-heatmapper/shared/interfaces';
-import { TimeRange } from '@strava-heatmapper/shared/interfaces';
 import express from 'express';
-import type { Router } from 'express-ws';
+import { type Router } from 'express-ws';
 import { createReadStream } from 'fs';
 
 import eagerIterator from './eager-iterator';
 import { completeInOrder } from './stateful-functions';
 import { Strava } from './strava';
-import type { DetailedGear, SummaryActivity, SummaryRoute } from './strava/model';
+import { type DetailedGear, type SummaryActivity, type SummaryRoute } from './strava/model';
 import { tokenExchange, validTokenCallback } from './strava/token';
 
 const VERSION = 2;

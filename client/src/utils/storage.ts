@@ -1,5 +1,4 @@
-import type { Activity, Gear } from '@strava-heatmapper/shared/interfaces';
-import { TimeRange } from '@strava-heatmapper/shared/interfaces';
+import { type Activity, type Gear, TimeRange } from '@strava-heatmapper/shared/interfaces';
 
 export interface ActivityStore {
   version: number;

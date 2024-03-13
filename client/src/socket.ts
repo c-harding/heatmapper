@@ -1,8 +1,8 @@
-import type {
-  RequestMessage,
-  ResponseMessage,
-  ResponseMessageOfType,
-  ResponseMessageType,
+import {
+  type RequestMessage,
+  type ResponseMessage,
+  type ResponseMessageOfType,
+  type ResponseMessageType,
 } from '@strava-heatmapper/shared/interfaces';
 
 let socketID = 0;

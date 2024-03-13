@@ -1,5 +1,10 @@
 <script lang="tsx">
-import type { Map as MapboxMap } from 'mapbox-gl';
+import {
+  type LngLatBounds,
+  type LngLatLike,
+  type Map as MapboxMap,
+  type MapMouseEvent,
+} from 'mapbox-gl';
 
 import PickerControl from './PickerControl.vue';
 
@@ -16,8 +21,7 @@ declare const MAPBOX_STYLE: keyof typeof MapStyle;
 
 <script setup lang="tsx">
 import polyline from '@mapbox/polyline';
-import type { MapItem } from '@strava-heatmapper/shared/interfaces';
-import type { LngLatBounds, LngLatLike, MapMouseEvent } from 'mapbox-gl';
+import { type MapItem } from '@strava-heatmapper/shared/interfaces';
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 
 import { type MapStyle, useMapStyle } from '@/MapStyle';
@@ -274,7 +278,9 @@ map.once('idle', () => mapLoaded(map));
   <div ref="container" class="map-container" />
   <Teleport :to="buttonTarget">
     <div class="mapboxgl-ctrl mapboxgl-ctrl-group">
-      <button @click="terrain = !terrain">{{ terrain ? '2D' : '3D' }}</button>
+      <button @click="terrain = !terrain">
+        {{ terrain ? '2D' : '3D' }}
+      </button>
     </div>
 
     <div class="mapboxgl-ctrl mapboxgl-ctrl-group">

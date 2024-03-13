@@ -1,6 +1,6 @@
 import { computed, ref, watch } from 'vue';
 
-import type { DropdownChoice } from './components/PickerControl.vue';
+import { type DropdownChoice } from './components/PickerControl.vue';
 import { useHasBeenTrue } from './utils/useHasBeenTrue';
 
 // Set in vite.config.js

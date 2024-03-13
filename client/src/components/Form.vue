@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { FindingStats } from '@strava-heatmapper/shared/interfaces';
+import { type FindingStats } from '@strava-heatmapper/shared/interfaces';
 import { computed, ref } from 'vue';
 
 import { useActivityService } from '@/services/useActivityService';

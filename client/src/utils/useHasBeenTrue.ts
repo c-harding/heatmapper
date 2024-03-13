@@ -1,5 +1,4 @@
-import type { Ref } from 'vue';
-import { readonly, ref, watch } from 'vue';
+import { readonly, type Ref, ref, watch } from 'vue';
 
 /**
  * Returns an ref that is true if the provided value is or has been true.

@@ -1,15 +1,15 @@
 import { toGeoJSON } from '@mapbox/polyline';
-import type { MapItem } from '@strava-heatmapper/shared/interfaces';
-import type { Feature, FeatureCollection, LineString } from 'geojson';
-import type {
-  AnyLayer,
-  Expression,
-  GeoJSONSource,
-  GeoJSONSourceRaw,
-  Map as MapboxMap,
-  MapMouseEvent,
-  Point,
-  PointLike,
+import { type MapItem } from '@strava-heatmapper/shared/interfaces';
+import { type Feature, type FeatureCollection, type LineString } from 'geojson';
+import {
+  type AnyLayer,
+  type Expression,
+  type GeoJSONSource,
+  type GeoJSONSourceRaw,
+  type Map as MapboxMap,
+  type MapMouseEvent,
+  type Point,
+  type PointLike,
 } from 'mapbox-gl';
 import { nextTick, ref, watch } from 'vue';
 

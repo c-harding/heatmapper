@@ -45,7 +45,7 @@ const [ascentArrow, descentArrow] = document.dir === 'rtl' ? ['↖', '↙'] : ['
 </script>
 
 <script setup lang="ts">
-import type { MapItem, SportType } from '@strava-heatmapper/shared/interfaces';
+import { type MapItem, type SportType } from '@strava-heatmapper/shared/interfaces';
 import { computed } from 'vue';
 
 import Spinner from './Spinner.vue';

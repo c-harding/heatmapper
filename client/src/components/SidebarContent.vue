@@ -4,7 +4,7 @@ declare const GIT_HASH: string | undefined;
 </script>
 
 <script setup lang="ts">
-import type { MapItem } from '@strava-heatmapper/shared/interfaces';
+import { type MapItem } from '@strava-heatmapper/shared/interfaces';
 import { nextTick, ref, watch } from 'vue';
 
 import { useActivityService } from '@/services/useActivityService';

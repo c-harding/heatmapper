@@ -1,4 +1,4 @@
-import type { SportType } from '@strava-heatmapper/shared/interfaces';
+import { type SportType } from '@strava-heatmapper/shared/interfaces';
 
 export const sportGroups: Record<string, string> = {
   'Hike,Snowshoe,Run,TrailRun,Walk': 'All on foot',

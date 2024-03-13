@@ -1,11 +1,11 @@
-import type {
-  Activity,
-  Gear,
-  MapItem,
-  ResponseMessage,
-  Route,
+import {
+  type Activity,
+  type Gear,
+  type MapItem,
+  type ResponseMessage,
+  type Route,
+  TimeRange,
 } from '@strava-heatmapper/shared/interfaces';
-import { TimeRange } from '@strava-heatmapper/shared/interfaces';
 import { computed, inject, provide, reactive, readonly, ref } from 'vue';
 
 import Socket from '@/socket';
@@ -21,8 +21,7 @@ import {
   saveCachedMaps,
 } from '@/utils/storage';
 
-import type { LoadingStats } from './ActivityService';
-import { type ActivityService, activityServiceToken } from './ActivityService';
+import { type ActivityService, activityServiceToken, type LoadingStats } from './ActivityService';
 
 /** One day in milliseconds */
 const DAY = 24 * 60 * 60 * 1000;

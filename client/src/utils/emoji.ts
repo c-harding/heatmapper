@@ -1,4 +1,4 @@
-import type { SportType } from '@strava-heatmapper/shared/interfaces';
+import { type SportType } from '@strava-heatmapper/shared/interfaces';
 
 const GYM_EMOJI = '🏋️';
 
