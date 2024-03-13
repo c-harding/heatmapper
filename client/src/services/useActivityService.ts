@@ -40,6 +40,8 @@ function makeActivityService(): ActivityService {
 
   const error = ref<string>();
 
+  let socketController = new AbortController();
+
   const visibleMapItems = computed<readonly MapItem[]>(() =>
     sportType.value
       ? allMapItems.value.filter((item) => sportType.value.split(',').includes(item.type))
@@ -172,7 +174,15 @@ function makeActivityService(): ActivityService {
     }
   }
 
-  function clearMapItems() {
+  function discardCache() {
+    socketController.abort();
+    resetData();
+    socketController = new AbortController();
+  }
+
+  function resetData() {
+    localStorage.clear();
+    stats.value = { cleared: true };
     allMapItems.value = [];
   }
 
@@ -189,7 +199,7 @@ function makeActivityService(): ActivityService {
     start,
     end,
   }: SocketOptions = {}): Promise<void> {
-    clearMapItems();
+    discardCache();
 
     if (partial) loadFromCache(partial, start, end);
     clientStats.value = {
@@ -275,6 +285,7 @@ function makeActivityService(): ActivityService {
           stats.value.status = 'disconnected';
         }
       },
+      socketController,
     );
 
     const { version: serverVersion } = await socket.sendRequest({ version: true }, 'version');
@@ -316,15 +327,15 @@ function makeActivityService(): ActivityService {
 
   return {
     continueLogin,
-    stats,
-    clientStats,
+    stats: readonly(stats),
+    clientStats: readonly(clientStats),
     sportType,
     error,
     gear: readonly(gear),
 
     mapItems: visibleMapItems,
 
-    clearMapItems,
+    discardCache,
     loadPartial,
     loadRoutes,
   };

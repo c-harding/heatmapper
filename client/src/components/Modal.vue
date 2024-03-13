@@ -1,0 +1,63 @@
+<script setup lang="ts">
+import { onMounted, ref, watch } from 'vue';
+
+import Icon from './Icon.vue';
+
+const open = defineModel<boolean>({ default: false });
+
+const modal = ref<HTMLDialogElement>();
+
+const mountedPromise = new Promise<void>((resolve) => onMounted(resolve));
+
+watch(
+  open,
+  async (isOpen) => {
+    await mountedPromise;
+    if (isOpen) {
+      modal.value?.showModal();
+    } else {
+      modal.value?.close();
+    }
+  },
+  { immediate: true },
+);
+</script>
+
+<template>
+  <dialog ref="modal" @close="open = false" @click="open = false">
+    <a class="close-button" @click.stop.prevent="open = false"><Icon>close</Icon></a>
+    <div class="dialog-contents" @click.stop>
+      <slot v-if="open" />
+    </div>
+  </dialog>
+</template>
+
+<style lang="scss">
+dialog {
+  border: none;
+  padding: 0;
+  border-radius: 1rem;
+  position: relative;
+
+  filter: drop-shadow(0 1em 2em rgb(0 0 0 / 50%));
+
+  &::backdrop {
+    background-color: color-mix(in srgb, var(--color) 10%, transparent);
+  }
+
+  .close-button {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    color: var(--color-slight);
+
+    &:hover {
+      color: var(--bold-color);
+    }
+  }
+
+  .dialog-contents {
+    padding: 1em;
+  }
+}
+</style>

@@ -22,15 +22,15 @@ export interface ClientStats {
 
 export interface ActivityService {
   continueLogin: Ref<((withCookies: boolean) => void) | null>;
-  stats: Ref<LoadingStats>;
-  clientStats: Ref<ClientStats>;
+  stats: Readonly<Ref<LoadingStats>>;
+  clientStats: Readonly<Ref<ClientStats>>;
   sportType: Ref<string>;
   error: Ref<string | undefined>;
   gear: ReadonlyMap<string, Gear | null>;
 
   mapItems: Readonly<Ref<readonly MapItem[]>>;
 
-  clearMapItems(): void;
+  discardCache(): void;
   loadPartial(start?: Date, end?: Date): Promise<void>;
   loadRoutes(start?: Date, end?: Date): Promise<void>;
 }

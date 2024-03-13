@@ -18,6 +18,8 @@ export default class Socket {
 
   private verbose: boolean;
 
+  private signal?: AbortSignal;
+
   constructor(
     readonly url: string,
     private messageHandler: (data: ResponseMessage, socket: Socket) => void,
@@ -25,6 +27,7 @@ export default class Socket {
     { verbose = false, signal }: { verbose?: boolean; signal?: AbortSignal } = {},
   ) {
     this.verbose = verbose;
+    this.signal = signal;
   }
 
   private log(...args: unknown[]) {
@@ -39,6 +42,13 @@ export default class Socket {
     return (this._connection ??= new Promise((resolve, reject) => {
       this.log('Socket', this.id, 'opening');
       const connection = new WebSocket(this.url);
+
+      if (this.signal?.aborted) {
+        connection.close();
+      } else {
+        this.signal?.addEventListener('abort', () => connection.close());
+      }
+
       connection.addEventListener('error', () => {
         reject();
         this.errored = true;

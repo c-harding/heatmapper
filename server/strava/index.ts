@@ -1,3 +1,5 @@
+import { type User } from '@strava-heatmapper/shared/interfaces';
+
 import { type DetailedGear, type SummaryActivity, type SummaryRoute } from './model';
 import RawStravaApi from './raw-api';
 
@@ -7,7 +9,7 @@ export class Strava {
   constructor(
     domain: string,
     tokenCookie: string | undefined,
-    requestLogin: (token: string, url: string) => Promise<void>,
+    requestLogin: ((token: string, url: string) => Promise<boolean>) | null,
   ) {
     this.rawApi = new RawStravaApi(domain, tokenCookie, requestLogin);
   }
@@ -25,9 +27,8 @@ export class Strava {
     return await this.rawApi.get(`/gear/${id}`);
   }
 
-  // TODO: is this information safe to reveal?
-  async getAthlete(): Promise<SummaryAthlete> {
-    return await this.rawApi.get(`/athlete`);
+  async getUserInfo(): Promise<User> {
+    return this.rawApi.getUserInfo();
   }
 
   /**
@@ -84,5 +85,13 @@ export class Strava {
 
   async getActivity(id: number | string): Promise<SummaryActivity> {
     return await this.rawApi.get(`/activities/${id}`);
+  }
+
+  async logout(global = false) {
+    if (global) {
+      await this.rawApi.logoutGlobal();
+    } else {
+      await this.rawApi.logout();
+    }
   }
 }

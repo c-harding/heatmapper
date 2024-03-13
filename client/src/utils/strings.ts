@@ -13,6 +13,8 @@ export const countActivities = (n: number) => count(n, 'activity', 'activities')
 
 export const countRoutes = (n: number) => count(n, 'route');
 
+export const countOtherSessions = (n: number) => count(n, 'other session');
+
 export const capitalise = (string: string) => string.slice(0, 1).toUpperCase() + string.slice(1);
 
 export const nonEmpties = (...args: string[]) => args.filter(Boolean);

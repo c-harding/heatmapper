@@ -9,7 +9,9 @@ import { sportGroups, sportTypes } from '../sportTypes';
 import DateInput from './DateInput.vue';
 import Dropdown from './Dropdown.vue';
 import Login from './Login.vue';
+import Modal from './Modal.vue';
 import UIButton from './UIButton.vue';
+import UserSettings from './UserSettings.vue';
 
 const start = ref<Date>();
 const end = ref<Date>();
@@ -20,7 +22,7 @@ const {
   stats,
   sportType,
   gear,
-  clearMapItems,
+  discardCache,
   loadPartial,
   loadRoutes,
   continueLogin,
@@ -48,6 +50,8 @@ function mapString(requested = 0, length = 0, uncached = 0) {
   return '';
 }
 
+const settingsOpen = ref(false);
+
 const sortedSportTypes = [...Object.entries(sportGroups), ...Object.entries(sportTypes)]
   .map(([value, label]) => ({ value, label }))
   .sort((a, b) => a.label.localeCompare(b.label));
@@ -70,11 +74,10 @@ function statsMessage(): string {
   );
 }
 
-function clearCache(): void {
-  localStorage.clear();
+function onLogout(): void {
   document.cookie = `token=;expires=${new Date(0).toUTCString()}`;
-  stats.value = { cleared: true };
-  clearMapItems();
+  discardCache();
+  settingsOpen.value = false;
 }
 
 defineExpose({ gear });
@@ -92,10 +95,15 @@ defineExpose({ gear });
         <DateInput v-model="end" name="end" />
       </label>
     </div>
-    <div class="buttons">
-      <UIButton @click="loadPartial(start, end)">Load</UIButton>
-      <UIButton @click="loadRoutes(start, end)">Routes</UIButton>
-      <UIButton @click="clearCache">Clear cache</UIButton>
+    <div>
+      <div class="buttons">
+        <UIButton @click="loadPartial(start, end)">Load</UIButton>
+        <UIButton @click="loadRoutes(start, end)">Routes</UIButton>
+        <UIButton icon="delete" @click="discardCache">Discard cache</UIButton>
+      </div>
+      <div class="buttons">
+        <UIButton icon="settings" @click="settingsOpen = true">User</UIButton>
+      </div>
     </div>
     <Login v-if="continueLogin" @login="continueLogin($event)" />
     <p v-else class="small" :class="{ error }" v-text="statusMessage" />
@@ -111,6 +119,10 @@ defineExpose({ gear });
       </label>
     </div>
   </aside>
+
+  <Modal v-model="settingsOpen" class="modal">
+    <UserSettings @logout="onLogout" />
+  </Modal>
 </template>
 
 <style scoped lang="scss">
@@ -147,5 +159,9 @@ aside > .buttons {
 p.small {
   font-size: 0.8em;
   margin: 0;
+}
+
+.modal {
+  width: 25em;
 }
 </style>

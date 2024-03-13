@@ -152,6 +152,7 @@ export default function apiRouter(domain: string): express.Router {
 
     async function requestLogin(token: string, url: string) {
       send({ type: 'login', cookie: token, url });
+      return true;
     }
 
     const strava = new Strava(domain, req.cookies.token, requestLogin);
@@ -296,25 +297,43 @@ export default function apiRouter(domain: string): express.Router {
     });
   });
 
-  router.get('/token', (req, res) => {
-    const successful = validTokenCallback(req.query) && tokenExchange(req.query);
-    const [code, html] = successful ? [200, 'static/auth.html'] : [400, 'static/auth-error.html'];
+  router.get('/token', async (req, res) => {
+    let code: number, html: string;
+    try {
+      const successful = validTokenCallback(req.query) && (await tokenExchange(req.query));
+      [code, html] = successful ? [200, 'static/auth.html'] : [400, 'static/auth-error.html'];
+    } catch (e) {
+      [code, html] = [500, 'static/auth-error.html'];
+    }
     res.writeHead(code, { 'Content-Type': 'text/html; charset=utf-8' });
     createReadStream(html).pipe(res);
   });
 
   router.get('/user', async (req, res) => {
     const requestLogin = async (token, url) => {
-      // TODO: handle cookie-free login
-      res.status(403).cookie('token', token, { maxAge: 31536000 }).header('location', url).send();
+      res.status(403).cookie('token', token, { maxAge: 31536000 }).header('location', url).send({ token });
+      return false;
     };
 
     const stravaApi = new Strava(domain, req.cookies.token, requestLogin);
     try {
-      const athlete = await stravaApi.getAthlete();
+      const athlete = await stravaApi.getUserInfo();
       res.send(athlete);
     } catch (e) {
-      // TODO: handle this better
+      if (e) console.error('Got error fetching the user info:', e);
+      res.status(500).send({ type: 'Internal Server Error', error: e });
+    }
+  });
+
+  router.delete('/user', async (req, res) => {
+    const global = 'global' in req.query;
+
+    const stravaApi = new Strava(domain, req.cookies.token, null);
+    try {
+      await stravaApi.logout(global);
+      res.status(204).send();
+    } catch (e) {
+      console.error('Got error logging out:', e);
       res.status(500).send({ type: 'Internal Server Error', error: e });
     }
   });

@@ -4,10 +4,9 @@
     <title>Logged in</title>
   </head>
   <body>
-    <p>
-      Logging in successful, you may now close this window or <a href="/">return to the map.</a>
-    </p>
+    <p>Logging in successful, you may now close this window or <a href="/">return to the map.</a></p>
     <script>
+      window.opener.postMessage('heatmapper:logged-in');
       window.close();
     </script>
   </body>
