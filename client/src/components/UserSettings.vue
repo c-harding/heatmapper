@@ -1,7 +1,7 @@
 <script lang="ts" setup>
-import { type User } from '@strava-heatmapper/shared/interfaces';
-import { computed, onMounted, ref } from 'vue';
+import { computed, ref } from 'vue';
 
+import useUser from '@/services/useUser';
 import { countOtherSessions } from '@/utils/strings';
 
 import Login from './Login.vue';
@@ -11,43 +11,7 @@ const emit = defineEmits<{
   (e: 'logout'): void;
 }>();
 
-const continueLogin = ref<(withCookies: boolean) => void>();
-
-const user = ref<User>();
-
-async function getUser() {
-  const userResponse = await fetch('/api/user');
-
-  if (userResponse.status === 200) {
-    user.value = await userResponse.json();
-  } else if (userResponse.status === 403) {
-    const data = (await userResponse.json()) as { token: string };
-    continueLogin.value = async (cookies = true) => {
-      if (cookies) document.cookie = `token=${data.token};max-age=31536000`;
-      continueLogin.value = undefined;
-      window.open(
-        userResponse.headers.get('Location')!,
-        'menubar=false,toolbar=false,width=300, height=300',
-      );
-
-      await new Promise<void>((resolve) => {
-        const eventHandler = (e: MessageEvent<string>) => {
-          if (e.data === 'heatmapper:logged-in') {
-            window.removeEventListener('message', eventHandler);
-            resolve();
-          }
-        };
-
-        window.addEventListener('message', eventHandler);
-      });
-      await getUser();
-    };
-  } else {
-    console.error('encountered error', userResponse.status, userResponse.statusText);
-  }
-}
-
-onMounted(getUser);
+const { user, continueLogin } = useUser();
 
 const imgSrc = computed<string | undefined>(() => user.value?.image62);
 const imgSrcSet = computed<string | undefined>(() => {
