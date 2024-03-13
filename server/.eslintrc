@@ -4,11 +4,9 @@
   },
   "extends": [
     "eslint:recommended",
-    "plugin:@typescript-eslint/recommended",
-    "prettier"
+    "plugin:@typescript-eslint/recommended"
   ],
   "plugins": [
-    "prettier",
     "@typescript-eslint/eslint-plugin"
   ],
   "parser": "@typescript-eslint/parser",
