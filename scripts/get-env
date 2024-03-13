@@ -33,3 +33,5 @@ elif [ ! -z "$ENV" ]; then
   echo >&2
   exit 1
 fi
+
+ARGS=("$@")

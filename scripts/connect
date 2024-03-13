@@ -36,5 +36,5 @@ else
 fi
 
 if [ "$0" = "$BASH_SOURCE" ]; then
-  ssh $DEPLOY_FLAG "$DEPLOY_TARGET" "$@"
+  ssh $DEPLOY_FLAG "$DEPLOY_TARGET" "${ARGS[@]}"
 fi
