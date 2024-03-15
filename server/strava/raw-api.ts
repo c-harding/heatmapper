@@ -1,8 +1,7 @@
 import '@strava-heatmapper/shared/config/dotenv';
 
 import { readFile } from 'fs/promises';
-import type { Response } from 'node-fetch';
-import fetch from 'node-fetch';
+import fetch, { type Response } from 'node-fetch';
 import { v4 as uuid, validate as validateUUID } from 'uuid';
 
 import NeedsLogin from '../needs-login';

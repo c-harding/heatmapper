@@ -1,4 +1,4 @@
-import type { DetailedGear, SummaryActivity, SummaryRoute } from './model';
+import { type DetailedGear, type SummaryActivity, type SummaryRoute } from './model';
 import RawStravaApi from './raw-api';
 
 export class Strava {

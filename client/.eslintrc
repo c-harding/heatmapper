@@ -24,17 +24,17 @@
       }
     ],
     "prefer-const": "warn",
-    "vue/html-indent": "off",
-    "vue/html-closing-bracket-newline": "off",
-    "vue/max-attributes-per-line": "off",
-    "vue/custom-event-name-casing": "off",
     "no-restricted-syntax": "off",
     "class-methods-use-this": "off",
-    "vue/multi-word-component-names": "off",
     "no-redeclare": "off",
     "@typescript-eslint/prefer-function-type": "off",
 
     // START disabled because of prettier
+    "vue/multi-word-component-names": "off",
+    "vue/html-indent": "off",
+    "vue/html-closing-bracket-newline": "off",
+    "vue/max-attributes-per-line": "off",
+    "vue/custom-event-name-casing": "off",
     "comma-dangle": "off",
     "vue/html-closing-bracket-spacing": "off",
     "vue/html-end-tags": "off",

@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "serve": "nodemon app.ts",
-    "lint": "eslint --fix '*.ts'",
+    "lint": "eslint --fix . --ext .ts",
     "clear-built": "[[ -d ../dist/server ]] && rm -r ../dist/server; true",
     "copy-for-deployment": "cp -r package.json static ../dist/server/",
     "build": "yarn clear-built; tsc --build && yarn copy-for-deployment"
