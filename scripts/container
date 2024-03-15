@@ -1,5 +1,12 @@
 #!/usr/bin/env bash
 
-cd "$(dirname "$0")/../dist" &&
+set -e
 
-docker-compose up "$@"
+cd "$(dirname "$0")/.."
+
+. scripts/get-env "$@"
+
+ls
+
+DOTENV_FILE="$ENV.env" \
+  docker-compose -f dist/docker-compose.yml --env-file "$DOTENV_FILE" up "${REST_ARGS[@]}"

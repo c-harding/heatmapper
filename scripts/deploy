@@ -8,7 +8,7 @@ cd "$(dirname "$0")/.."
 . scripts/connect "$@"
 
 if [ ! -z "$ENV" ]; then
-  ENV_CMD="$(printf 'rm -rf .env && mv -T %q.env .env' $ENV)"
+  ENV_CMD="$(printf 'rm -rf .env && mv -T %q.env .env' "$ENV")"
   EXCLUDE_FLAG="--exclude=.env"
 else
   ENV_CMD="true"

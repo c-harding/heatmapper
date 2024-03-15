@@ -2,21 +2,34 @@ set -e
 
 cd "$(dirname "$0")/.."
 
-case $1 in
-  -e|--env)
-    ENV="$2"
-    shift 2 # past argument and value
-    ;;
-  -e*)
-    ENV="${$1#-e}"
-    shift
-    ;;
-  --env=*)
-    ENV="${$1#*=}"
-    shift
-    ;;
-esac
+REST_ARGS=()
 
+while (($#)); do
+  case $1 in
+    -e|--env)
+      ENV="$2"
+      shift 2 # past argument and value
+      ;;
+    -e*)
+      ENV="${$1#-e}"
+      shift
+      ;;
+    --env=*)
+      ENV="${$1#*=}"
+      shift
+      ;;
+    --)
+      break
+      ;;
+    *)
+      REST_ARGS+=("$1")
+      shift
+      ;;
+  esac
+done
+REST_ARGS+=("$@")
+
+set -a
 if [ "$ENV" = "-" ]; then
   ENV="$(git branch --show-current)"
   if [ "$ENV" = "-" ]; then
@@ -27,11 +40,10 @@ if [ "$ENV" = "-" ]; then
 fi
 
 if [ -f dist/"$ENV".env ]; then
-  DOTENV_FILE="$(readlink -f "$(printf "dist/%q.env" "$ENV")")"
+  DOTENV_FILE="$(readlink -f dist/"$ENV".env)"
 elif [ ! -z "$ENV" ]; then
   printf 'The environment %q is not supported, the file dist/%q.env does not exist.\n' "$ENV" "$ENV" >&2
   echo >&2
   exit 1
 fi
-
-ARGS=("$@")
+set +a

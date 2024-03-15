@@ -1,6 +1,8 @@
 version: '2'
 services:
   heatmapper:
+    environment:
+      - DOTENV_FILE
     restart: always
     build: .
     ports:

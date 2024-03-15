@@ -50,8 +50,8 @@ export default class RawStravaApi {
   /**
    * Updates cached strava authentication tokens if necessary
    */
-  private async getStravaToken(params?: { code: string | string[]; grant_type: string }): Promise<string> {
-    let calculatedParams: { refresh_token: string } | { code: string | string[]; grant_type: string };
+  private async getStravaToken(params?: { code: string; grant_type: string }): Promise<string> {
+    let calculatedParams: { refresh_token: string } | { code: string; grant_type: string };
     if (params) calculatedParams = params;
     else {
       const cache = await this.loadCache();

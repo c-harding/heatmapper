@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
-cd "$(dirname "$0")/.." &&
+# Exit on first error
+set -e
 
-scripts/build && scripts/container --build "$@"
+cd "$(dirname "$0")/.."
+
+scripts/build "$@"
+scripts/container --build "$@"
