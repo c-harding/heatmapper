@@ -3,6 +3,7 @@ import {
   MAPBOX_TOKEN,
   SERVER_DOMAIN,
   USE_EMOJI,
+  VITE_APP_NAME,
   VITE_DEV_PORT,
 } from '@strava-heatmapper/shared/config/dotenv';
 import vue from '@vitejs/plugin-vue';
@@ -11,7 +12,7 @@ import gitDescribe from 'git-describe';
 import { resolve } from 'path';
 import { defineConfig } from 'vite';
 
-process.env.VITE_APP_NAME ||= 'Heatmapper';
+process.env.VITE_APP_NAME ||= VITE_APP_NAME;
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {

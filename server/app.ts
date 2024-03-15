@@ -1,6 +1,6 @@
 // @ts-check
 
-import { SERVER_DOMAIN, SERVER_PORT } from '@strava-heatmapper/shared/config/dotenv';
+import { SERVER_DOMAIN, SERVER_PORT, VITE_APP_NAME } from '@strava-heatmapper/shared/config/dotenv';
 import bodyParser from 'body-parser';
 import history from 'connect-history-api-fallback';
 import cookieParser from 'cookie-parser';
@@ -43,6 +43,6 @@ app.use(
 );
 
 app.listen(SERVER_PORT, () => {
-  console.log(`Heatmapper backend listening on port ${SERVER_PORT}.`);
+  console.log(`${VITE_APP_NAME} backend listening on port ${SERVER_PORT}.`);
   console.log(`Visit the latest version at ${SERVER_DOMAIN}/`);
 });
