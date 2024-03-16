@@ -59,10 +59,8 @@ body {
   display: flex;
   align-items: stretch;
   flex-direction: row;
-  font-family: -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  color: var(--color);
+
+  isolation: isolate;
 }
 
 a {
@@ -77,9 +75,13 @@ a {
   --background-pure: #fff;
   --background-slight: #eee;
   --background-strong: #ccc;
+  --background-error: hsl(0 90% 90%);
   --transition-speed: 0.5s;
   --bold-color: #fc4c02;
   --link-color: blue;
+  font-family: -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 
   background-color: var(--background);
   color: var(--color);
@@ -94,6 +96,7 @@ a {
     --background-pure: #000;
     --background-slight: #333;
     --background-strong: #555;
+    --background-error: hsl(0 90% 30%);
     --bold-color: #fc4c02;
     --link-color: lightblue;
   }

@@ -97,7 +97,12 @@ defineExpose({ gear });
     </div>
     <div>
       <div class="buttons">
-        <UIButton @click="loadPartial(start, end)">Load</UIButton>
+        <UIButton
+          @rejection="$event.showError('An error occurred when fetching the activities')"
+          @click="loadPartial(start, end)"
+        >
+          Load
+        </UIButton>
         <UIButton @click="loadRoutes(start, end)">Routes</UIButton>
       </div>
       <div class="buttons">

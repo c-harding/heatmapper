@@ -3,6 +3,14 @@ import { computed, ref } from 'vue';
 
 import Icon from './Icon.vue';
 import Spinner from './Spinner.vue';
+import ErrorTooltip from './tooltip/ErrorTooltip.vue';
+import { TooltipError } from './tooltip/TooltipError';
+import { type ShowError, useErrorTooltip } from './tooltip/useErrorTooltip';
+
+export interface ButtonError {
+  error: unknown;
+  showError: ShowError;
+}
 
 const props = withDefaults(
   defineProps<{
@@ -10,16 +18,18 @@ const props = withDefaults(
     loading?: boolean;
     disabled?: boolean;
     onClick?: () => void | Promise<void>;
-    onReject?: (value: unknown) => void;
+    onRejection?: (value: ButtonError) => string | void;
   }>(),
   {
     icon: undefined,
     loading: false,
     disabled: false,
     onClick: undefined,
-    onReject: undefined,
+    onRejection: undefined,
   },
 );
+
+const { targetRef: buttonRef, errorMessage, dismissLast, showError } = useErrorTooltip();
 
 const runningClickHandler = ref(false);
 
@@ -30,8 +40,11 @@ async function clickHandler() {
   runningClickHandler.value = true;
   Promise.resolve(props.onClick?.())
     .catch((error: unknown) => {
-      if (props.onReject) {
-        props.onReject(error);
+      if (props.onRejection) {
+        props.onRejection({ error, showError });
+      } else if (error instanceof TooltipError) {
+        const dismiss = showError(error.message, error.timeout);
+        error.dismissalPromise?.then(dismiss);
       } else {
         console.error('UIButton@click encounted an error:', error);
       }
@@ -41,12 +54,13 @@ async function clickHandler() {
 </script>
 
 <template>
-  <button :disabled="loading || disabled" :loading="loading" @click="clickHandler">
+  <button ref="buttonRef" :disabled="loading || disabled" :loading="loading" @click="clickHandler">
     <div class="button-contents">
       <Icon v-if="icon" inline>{{ icon }}</Icon>
       <slot />
     </div>
     <Spinner v-if="loading" size="tiny" class="button-spinner" />
+    <ErrorTooltip :error-message="errorMessage" @dismiss="dismissLast" />
   </button>
 </template>
 

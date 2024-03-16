@@ -41,6 +41,7 @@ dialog {
 
   background-color: var(--background);
   color: var(--color);
+  overflow: visible;
 
   filter: drop-shadow(0 1em 2em color-mix(in srgb, var(--color) 10%, transparent));
 
@@ -60,7 +61,8 @@ dialog {
   }
 
   .dialog-contents {
-    padding: 1em;
+    margin-block: 1em;
+    padding-inline: 1em;
   }
 }
 </style>

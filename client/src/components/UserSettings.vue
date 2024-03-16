@@ -1,10 +1,11 @@
 <script lang="ts" setup>
-import { computed, ref } from 'vue';
+import { computed } from 'vue';
 
 import useUser from '@/services/useUser';
 import { countOtherSessions } from '@/utils/strings';
 
 import Login from './Login.vue';
+import { TooltipError } from './tooltip/TooltipError';
 import UIButton from './UIButton.vue';
 
 const emit = defineEmits<{
@@ -39,15 +40,18 @@ const otherSessions = computed<number>(() =>
 
 const logout = async (global = false) => {
   const url = global ? '/api/user?global' : '/api/user';
-  const response = await fetch(url, { method: 'DELETE' });
-  loggingOut.value = undefined;
-  if (response.status >= 200 && response.status < 300) emit('logout');
-  else {
-    // TODO: handle error
+  let error: unknown = undefined;
+  try {
+    const response = await fetch(url, { method: 'DELETE' });
+    if (response.status >= 200 && response.status < 300) {
+      emit('logout');
+      return;
+    } else error = response;
+  } catch (e) {
+    error = e;
   }
+  throw new TooltipError('Cannot log out, please try again later', { cause: error });
 };
-
-const loggingOut = ref<{ global: boolean }>();
 </script>
 <template>
   <h2>User settings</h2>
@@ -57,7 +61,7 @@ const loggingOut = ref<{ global: boolean }>();
     <div class="flex-line">
       <img class="profile-pic" :srcset="imgSrcSet" :src="imgSrc" />
       <a :href="profileLink" class="user-name" target="_blank">{{ fullName }}</a>
-      <UIButton @click="logout(false)">Sign out</UIButton>
+      <UIButton @click="logout(false)"> Sign out </UIButton>
     </div>
     <div class="flex-line">
       <p v-if="otherSessions">You are signed in in {{ countOtherSessions(otherSessions) }}.</p>

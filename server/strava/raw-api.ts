@@ -5,7 +5,7 @@ import { readFile } from 'fs/promises';
 import fetch, { type Response } from 'node-fetch';
 import { v4 as uuid, validate as validateUUID } from 'uuid';
 
-import { CannotLogin, NeedsLogin } from '../login-error';
+import LoginError, { CannotLogin, NeedsLogin } from '../login-error';
 import { deleteFile, updateFile } from './file';
 import { type SummaryAthlete } from './model';
 import { addCallback } from './token';
@@ -207,7 +207,7 @@ export default class RawStravaApi {
       // Delete all sessions belonging to this user, including the current session
       await Promise.all(Array.from(sessions, (session) => deleteFile(sessionCacheFile(session))));
     } catch (e) {
-      if (e instanceof CannotLogin) return;
+      if (e instanceof LoginError) return;
       else throw e;
     }
   }
@@ -228,7 +228,7 @@ export default class RawStravaApi {
       });
       await deleteFile(sessionCacheFile(this.token));
     } catch (e) {
-      if (e instanceof CannotLogin) return;
+      if (e instanceof LoginError) return;
       else throw e;
     }
   }
