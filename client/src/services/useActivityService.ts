@@ -309,9 +309,9 @@ function makeActivityService(): ActivityService {
       }
 
       startLoading(socket, ranges);
-
-      return await socket.completion();
     }
+
+    return await socket.completion();
   }
 
   async function loadPartial(start?: Date, end?: Date): Promise<void> {
