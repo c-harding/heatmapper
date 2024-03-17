@@ -1,7 +1,7 @@
 <script setup lang="ts" generic="T extends string">
 import { onMounted, onUnmounted, ref } from 'vue';
 
-import UIIcon from './ui/UIIcon.vue';
+import UIIcon from '../ui/UIIcon.vue';
 
 export interface DropdownChoice<T> {
   readonly value: T;
@@ -14,7 +14,7 @@ const clickedOpen = ref(false);
 
 const value = defineModel<T>({ required: true });
 
-const props = defineProps<{
+defineProps<{
   choices: readonly Choice[];
 }>();
 

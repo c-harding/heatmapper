@@ -107,4 +107,3 @@ button {
   }
 }
 </style>
-../tooltip/TooltipError../tooltip/useErrorTooltip

@@ -4,8 +4,8 @@ import { computed } from 'vue';
 
 import { countOtherSessions } from '@/utils/strings';
 
-import { TooltipError } from './tooltip/TooltipError';
-import UIButton from './ui/UIButton.vue';
+import { TooltipError } from '../tooltip/TooltipError';
+import UIButton from '../ui/UIButton.vue';
 
 const props = defineProps<{
   user: User;

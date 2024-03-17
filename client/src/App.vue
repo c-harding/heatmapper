@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 
-import CollapsibleSidebar from './components/CollapsibleSidebar.vue';
-import MapView from './components/MapView.vue';
-import SidebarContent from './components/SidebarContent.vue';
+import MapView from './components/map/MapView.vue';
+import CollapsibleSidebar from './components/sidebar/CollapsibleSidebar.vue';
+import SidebarContent from './components/sidebar/SidebarContent.vue';
 import { useActivityService } from './services/useActivityService';
 
 const map = ref<typeof MapView>();

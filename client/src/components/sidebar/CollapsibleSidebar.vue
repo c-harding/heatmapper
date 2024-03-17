@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 
-import UIIcon from './ui/UIIcon.vue';
+import UIIcon from '../ui/UIIcon.vue';
 
 const minimised = defineModel<boolean>();
 

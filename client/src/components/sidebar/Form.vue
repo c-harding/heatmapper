@@ -4,16 +4,16 @@ import { computed, ref } from 'vue';
 
 import { useActivityService } from '@/services/useActivityService';
 import useUser from '@/services/useUser';
+import { sportGroups, sportTypes } from '@/sportTypes';
 import { combineCallbacks } from '@/utils/functions';
 import { capitalise, count, countActivities, nonEmpties } from '@/utils/strings';
 
-import { sportGroups, sportTypes } from '../sportTypes';
-import Login from './Login.vue';
-import { TooltipError } from './tooltip/TooltipError';
-import UIButton from './ui/UIButton.vue';
-import UIDateInput from './ui/UIDateInput.vue';
-import UIDropdown from './ui/UIDropdown.vue';
-import UIModal from './ui/UIModal.vue';
+import { TooltipError } from '../tooltip/TooltipError';
+import UIButton from '../ui/UIButton.vue';
+import UIDateInput from '../ui/UIDateInput.vue';
+import UIDropdown from '../ui/UIDropdown.vue';
+import UIModal from '../ui/UIModal.vue';
+import UserLogin from './UserLogin.vue';
 import UserSettings from './UserSettings.vue';
 
 const start = ref<Date>();
@@ -128,7 +128,7 @@ defineExpose({ gear });
         <UIButton icon="delete" @click="discardCache">Discard cache</UIButton>
       </div>
     </div>
-    <Login v-if="continueLogin" @login="continueLogin($event)" />
+    <UserLogin v-if="continueLogin" @login="continueLogin($event)" />
     <p v-else class="small" :class="{ error }" v-text="statusMessage" />
     <div class="controls">
       <label>

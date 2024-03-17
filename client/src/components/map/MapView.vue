@@ -16,7 +16,6 @@ declare global {
 
 // Set in vite.config.js
 declare const MAPBOX_TOKEN: string;
-declare const MAPBOX_STYLE: keyof typeof MapStyle;
 </script>
 
 <script setup lang="tsx">
@@ -24,10 +23,9 @@ import polyline from '@mapbox/polyline';
 import { type MapItem } from '@strava-heatmapper/shared/interfaces';
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 
-import { type MapStyle, useMapStyle } from '@/MapStyle';
+import { useMapStyle } from '@/MapStyle';
 import { addLayersToMap, applyMapItems, MapSourceLayer, useMapSelection } from '@/utils/map';
-
-import Viewport from '../Viewport';
+import Viewport from '@/Viewport';
 
 const props = withDefaults(
   defineProps<{
