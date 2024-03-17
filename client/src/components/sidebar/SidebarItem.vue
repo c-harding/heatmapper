@@ -247,7 +247,7 @@ const fullDate = computed(() => fullDateFormat.format(startDate.value));
   }
 
   .spinner {
-    padding: 0.5em;
+    margin: 0.5em;
   }
 
   .strava-link {

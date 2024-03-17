@@ -1,13 +1,13 @@
 <script lang="ts" setup>
-import { computed } from 'vue';
+import { computed, type PropType } from 'vue';
 
 const isNumber = (n: number | string): n is number => !isNaN(parseFloat(`${n}`)) && isFinite(+n);
 
+type Size = 'tiny' | 'small' | 'medium' | 'big' | 'large' | 'huge' | 'massive';
+
 const props = defineProps({
   size: {
-    type: [Number, String],
-    // either a number (pixel width/height) or 'tiny', 'small',
-    // 'medium', 'large', 'huge', 'massive' for common sizes
+    type: [Number, String] as PropType<number | Size>,
     default: 32,
   },
   lineSize: {
@@ -25,22 +25,6 @@ const props = defineProps({
   speed: {
     type: Number,
     default: 0.8,
-  },
-  spacing: {
-    type: Number,
-    default: 4,
-  },
-  message: {
-    type: String,
-    default: '',
-  },
-  fontSize: {
-    type: Number,
-    default: 13,
-  },
-  textFgColor: {
-    type: String,
-    default: '#555',
   },
 });
 
@@ -84,35 +68,7 @@ const lineSizePx = computed(() => {
   return isNumber(props.lineSize) ? props.lineSize : 4;
 });
 
-const textMarginTop = computed(() => {
-  switch (props.size) {
-    case 'tiny':
-    case 'small':
-    case 'medium':
-    case 'large':
-    case 'big':
-    case 'huge':
-    case 'massive':
-      return Math.min(Math.max(Math.ceil(sizePx.value / 8), 3), 12);
-  }
-  return isNumber(props.spacing) ? props.spacing : 4;
-});
-const textFontSize = computed(() => {
-  switch (props.size) {
-    case 'tiny':
-    case 'small':
-    case 'medium':
-    case 'large':
-    case 'big':
-    case 'huge':
-    case 'massive':
-      return Math.min(Math.max(Math.ceil(sizePx.value * 0.4), 11), 32);
-  }
-  return isNumber(props.fontSize) ? props.fontSize : 13;
-});
 const spinnerStyle = computed(() => ({
-  border: lineSizePx.value + 'px solid ' + props.lineBgColor,
-  'border-top': lineSizePx.value + 'px solid ' + props.lineFgColor,
   width: sizePx.value + 'px',
   height: sizePx.value + 'px',
 }));
@@ -121,9 +77,6 @@ const spinnerStyle = computed(() => ({
 <template>
   <div class="spinner-container">
     <div class="spinner" :style="spinnerStyle" />
-    <div v-if="message.length > 0" class="spinner-text">
-      {{ message }}
-    </div>
   </div>
 </template>
 
@@ -138,7 +91,7 @@ const spinnerStyle = computed(() => ({
   border-radius: 100%;
   animation: spinner-spin linear infinite;
   animation-duration: calc(v-bind(speed) * 1s);
-  border: calc(v-bind(lineSize) * 1px) solid v-bind(lineFgColor);
+  border: calc(v-bind(lineSizePx) * 1px) solid v-bind(lineBgColor);
   border-top-color: v-bind(lineFgColor);
 }
 
