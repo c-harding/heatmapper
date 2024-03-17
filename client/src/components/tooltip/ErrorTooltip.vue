@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, ref, watch } from 'vue';
 
-import Icon from '../Icon.vue';
+import UIIcon from '../ui/UIIcon.vue';
 import { type ErrorMessage } from './useErrorTooltip';
 
 const props = defineProps<{
@@ -83,7 +83,7 @@ const cssVars = computed(() => ({
     <Transition>
       <div v-if="errorMessage" class="error-container" :style="cssVars">
         <div ref="tooltipRef" class="error-tooltip" :style="marginAdjustments">
-          <Icon inline>warning</Icon>
+          <UIIcon inline>warning</UIIcon>
           {{ errorMessage.message }}
         </div>
         <div class="tail" />

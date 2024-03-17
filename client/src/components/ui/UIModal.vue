@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from 'vue';
 
-import Icon from './Icon.vue';
+import UIIcon from './UIIcon.vue';
 
 const open = defineModel<boolean>({ default: false });
 
@@ -25,7 +25,7 @@ watch(
 
 <template>
   <dialog ref="modal" @close="open = false" @click="open = false">
-    <a class="close-button" @click.stop.prevent="open = false"><Icon>close</Icon></a>
+    <a class="close-button" @click.stop.prevent="open = false"><UIIcon>close</UIIcon></a>
     <div class="dialog-contents" @click.stop>
       <slot v-if="open" />
     </div>

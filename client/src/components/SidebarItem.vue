@@ -48,9 +48,9 @@ const [ascentArrow, descentArrow] = document.dir === 'rtl' ? ['↖', '↙'] : ['
 import { type MapItem, type SportType } from '@strava-heatmapper/shared/interfaces';
 import { computed } from 'vue';
 
-import Spinner from './Spinner.vue';
 import StravaEmoji from './strava-symbol/StravaEmoji.vue';
 import StravaIcon from './strava-symbol/StravaIcon.vue';
+import UISpinner from './ui/UISpinner.vue';
 
 // This conditional must be in the component rather than the template, so that tree-shaking works
 const StravaActivitySymbol = USE_EMOJI ? StravaEmoji : StravaIcon;
@@ -193,7 +193,7 @@ const fullDate = computed(() => fullDateFormat.format(startDate.value));
       <div v-if="expanded" class="sidebar-item-stats" v-text="stats" />
     </div>
     <div v-if="!item.map" class="spinner">
-      <Spinner size="tiny" />
+      <UISpinner size="tiny" />
     </div>
     <div class="date" :title="fullDate" v-text="dateString.join('\n')" />
     <a

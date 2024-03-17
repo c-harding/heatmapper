@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 
-import Icon from './Icon.vue';
+import UIIcon from './UIIcon.vue';
 
 withDefaults(
   defineProps<{
@@ -36,7 +36,7 @@ function dateToYYYYMMDD(date: Date | null): string | null {
       :value="dateToYYYYMMDD(modelValue)"
       @change="emit('update:modelValue', input!.valueAsDate)"
     />
-    <Icon class="icon">expand_more</Icon>
+    <UIIcon class="icon">expand_more</UIIcon>
   </div>
 </template>
 

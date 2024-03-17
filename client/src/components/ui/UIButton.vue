@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 
-import Icon from './Icon.vue';
-import Spinner from './Spinner.vue';
-import ErrorTooltip from './tooltip/ErrorTooltip.vue';
-import { TooltipError } from './tooltip/TooltipError';
-import { type ShowError, useErrorTooltip } from './tooltip/useErrorTooltip';
+import ErrorTooltip from '../tooltip/ErrorTooltip.vue';
+import { TooltipError } from '../tooltip/TooltipError';
+import { type ShowError, useErrorTooltip } from '../tooltip/useErrorTooltip';
+import UIIcon from './UIIcon.vue';
+import UISpinner from './UISpinner.vue';
 
 export interface ButtonError {
   error: unknown;
@@ -56,10 +56,10 @@ async function clickHandler() {
 <template>
   <button ref="buttonRef" :disabled="loading || disabled" :loading="loading" @click="clickHandler">
     <div class="button-contents">
-      <Icon v-if="icon" inline>{{ icon }}</Icon>
+      <UIIcon v-if="icon" inline>{{ icon }}</UIIcon>
       <slot />
     </div>
-    <Spinner v-if="loading" size="tiny" class="button-spinner" />
+    <UISpinner v-if="loading" size="tiny" class="button-spinner" />
     <ErrorTooltip :error-message="errorMessage" @dismiss="dismissLast" />
   </button>
 </template>
@@ -107,3 +107,4 @@ button {
   }
 }
 </style>
+../tooltip/TooltipError../tooltip/useErrorTooltip

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 
-import Icon from './Icon.vue';
+import UIIcon from './ui/UIIcon.vue';
 
 const minimised = defineModel<boolean>();
 
@@ -28,13 +28,13 @@ const appName = import.meta.env.VITE_APP_NAME as string;
       <div class="tab-curve top" />
       <div class="tab map">
         <p>
-          <Icon>map</Icon>
+          <UIIcon>map</UIIcon>
         </p>
         <p>Map</p>
       </div>
       <div class="tab back">
         <p>
-          <Icon>{{ backArrow }}</Icon>
+          <UIIcon>{{ backArrow }}</UIIcon>
         </p>
         <p>Back</p>
       </div>

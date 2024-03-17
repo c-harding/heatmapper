@@ -1,7 +1,7 @@
 <script setup lang="ts" generic="T extends string">
 import { onMounted, onUnmounted, ref } from 'vue';
 
-import Icon from './Icon.vue';
+import UIIcon from './ui/UIIcon.vue';
 
 export interface DropdownChoice<T> {
   readonly value: T;
@@ -47,7 +47,7 @@ onUnmounted(() => {
 
 <template>
   <button ref="layerButton" class="layer-button" @click="clickedOpen = !clickedOpen">
-    <Icon>layers</Icon>
+    <UIIcon>layers</UIIcon>
   </button>
   <div ref="layerPicker" class="layer-picker" :class="{ open: clickedOpen }">
     <menu>

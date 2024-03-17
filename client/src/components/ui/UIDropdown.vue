@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 
-import Icon from './Icon.vue';
+import UIIcon from './UIIcon.vue';
 
 export interface Option {
   value: string;
@@ -52,10 +52,10 @@ const model = computed<string | null>({
       </option>
       <slot />
     </select>
-    <Icon v-if="clearButton && model !== blankValue" inline large @click="model = blankValue">
+    <UIIcon v-if="clearButton && model !== blankValue" inline large @click="model = blankValue">
       close
-    </Icon>
-    <Icon v-else class="down-arrow" inline large> expand_more </Icon>
+    </UIIcon>
+    <UIIcon v-else class="down-arrow" inline large> expand_more </UIIcon>
   </div>
 </template>
 

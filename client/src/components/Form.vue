@@ -8,12 +8,12 @@ import { combineCallbacks } from '@/utils/functions';
 import { capitalise, count, countActivities, nonEmpties } from '@/utils/strings';
 
 import { sportGroups, sportTypes } from '../sportTypes';
-import DateInput from './DateInput.vue';
-import Dropdown from './Dropdown.vue';
 import Login from './Login.vue';
-import Modal from './Modal.vue';
 import { TooltipError } from './tooltip/TooltipError';
-import UIButton from './UIButton.vue';
+import UIButton from './ui/UIButton.vue';
+import UIDateInput from './ui/UIDateInput.vue';
+import UIDropdown from './ui/UIDropdown.vue';
+import UIModal from './ui/UIModal.vue';
 import UserSettings from './UserSettings.vue';
 
 const start = ref<Date>();
@@ -106,11 +106,11 @@ defineExpose({ gear });
     <div class="controls">
       <label>
         <span>Start date</span>
-        <DateInput v-model="start" name="start" />
+        <UIDateInput v-model="start" name="start" />
       </label>
       <label>
         <span>End date</span>
-        <DateInput v-model="end" name="end" />
+        <UIDateInput v-model="end" name="end" />
       </label>
     </div>
     <div>
@@ -133,7 +133,7 @@ defineExpose({ gear });
     <div class="controls">
       <label>
         <span>Sport type</span>
-        <Dropdown
+        <UIDropdown
           v-model="sportType"
           :options="sortedSportTypes"
           blank-value=""
@@ -143,9 +143,9 @@ defineExpose({ gear });
     </div>
   </aside>
 
-  <Modal v-if="user" v-model="settingsOpen" class="modal">
+  <UIModal v-if="user" v-model="settingsOpen" class="modal">
     <UserSettings :user="user" @logout="onLogout" />
-  </Modal>
+  </UIModal>
 </template>
 
 <style scoped lang="scss">
