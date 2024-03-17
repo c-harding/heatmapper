@@ -3,6 +3,8 @@ import { type FindingStats } from '@strava-heatmapper/shared/interfaces';
 import { computed, ref } from 'vue';
 
 import { useActivityService } from '@/services/useActivityService';
+import useUser from '@/services/useUser';
+import { combineCallbacks } from '@/utils/functions';
 import { capitalise, count, countActivities, nonEmpties } from '@/utils/strings';
 
 import { sportGroups, sportTypes } from '../sportTypes';
@@ -10,6 +12,7 @@ import DateInput from './DateInput.vue';
 import Dropdown from './Dropdown.vue';
 import Login from './Login.vue';
 import Modal from './Modal.vue';
+import { TooltipError } from './tooltip/TooltipError';
 import UIButton from './UIButton.vue';
 import UserSettings from './UserSettings.vue';
 
@@ -25,8 +28,14 @@ const {
   discardCache,
   loadPartial,
   loadRoutes,
-  continueLogin,
+  continueLogin: continueActivityLogin,
 } = useActivityService();
+
+const { user, continueLogin: continueUserLogin, getUser } = useUser();
+
+const continueLogin = computed(() =>
+  combineCallbacks([continueUserLogin.value, continueActivityLogin.value]),
+);
 
 function findingString(stats?: FindingStats, inCache?: boolean): string;
 function findingString(
@@ -80,6 +89,15 @@ function onLogout(): void {
   settingsOpen.value = false;
 }
 
+async function settingsButton() {
+  try {
+    await getUser();
+    settingsOpen.value = true;
+  } catch (cause) {
+    throw new TooltipError('Cannot load user options', { timeout: 0, cause });
+  }
+}
+
 defineExpose({ gear });
 </script>
 
@@ -106,7 +124,7 @@ defineExpose({ gear });
         <UIButton @click="loadRoutes(start, end)">Routes</UIButton>
       </div>
       <div class="buttons">
-        <UIButton icon="settings" @click="settingsOpen = true">User</UIButton>
+        <UIButton icon="settings" @click="settingsButton">User</UIButton>
         <UIButton icon="delete" @click="discardCache">Discard cache</UIButton>
       </div>
     </div>
@@ -125,8 +143,8 @@ defineExpose({ gear });
     </div>
   </aside>
 
-  <Modal v-model="settingsOpen" class="modal">
-    <UserSettings @logout="onLogout" />
+  <Modal v-if="user" v-model="settingsOpen" class="modal">
+    <UserSettings :user="user" @logout="onLogout" />
   </Modal>
 </template>
 

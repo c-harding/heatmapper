@@ -7,6 +7,7 @@ export class TooltipError extends Error {
   readonly timeout?: number;
   readonly dismissalPromise?: Promise<void>;
 
+  constructor(message?: string, options?: TooltipErrorOptions);
   constructor(
     message?: string,
     { timeout, dismissalPromise, ...options }: TooltipErrorOptions = {},

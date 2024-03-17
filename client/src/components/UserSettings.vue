@@ -1,25 +1,26 @@
 <script lang="ts" setup>
+import { type User } from '@strava-heatmapper/shared/interfaces';
 import { computed } from 'vue';
 
-import useUser from '@/services/useUser';
 import { countOtherSessions } from '@/utils/strings';
 
-import Login from './Login.vue';
 import { TooltipError } from './tooltip/TooltipError';
 import UIButton from './UIButton.vue';
+
+const props = defineProps<{
+  user: User;
+}>();
 
 const emit = defineEmits<{
   (e: 'logout'): void;
 }>();
 
-const { user, continueLogin } = useUser();
-
-const imgSrc = computed<string | undefined>(() => user.value?.image62);
+const imgSrc = computed<string | undefined>(() => props.user?.image62);
 const imgSrcSet = computed<string | undefined>(() => {
-  if (!user.value) return;
+  if (!props.user) return;
   return [
-    { src: user.value.image62, width: 62 },
-    { src: user.value.image114, width: 114 },
+    { src: props.user.image62, width: 62 },
+    { src: props.user.image114, width: 114 },
   ]
     .filter(({ src }) => src)
     .map(({ src, width }) => `${src} ${width}w`)
@@ -27,15 +28,15 @@ const imgSrcSet = computed<string | undefined>(() => {
 });
 
 const fullName = computed<string | undefined>(
-  () => user.value && [user.value?.firstName, user.value?.lastName].filter(Boolean).join(' '),
+  () => props.user && [props.user?.firstName, props.user?.lastName].filter(Boolean).join(' '),
 );
 
 const profileLink = computed(
-  () => user.value && `https://www.strava.com/athletes/${user.value.id}`,
+  () => props.user && `https://www.strava.com/athletes/${props.user.id}`,
 );
 
 const otherSessions = computed<number>(() =>
-  user.value ? Math.max(user.value.sessions.length - 1, 0) : 0,
+  props.user ? Math.max(props.user.sessions.length - 1, 0) : 0,
 );
 
 const logout = async (global = false) => {
@@ -55,20 +56,17 @@ const logout = async (global = false) => {
 </script>
 <template>
   <h2>User settings</h2>
-  <Login v-if="continueLogin" @login="continueLogin($event)" />
-  <p v-else-if="!user">Loading…</p>
-  <template v-else>
-    <div class="flex-line">
-      <img class="profile-pic" :srcset="imgSrcSet" :src="imgSrc" />
-      <a :href="profileLink" class="user-name" target="_blank">{{ fullName }}</a>
-      <UIButton @click="logout(false)"> Sign out </UIButton>
-    </div>
-    <div class="flex-line">
-      <p v-if="otherSessions">You are signed in in {{ countOtherSessions(otherSessions) }}.</p>
-      <p v-else>You are not signed in anywhere else.</p>
-      <UIButton :disabled="!otherSessions" @click="logout(true)">Sign out everywhere</UIButton>
-    </div>
-  </template>
+
+  <div class="flex-line">
+    <img class="profile-pic" :srcset="imgSrcSet" :src="imgSrc" />
+    <a :href="profileLink" class="user-name" target="_blank">{{ fullName }}</a>
+    <UIButton @click="logout(false)"> Sign out </UIButton>
+  </div>
+  <div class="flex-line">
+    <p v-if="otherSessions">You are signed in in {{ countOtherSessions(otherSessions) }}.</p>
+    <p v-else>You are not signed in anywhere else.</p>
+    <UIButton :disabled="!otherSessions" @click="logout(true)">Sign out everywhere</UIButton>
+  </div>
 </template>
 
 <style scoped lang="scss">

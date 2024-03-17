@@ -76,6 +76,15 @@ const model = computed<string | null>({
     font-size: 18px;
   }
 
+  &:hover:has(select:not(:disabled)) {
+    background-color: var(--background-strong);
+  }
+
+  &:has(select:disabled) {
+    color: var(--color-weak);
+    border-color: var(--background-strong);
+  }
+
   select {
     flex-shrink: 1;
     min-width: 0;

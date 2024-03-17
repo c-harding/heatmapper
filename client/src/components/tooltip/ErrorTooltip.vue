@@ -114,6 +114,7 @@ $arrow-height: 8px;
 
   &.v-leave-active {
     transition: opacity 0.5s ease;
+    pointer-events: none;
   }
 
   &.v-enter-from,
