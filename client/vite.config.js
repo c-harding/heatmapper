@@ -1,7 +1,7 @@
 import {
   MAPBOX_STYLE,
   MAPBOX_TOKEN,
-  SERVER_DOMAIN,
+  SERVER_PORT,
   USE_EMOJI,
   VITE_APP_NAME,
   VITE_DEV_PORT,
@@ -39,7 +39,7 @@ export default defineConfig(({ mode }) => {
     server: {
       port: VITE_DEV_PORT,
       proxy: {
-        '^/api/': { target: SERVER_DOMAIN, ws: true },
+        '^/api/': { target: `http://localhost:${SERVER_PORT}`, ws: true },
       },
     },
     build: {
