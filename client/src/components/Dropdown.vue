@@ -93,6 +93,11 @@ const model = computed<string | null>({
     &:focus {
       outline: none;
     }
+
+    option {
+      background-color: var(--background);
+      color: var(--color);
+    }
   }
 
   .down-arrow {
