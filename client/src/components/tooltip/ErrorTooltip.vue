@@ -100,7 +100,7 @@ $arrow-height: 8px;
   display: flex;
   flex-direction: column;
   transform: translate(-50%, -100%);
-  filter: drop-shadow(0 0.5em 1em color-mix(in srgb, var(--color) 50%, transparent));
+  filter: drop-shadow(0 0.5em 1em color-mix(in srgb, var(--color-full) 50%, transparent));
 
   align-items: center;
 

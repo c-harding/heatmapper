@@ -8,6 +8,8 @@ import { sportGroups, sportTypes } from '@/sportTypes';
 import { combineCallbacks } from '@/utils/functions';
 import { capitalise, count, countActivities, nonEmpties } from '@/utils/strings';
 
+import SegmentedControl from '../segmented-control/SegmentedControl.vue';
+import SegmentedControlItem from '../segmented-control/SegmentedControlItem.vue';
 import { TooltipError } from '../tooltip/TooltipError';
 import UIButton from '../ui/UIButton.vue';
 import UIDateInput from '../ui/UIDateInput.vue';
@@ -25,9 +27,9 @@ const {
   stats,
   sportType,
   gear,
+  useRoutes,
   discardCache,
-  loadPartial,
-  loadRoutes,
+  load,
   continueLogin: continueActivityLogin,
 } = useActivityService();
 
@@ -98,6 +100,21 @@ async function settingsButton() {
   }
 }
 
+const loading = ref(false);
+
+async function loadButton() {
+  loading.value = true;
+  try {
+    await load(start.value, end.value);
+  } catch (cause) {
+    throw new TooltipError(
+      `An error occurred when fetching the ${useRoutes.value ? 'activities' : 'routes'}`,
+      { timeout: 0, cause },
+    );
+  }
+  loading.value = false;
+}
+
 defineExpose({ gear });
 </script>
 
@@ -115,13 +132,13 @@ defineExpose({ gear });
     </div>
     <div>
       <div class="buttons">
-        <UIButton
-          @rejection="$event.showError('An error occurred when fetching the activities')"
-          @click="loadPartial(start, end)"
-        >
-          Load
-        </UIButton>
-        <UIButton @click="loadRoutes(start, end)">Routes</UIButton>
+        <SegmentedControl v-slot="{ option }" v-model="useRoutes" :disabled="loading">
+          <SegmentedControlItem :option="option(false)">Activities</SegmentedControlItem>
+          <SegmentedControlItem :option="option(true)">Routes</SegmentedControlItem>
+        </SegmentedControl>
+      </div>
+      <div class="buttons">
+        <UIButton @click="loadButton">Load</UIButton>
       </div>
       <div class="buttons">
         <UIButton icon="settings" @click="settingsButton">User</UIButton>

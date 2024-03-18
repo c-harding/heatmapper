@@ -71,21 +71,21 @@ button {
 
   margin: 1ex;
   padding: 0.15em 0.4em;
-  border-radius: 0.3em;
+  border-radius: var(--border-radius);
   border: 1px solid var(--color-weak);
-  background-color: var(--background-slight);
-  color: var(--color);
+  background-color: var(--background-strong);
+  color: var(--color-full);
   max-width: max-content;
   min-width: min-content;
   font-size: 0.9em;
 
   &:hover:not(:disabled) {
-    background-color: var(--background-strong);
+    background-color: var(--background-weak);
   }
 
   &:disabled {
     color: var(--color-weak);
-    border-color: var(--background-strong);
+    border-color: var(--background-weak);
   }
 
   .button-contents {

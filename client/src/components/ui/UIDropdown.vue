@@ -64,9 +64,9 @@ const model = computed<string | null>({
   display: flex;
   margin: 1ex;
 
-  border-radius: 0.3em;
+  border-radius: var(--border-radius);
   border: 1px solid var(--color-weak);
-  background-color: var(--background-slight);
+  background-color: var(--background-strong);
 
   max-width: min-content;
   min-width: 3em;
@@ -77,12 +77,12 @@ const model = computed<string | null>({
   }
 
   &:hover:has(select:not(:disabled)) {
-    background-color: var(--background-strong);
+    background-color: var(--background-weak);
   }
 
   &:has(select:disabled) {
     color: var(--color-weak);
-    border-color: var(--background-strong);
+    border-color: var(--background-weak);
   }
 
   select {
@@ -104,8 +104,8 @@ const model = computed<string | null>({
     }
 
     option {
-      background-color: var(--background);
-      color: var(--color);
+      background-color: var(--background-full);
+      color: var(--color-full);
     }
   }
 

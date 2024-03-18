@@ -70,15 +70,15 @@ $padding-top: calc(0.5rem + var(--top-safe-area));
   content: '';
   position: absolute;
   z-index: -1;
-  background-color: var(--background);
+  background-color: var(--background-full);
 }
 
 .sidebar {
   flex: 0 $sidebar-width;
   display: flex;
   flex-direction: column;
-  color: var(--color);
-  background-color: var(--background);
+  color: var(--color-full);
+  background-color: var(--background-full);
   transition: margin var(--transition-speed);
   z-index: 1;
   position: relative;
@@ -91,7 +91,7 @@ $padding-top: calc(0.5rem + var(--top-safe-area));
     align-items: center;
     justify-content: center;
     padding-top: $padding-top;
-    background-color: var(--background);
+    background-color: var(--background-full);
 
     transition:
       margin var(--transition-speed),
@@ -99,7 +99,7 @@ $padding-top: calc(0.5rem + var(--top-safe-area));
 
     svg {
       height: $logo-height;
-      fill: var(--color);
+      fill: var(--color-full);
       max-height: 100%;
     }
   }
@@ -110,7 +110,7 @@ $padding-top: calc(0.5rem + var(--top-safe-area));
     flex-direction: column;
     overflow: auto;
     transition: margin var(--transition-speed);
-    background-color: var(--background);
+    background-color: var(--background-full);
     padding-bottom: var(--bottom-safe-area);
   }
 
@@ -132,7 +132,7 @@ $padding-top: calc(0.5rem + var(--top-safe-area));
   width: $tab-width;
   margin-inline-start: auto;
   margin-bottom: -$tab-height;
-  background: var(--background);
+  background: var(--background-full);
   border-end-end-radius: $corner-radius;
   border-start-end-radius: $corner-radius;
   transition:
@@ -174,14 +174,14 @@ $padding-top: calc(0.5rem + var(--top-safe-area));
 
 .tab-curve.top::before {
   bottom: 100%;
-  box-shadow: 0 $corner-radius 0 0 var(--background);
+  box-shadow: 0 $corner-radius 0 0 var(--background-full);
   border-end-start-radius: $pseudo-scaled-corner-radius;
   transition: inset var(--transition-speed);
 }
 
 .tab-curve.bottom::before {
   top: 100%;
-  box-shadow: 0 (-$corner-radius) 0 0 var(--background);
+  box-shadow: 0 (-$corner-radius) 0 0 var(--background-full);
   border-start-start-radius: $pseudo-scaled-corner-radius;
   transition: inset var(--transition-speed);
 }
@@ -189,7 +189,7 @@ $padding-top: calc(0.5rem + var(--top-safe-area));
 .tab {
   position: relative;
   height: 100%;
-  background: var(--background);
+  background: var(--background-full);
   display: flex;
   margin-bottom: -5rem;
   flex-direction: column;

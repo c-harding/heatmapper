@@ -71,6 +71,8 @@ const lineSizePx = computed(() => {
 const spinnerStyle = computed(() => ({
   width: sizePx.value + 'px',
   height: sizePx.value + 'px',
+  maxWidth: sizePx.value + 'px',
+  maxHeight: sizePx.value + 'px',
 }));
 </script>
 

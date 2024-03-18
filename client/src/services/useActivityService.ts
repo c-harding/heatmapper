@@ -6,7 +6,7 @@ import {
   type Route,
   TimeRange,
 } from '@strava-heatmapper/shared/interfaces';
-import { computed, inject, provide, reactive, readonly, ref } from 'vue';
+import { computed, inject, provide, reactive, readonly, type Ref, ref } from 'vue';
 
 import Socket from '@/socket';
 import {
@@ -31,17 +31,23 @@ const MIN_TIMEZONE_ADJUSTMENT = 14 * 60 * 60 * 1000;
 const MAX_TIMEZONE_ADJUSTMENT = -12 * 60 * 60 * 1000;
 
 function makeActivityService(): ActivityService {
-  const allMapItems = ref<MapItem[]>([]);
+  const allRoutes = ref<Route[]>([]);
+  const allActivities = ref<Activity[]>([]);
 
   const { continueLogin, waitForLogin } = useContinueLogin();
 
   const stats = ref<LoadingStats>({});
 
   const sportType = ref('');
+  const useRoutes = ref(false);
 
   const error = ref<string>();
 
   let socketController = new AbortController();
+
+  const allMapItems = computed<readonly MapItem[]>(() =>
+    useRoutes.value ? allRoutes.value : allActivities.value,
+  );
 
   const visibleMapItems = computed<readonly MapItem[]>(() =>
     sportType.value
@@ -70,12 +76,16 @@ function makeActivityService(): ActivityService {
     });
 
     // Trigger change detection for mapItems
-    allMapItems.value = allMapItems.value.slice();
+    allActivities.value = allActivities.value.slice();
+    allRoutes.value = allRoutes.value.slice();
   }
 
-  function addMapItems(newItems: readonly MapItem[]): void {
+  function addMapItems<T extends MapItem>(
+    collection: Ref<readonly T[]>,
+    newItems: readonly T[],
+  ): void {
     const newIDs = new Set(newItems.map((item) => item.id));
-    allMapItems.value = allMapItems.value
+    collection.value = collection.value
       .filter((item) => !newIDs.has(item.id))
       .concat(newItems)
       .sort((a, b) => b.date - a.date);
@@ -138,7 +148,7 @@ function makeActivityService(): ActivityService {
 
   function receiveRoutes(routes: Route[], socket: Socket, start?: Date, end?: Date): void {
     const filteredRoutes = filterActivities(routes, start, end);
-    addMapItems(filteredRoutes);
+    addMapItems(allRoutes, filteredRoutes);
     requestMaps(
       filteredRoutes.map(({ id }) => id),
       socket,
@@ -152,7 +162,7 @@ function makeActivityService(): ActivityService {
     end: Date | undefined,
   ): void {
     const filteredActivities = filterActivities(activities, start, end);
-    addMapItems(filteredActivities);
+    addMapItems(allActivities, filteredActivities);
     requestGear(
       filteredActivities.map(({ gear }) => gear),
       socket,
@@ -186,7 +196,11 @@ function makeActivityService(): ActivityService {
       localStorage.clear();
       stats.value = { cleared: true };
     }
-    allMapItems.value = [];
+    if (useRoutes.value) {
+      allRoutes.value = [];
+    } else {
+      allActivities.value = [];
+    }
   }
 
   interface SocketOptions {
@@ -291,7 +305,7 @@ function makeActivityService(): ActivityService {
 
     const storeVersion = getActivityStore().version;
     if (storeVersion !== serverVersion) {
-      allMapItems.value = [];
+      allActivities.value = [];
       resetActivityStore(serverVersion);
     }
 
@@ -314,12 +328,8 @@ function makeActivityService(): ActivityService {
     return await socket.completion();
   }
 
-  async function loadPartial(start?: Date, end?: Date): Promise<void> {
-    await sockets({ partial: true, start, end });
-  }
-
-  async function loadRoutes(start?: Date, end?: Date): Promise<void> {
-    await sockets({ routes: true, start, end });
+  async function load(start?: Date, end?: Date): Promise<void> {
+    await sockets({ partial: useRoutes.value ? false : true, routes: useRoutes.value, start, end });
   }
 
   loadFromCache();
@@ -329,14 +339,14 @@ function makeActivityService(): ActivityService {
     stats: readonly(stats),
     clientStats: readonly(clientStats),
     sportType,
+    useRoutes,
     error,
     gear: readonly(gear),
 
     mapItems: visibleMapItems,
 
     discardCache,
-    loadPartial,
-    loadRoutes,
+    load,
   };
 }
 

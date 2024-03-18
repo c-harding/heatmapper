@@ -68,34 +68,39 @@ a {
 }
 
 :root {
-  --color: #222;
-  --color-slight: #333;
+  --color-full: #222;
+  --color-strong: #333;
+  --color-mid: #5a5a5a;
   --color-weak: #808080;
-  --background: #fff;
+  --background-weak: #ccc;
+  --background-mid: #ddd;
+  --background-strong: #eee;
+  --background-full: #fff;
   --background-pure: #fff;
-  --background-slight: #eee;
-  --background-strong: #ccc;
   --background-error: hsl(0 90% 90%);
   --transition-speed: 0.5s;
   --bold-color: #fc4c02;
   --link-color: blue;
+  --border-radius: 6px;
   font-family: -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 
-  background-color: var(--background);
-  color: var(--color);
+  background-color: var(--background-full);
+  color: var(--color-full);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --color: #fff;
-    --color-slight: #eee;
+    --color-full: #fff;
+    --color-strong: #eee;
+    --color-mid: #b7b7b7;
     --color-weak: #808080;
-    --background: #222;
+    --background-weak: #555;
+    --background-mid: #444;
+    --background-strong: #333;
+    --background-full: #222;
     --background-pure: #000;
-    --background-slight: #333;
-    --background-strong: #555;
     --background-error: hsl(0 90% 30%);
     --bold-color: #fc4c02;
     --link-color: lightblue;

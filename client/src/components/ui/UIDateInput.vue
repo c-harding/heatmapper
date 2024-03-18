@@ -45,9 +45,9 @@ function dateToYYYYMMDD(date: Date | null): string | null {
   display: flex;
   margin: 1ex;
 
-  border-radius: 0.3em;
+  border-radius: var(--border-radius);
   border: 1px solid var(--color-weak);
-  background-color: var(--background-slight);
+  background-color: var(--background-strong);
 
   max-width: max-content;
   min-width: 3em;
@@ -56,9 +56,8 @@ function dateToYYYYMMDD(date: Date | null): string | null {
 input {
   background-color: inherit;
   border: none;
-  border-radius: 0.3em;
   margin: 0.5em 1em;
-  color: var(--color);
+  color: var(--color-full);
   appearance: none;
 
   &:focus {

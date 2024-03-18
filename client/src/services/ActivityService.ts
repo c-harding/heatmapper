@@ -27,12 +27,12 @@ export interface ActivityService {
   sportType: Ref<string>;
   error: Ref<string | undefined>;
   gear: ReadonlyMap<string, Gear | null>;
+  useRoutes: Ref<boolean>;
 
   mapItems: Readonly<Ref<readonly MapItem[]>>;
 
   discardCache(clearStorage?: boolean): void;
-  loadPartial(start?: Date, end?: Date): Promise<void>;
-  loadRoutes(start?: Date, end?: Date): Promise<void>;
+  load(start?: Date, end?: Date): Promise<void>;
 }
 
 export const activityServiceToken: InjectionKey<ActivityService> = Symbol('ActivityService');

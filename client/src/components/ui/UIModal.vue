@@ -39,21 +39,21 @@ dialog {
   border-radius: 1rem;
   position: relative;
 
-  background-color: var(--background);
-  color: var(--color);
+  background-color: var(--background-full);
+  color: var(--color-full);
   overflow: visible;
 
-  filter: drop-shadow(0 1em 2em color-mix(in srgb, var(--color) 10%, transparent));
+  filter: drop-shadow(0 1em 2em color-mix(in srgb, var(--color-full) 10%, transparent));
 
   &::backdrop {
-    background-color: color-mix(in srgb, var(--color) 10%, transparent);
+    background-color: color-mix(in srgb, var(--color-full) 10%, transparent);
   }
 
   .close-button {
     position: absolute;
     top: 0.5rem;
     right: 0.5rem;
-    color: var(--color-slight);
+    color: var(--color-strong);
 
     &:hover {
       color: var(--bold-color);

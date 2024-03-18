@@ -312,10 +312,10 @@ map.once('idle', () => mapLoaded(map));
 }
 
 .mapboxgl-ctrl-group {
-  background-color: var(--background);
+  background-color: var(--background-full);
 
   button {
-    color: var(--color-slight);
+    color: var(--color-strong);
   }
 
   &:not(empty) {
@@ -373,13 +373,13 @@ map.once('idle', () => mapLoaded(map));
 }
 
 .mapboxgl-ctrl-attrib-button {
-  background: var(--color);
+  background: var(--color-full);
   mask: url("data:image/svg+xml;charset=utf-8,%3Csvg viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg' fill-rule='evenodd'%3E%3Cpath d='M4 10a6 6 0 1 0 12 0 6 6 0 1 0-12 0m5-3a1 1 0 1 0 2 0 1 1 0 1 0-2 0m0 3a1 1 0 1 1 2 0v3a1 1 0 1 1-2 0'/%3E%3C/svg%3E");
 }
 
 .mapboxgl-ctrl-scale {
-  border-color: var(--color-slight);
-  background-color: color-mix(in srgb, var(--background) 25%, transparent);
-  color: var(--color-slight);
+  border-color: var(--color-strong);
+  background-color: color-mix(in srgb, var(--background-full) 25%, transparent);
+  color: var(--color-strong);
 }
 </style>

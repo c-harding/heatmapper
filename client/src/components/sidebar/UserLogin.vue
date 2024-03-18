@@ -34,13 +34,13 @@ const useCookie = ref(true);
 
 <style lang="scss">
 .not-logged-in-container {
-  background-color: var(--background);
+  background-color: var(--background-full);
   padding: 1em;
   position: sticky;
   bottom: 1em;
 
   .not-logged-in {
-    background-color: var(--background-strong);
+    background-color: var(--background-weak);
     border-radius: 1em;
     padding: 1em;
 

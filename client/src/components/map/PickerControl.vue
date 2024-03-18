@@ -87,7 +87,7 @@ onUnmounted(() => {
   }
 
   menu {
-    background: var(--background);
+    background: var(--background-full);
     border-radius: 0.5rem;
     overflow: hidden;
     list-style: none;
@@ -97,11 +97,11 @@ onUnmounted(() => {
 
     li {
       &:hover {
-        background-color: var(--background-slight);
+        background-color: var(--background-strong);
       }
 
       &[aria-selected='true'] {
-        background-color: var(--background-strong);
+        background-color: var(--background-weak);
       }
 
       a {

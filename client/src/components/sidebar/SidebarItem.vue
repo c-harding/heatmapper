@@ -225,11 +225,11 @@ const fullDate = computed(() => fullDateFormat.format(startDate.value));
   min-height: 36px;
 
   &:hover {
-    background: var(--background-slight);
+    background: var(--background-strong);
   }
 
   &.selected {
-    background: var(--background-strong);
+    background: var(--background-weak);
   }
 
   .strava-icon {
