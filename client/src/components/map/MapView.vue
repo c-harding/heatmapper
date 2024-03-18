@@ -299,12 +299,16 @@ map.once('idle', () => mapLoaded(map));
   z-index: 0;
 }
 
+.mapboxgl-canvas-container {
+  display: flex;
+  justify-content: center;
+}
+
 .mapboxgl-canvas {
+  position: unset;
   cursor: pointer;
   outline: none;
   inset-inline: 0;
-  margin-inline-start: 50%;
-  transform: translateX(-50%);
 
   &:dir(rtl) {
     transform: translateX(50%);
