@@ -136,8 +136,6 @@ defineExpose({ gear });
           <SegmentedControlItem :option="option(false)">Activities</SegmentedControlItem>
           <SegmentedControlItem :option="option(true)">Routes</SegmentedControlItem>
         </SegmentedControl>
-      </div>
-      <div class="buttons">
         <UIButton @click="loadButton">Load</UIButton>
       </div>
       <div class="buttons">
