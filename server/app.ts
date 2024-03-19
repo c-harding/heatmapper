@@ -8,6 +8,7 @@ import express from 'express';
 import expressWs from 'express-ws';
 
 import apiRouter from './api';
+import calendarRouter from './calendar';
 
 const app = express();
 expressWs(app);
@@ -26,6 +27,8 @@ function corsConfig(req, res, next) {
 app.use(corsConfig);
 
 app.use('/api', apiRouter(SERVER_DOMAIN));
+
+app.use('/calendar', calendarRouter(SERVER_DOMAIN));
 
 const compiledFrontEnd = __filename.includes('/dist/') ? '../client' : '../dist/client';
 

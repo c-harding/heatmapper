@@ -41,7 +41,7 @@ const appName = import.meta.env.VITE_APP_NAME as string;
       <div class="tab-curve bottom" />
     </div>
 
-    <section class="scrollable">
+    <section class="sidebar-content">
       <slot />
     </section>
 
@@ -104,11 +104,11 @@ $padding-top: calc(0.5rem + var(--top-safe-area));
     }
   }
 
-  > .scrollable {
+  > .sidebar-content {
     flex: 1;
+    min-height: 0;
     display: flex;
     flex-direction: column;
-    overflow: auto;
     transition: margin var(--transition-speed);
     background-color: var(--background-full);
     padding-bottom: var(--bottom-safe-area);
@@ -298,7 +298,7 @@ $padding-top: calc(0.5rem + var(--top-safe-area));
       margin-inline-end: 0;
 
       > .top-box,
-      > .scrollable {
+      > .sidebar-content {
         margin-inline-start: -$minimised-width;
         margin-inline-end: $minimised-width;
       }
