@@ -59,7 +59,7 @@ function clickHeader() {
       <div :class="[$style.tabCurve, $style.bottom]" />
     </div>
 
-    <section ref="scrollable" :class="$style.scrollable">
+    <section ref="scrollable" :class="$style.sidebarContent">
       <slot />
     </section>
 
@@ -122,11 +122,11 @@ $padding-top: calc(0.5rem + var(--top-safe-area));
     }
   }
 
-  > .scrollable {
+  > .sidebar-content {
     flex: 1;
+    min-height: 0;
     display: flex;
     flex-direction: column;
-    overflow: auto;
     transition: margin var(--transition-speed);
     background-color: var(--background-full);
     padding-bottom: var(--bottom-safe-area);
@@ -316,7 +316,7 @@ $padding-top: calc(0.5rem + var(--top-safe-area));
       margin-inline-end: 0;
 
       > .topBox,
-      > .scrollable {
+      > .sidebarContent {
         margin-inline-start: -$minimised-width;
         margin-inline-end: $minimised-width;
       }
