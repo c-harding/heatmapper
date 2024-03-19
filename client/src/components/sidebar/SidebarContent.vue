@@ -6,6 +6,11 @@ declare const GIT_HASH: string | undefined;
 <script setup lang="ts">
 import { type MapItem } from '@strava-heatmapper/shared/interfaces';
 import { nextTick, ref, watch } from 'vue';
+import {
+  DynamicScroller,
+  type DynamicScrollerInstance,
+  DynamicScrollerItem,
+} from 'vue-virtual-scroller';
 
 import { useActivityService } from '@/services/useActivityService';
 import { cancelTextSelection } from '@/utils/ui';
@@ -48,8 +53,6 @@ const selectionBase = ref<string[]>();
 
 const gitHash = GIT_HASH ?? null;
 
-const sidebarItemList = ref<HTMLUListElement>();
-
 function toggleInArray<T>(array: T[], item: T): T[] {
   if (array.includes(item)) return array.filter((x) => x !== item);
   else return [...array, item];
@@ -78,53 +81,82 @@ function forceSelect(): void {
   emit('zoom-to-selected');
 }
 
+const scroller = ref<DynamicScrollerInstance>();
+
 watch(
   () => props.selected,
   async (selected: string[]) => {
     if (selected !== localSelected.value) {
       localSelected.value = selected;
       selectionBase.value = selected;
-      if (selected.length !== 0) emit('focus-sidebar');
+      if (selected.length === 0) return;
+      emit('focus-sidebar');
       await nextTick();
-      const el = sidebarItemList.value?.querySelector('.selected');
-      el?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      const index = mapItems.value.findIndex((item) => item.id === selected[0]);
+
+      if (!scroller.value || index < 0) return;
+
+      const recycleScroller = scroller.value.$refs.scroller;
+      const scrollContainer = scroller.value.$el;
+      const scrollListOffset = recycleScroller.$refs.wrapper.offsetTop;
+      const size = recycleScroller.sizes[index];
+      if (size) {
+        const minPos = size.accumulator - size.size + scrollListOffset;
+        const maxPos = size.accumulator + scrollListOffset;
+        if (
+          minPos < scrollContainer.scrollTop ||
+          maxPos > scrollContainer.scrollTop + scrollContainer.offsetHeight
+        ) {
+          recycleScroller.scrollToPosition((minPos + maxPos - scrollContainer.clientHeight) / 2);
+        }
+      } else {
+        recycleScroller.scrollToItem(index);
+      }
     }
   },
 );
 </script>
 
 <template>
-  <div class="sidebar-content">
-    <FormComponent />
-    <ul ref="sidebarItemList">
-      <SidebarItem
-        v-for="item of mapItems"
-        :key="item.id"
-        :item="item"
-        :selected="selected.includes(item.id)"
-        @click="click(item.id, $event)"
-        @dblclick="forceSelect"
-      />
-    </ul>
-    <div class="credits">
-      <p>
-        Made by
-        <span class="keep-together">Charlie Harding</span>
-        <span class="keep-together">
-          <a class="icon strava" href="https://www.strava.com/athletes/13013632"
-            ><img src="@/assets/strava.png"
-          /></a>
-          <a class="icon github" href="https://github.com/c-harding/heatmapper"
-            ><img src="@/assets/github.png"
-          /></a>
-        </span>
-      </p>
-      <p v-if="gitHash">
-        Build <code>{{ gitHash }}</code>
-      </p>
-    </div>
-  </div>
+  <DynamicScroller ref="scroller" :items="mapItems" :min-item-size="36" key-field="id">
+    <template #before>
+      <FormComponent />
+    </template>
+    <template #default="{ item, active }">
+      <DynamicScrollerItem :item="item" :active="active" :size-dependencies="[item.name]">
+        <SidebarItem
+          :item="item"
+          :selected="selected.includes(item.id)"
+          @click="click(item.id, $event)"
+          @dblclick="forceSelect"
+        />
+      </DynamicScrollerItem>
+    </template>
+    <template #after>
+      <div class="credits">
+        <p>
+          Made by
+          <span class="keep-together">Charlie Harding</span>
+          <span class="keep-together">
+            <a class="icon strava" href="https://www.strava.com/athletes/13013632"
+              ><img src="@/assets/strava.png"
+            /></a>
+            <a class="icon github" href="https://github.com/c-harding/heatmapper"
+              ><img src="@/assets/github.png"
+            /></a>
+          </span>
+        </p>
+        <p v-if="gitHash">
+          Build <code>{{ gitHash }}</code>
+        </p>
+      </div>
+    </template>
+  </DynamicScroller>
 </template>
+
+<style lang="scss">
+@import 'vue-virtual-scroller/dist/vue-virtual-scroller.css' layer(virtual-scroller);
+</style>
 
 <style lang="scss" scoped>
 .sidebar-content {

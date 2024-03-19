@@ -43,6 +43,13 @@ onMounted(() => {
 onUnmounted(() => {
   window.removeEventListener('click', onClickOutside, { capture: cancelClickOnClickOutside });
 });
+
+function scrollTo(a: 1): 2 {
+  return 2;
+}
+defineExpose({ scrollTo });
+
+defineSlots<{ default(x: { y: T }): void }>();
 </script>
 
 <template>
