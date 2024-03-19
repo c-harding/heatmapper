@@ -16,11 +16,13 @@
     "@unhead/vue": "^1.8.9",
     "mapbox-gl": "~3.1.2",
     "vue": "^3.4.20",
-    "vue-router": "^4.3.0"
+    "vue-router": "^4.3.0",
+    "vue-virtual-scroller": "^2.0.0-beta.8"
   },
   "devDependencies": {
     "@types/mapbox-gl": "~3.1.0",
     "@types/mapbox__polyline": "^1.0.5",
+    "@types/vue-virtual-scroller": "c-harding/DefinitelyTyped#types/vue-virtual-scroller",
     "@typescript-eslint/eslint-plugin": "^7.0.2",
     "@typescript-eslint/parser": "^7.0.2",
     "@vitejs/plugin-vue": "^5.0.4",
@@ -38,7 +40,6 @@
     "git-describe": "^4.1.0",
     "prettier": "^3.1.1",
     "sass": "^1.22.10",
-    "ts-loader": "^9.5.1",
     "typescript": "~5.4.2",
     "vite": "^5.1.4",
     "vue-eslint-parser": "^9.4.2"
