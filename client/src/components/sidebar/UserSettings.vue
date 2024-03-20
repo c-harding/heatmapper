@@ -12,7 +12,7 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-  (e: 'logout'): void;
+  logout: [];
 }>();
 
 const imgSrc = computed<string | undefined>(() => props.user?.image62);

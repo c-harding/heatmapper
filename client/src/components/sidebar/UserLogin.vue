@@ -2,7 +2,7 @@
 import { ref } from 'vue';
 
 const emit = defineEmits<{
-  (e: 'login', useCookie: boolean): void;
+  login: [useCookie: boolean];
 }>();
 
 const useCookie = ref(true);

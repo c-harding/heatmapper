@@ -27,17 +27,13 @@ import { useMapStyle } from '@/MapStyle';
 import { addLayersToMap, applyMapItems, MapSourceLayer, useMapSelection } from '@/utils/map';
 import Viewport from '@/Viewport';
 
-const props = withDefaults(
-  defineProps<{
-    center: LngLatLike;
-    zoom: number;
-    selected?: string[];
-    mapItems: readonly MapItem[];
-  }>(),
-  {
-    selected: () => [],
-  },
-);
+const { mapItems } = defineProps<{
+  mapItems: readonly MapItem[];
+}>();
+
+const center = defineModel<LngLatLike>('center', { required: true });
+const zoom = defineModel<number>('zoom', { required: true });
+const selected = defineModel<string[]>('selected', { required: true });
 
 defineExpose({ zoomToSelection });
 
@@ -46,12 +42,6 @@ const mapboxgl = await import('mapbox-gl');
 const container = ref<HTMLElement>();
 
 const token = MAPBOX_TOKEN;
-
-const emit = defineEmits<{
-  (e: 'update:center', value: LngLatLike): void;
-  (e: 'update:zoom', value: number): void;
-  (e: 'update:selected', value: string[]): void;
-}>();
 
 const { mapStyleUrl, mapChoice, mapStyle, mapStyleChoices } = useMapStyle();
 
@@ -64,8 +54,8 @@ if (!window.cachedMapElement) {
     accessToken: token,
     container: document.createElement('div'),
     style: mapStyleUrl.value,
-    center: props.center,
-    zoom: props.zoom,
+    center: center.value,
+    zoom: zoom.value,
   });
 
   newMap.addControl(new mapboxgl.FullscreenControl(), topCorner);
@@ -87,11 +77,11 @@ onMounted(() => {
 });
 
 const selectedMapItems = computed<readonly MapItem[]>(() =>
-  props.mapItems.filter((item) => props.selected.includes(item.id)),
+  mapItems.filter((item) => selected.value.includes(item.id)),
 );
 
 watch(
-  () => props.mapItems,
+  () => mapItems,
   (mapItems) => {
     applyMapItems(map, mapItems, MapSourceLayer.LINES);
   },
@@ -238,7 +228,7 @@ function mapLoaded(map: MapboxMap): void {
   addLayersToMap(map, mapStyle.value);
   onTerrain();
 
-  applyMapItems(map, props.mapItems, MapSourceLayer.LINES);
+  applyMapItems(map, mapItems, MapSourceLayer.LINES);
   applyMapItems(map, selectedMapItems.value, MapSourceLayer.SELECTED);
 }
 
@@ -250,17 +240,17 @@ function dblclick(e: MapMouseEvent) {
 }
 
 function zoomend(map: MapboxMap): void {
-  emit('update:zoom', map.getZoom());
+  zoom.value = map.getZoom();
 }
 
 function moveend(map: MapboxMap) {
-  emit('update:center', map.getCenter());
+  center.value = map.getCenter();
 }
 
 const { click } = useMapSelection({
-  getExternalSelection: () => props.selected,
+  getExternalSelection: () => selected.value,
   flyToSelection: () => flyTo(selectedMapItems.value, false),
-  emitUpdate: (selected) => emit('update:selected', selected),
+  emitUpdate: (newSelected) => (selected.value = newSelected),
 });
 
 const buttonTarget = map.getContainer().querySelector(`.mapboxgl-ctrl-${topCorner}`);

@@ -3,20 +3,11 @@ import { ref } from 'vue';
 
 import UIIcon from './UIIcon.vue';
 
-withDefaults(
-  defineProps<{
-    modelValue?: Date | null;
-    name?: string;
-  }>(),
-  {
-    modelValue: null,
-    name: undefined,
-  },
-);
-
-const emit = defineEmits<{
-  (e: 'update:modelValue', value: Date | null): void;
+const { name } = defineProps<{
+  name?: string;
 }>();
+
+const model = defineModel<Date | null>({ default: null });
 
 const input = ref<HTMLInputElement>();
 
@@ -33,8 +24,8 @@ function dateToYYYYMMDD(date: Date | null): string | null {
       ref="input"
       type="date"
       :name="name"
-      :value="dateToYYYYMMDD(modelValue)"
-      @change="emit('update:modelValue', input!.valueAsDate)"
+      :value="dateToYYYYMMDD(model)"
+      @change="model = input!.valueAsDate"
     />
     <UIIcon class="icon">expand_more</UIIcon>
   </div>

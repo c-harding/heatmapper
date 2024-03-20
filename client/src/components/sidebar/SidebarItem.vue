@@ -55,29 +55,27 @@ import UISpinner from '../ui/UISpinner.vue';
 // This conditional must be in the component rather than the template, so that tree-shaking works
 const StravaActivitySymbol = USE_EMOJI ? StravaEmoji : StravaIcon;
 
-const props = withDefaults(
-  defineProps<{
-    item: MapItem;
-    selected?: boolean;
-    expanded?: boolean;
-  }>(),
-  {
-    selected: false,
-    expanded: true,
-  },
-);
+const {
+  item,
+  selected = false,
+  expanded = true,
+} = defineProps<{
+  item: MapItem;
+  selected?: boolean;
+  expanded?: boolean;
+}>();
 
 const emit = defineEmits<{
-  (e: 'click', value: MouseEvent): void;
-  (e: 'touchstart'): void;
-  (e: 'dblclick', value: MouseEvent): void;
+  click: [value: MouseEvent];
+  touchstart: [];
+  dblclick: [value: MouseEvent];
 }>();
 
 const url = computed<string>(() => {
-  if (props.item.route) {
-    return `https://www.strava.com/routes/${props.item.id}`;
+  if (item.route) {
+    return `https://www.strava.com/routes/${item.id}`;
   } else {
-    return `https://www.strava.com/activities/${props.item.id}`;
+    return `https://www.strava.com/activities/${item.id}`;
   }
 });
 
@@ -111,14 +109,14 @@ const hideElevationGain: SportType[] = [
 const useTextLink = USE_EMOJI;
 
 const distanceString = computed(() => {
-  const kilometers = props.item.distance / 1000;
+  const kilometers = item.distance / 1000;
 
   const format = kilometers >= 100 ? bigKilometerFormat : smallKilometerFormat;
   return format.format(kilometers);
 });
 
 const movingTime = computed(() => {
-  const time = !props.item.route && props.item.movingTime;
+  const time = !item.route && item.movingTime;
   if (!time) return undefined;
 
   // If any value is zero,
@@ -146,17 +144,17 @@ const movingTime = computed(() => {
 });
 
 const elevationString = computed(() => {
-  if (!props.item.elevation) return;
+  if (!item.elevation) return;
   const elevationGain =
-    (props.item.route || !hideElevationGain.includes(props.item.type)) &&
-    props.item.elevation.gain !== undefined &&
-    `${ascentArrow} ${meterFormat.format(props.item.elevation.gain)}`;
+    (item.route || !hideElevationGain.includes(item.type)) &&
+    item.elevation.gain !== undefined &&
+    `${ascentArrow} ${meterFormat.format(item.elevation.gain)}`;
 
   const elevationLoss =
-    !props.item.route &&
-    showElevationLoss.includes(props.item.type) &&
-    props.item.elevation.loss !== undefined &&
-    `${descentArrow} ${meterFormat.format(props.item.elevation.loss)}`;
+    !item.route &&
+    showElevationLoss.includes(item.type) &&
+    item.elevation.loss !== undefined &&
+    `${descentArrow} ${meterFormat.format(item.elevation.loss)}`;
 
   if (elevationGain && elevationLoss) {
     return `${elevationGain} ${elevationLoss}`;
@@ -169,7 +167,7 @@ const stats = computed(() =>
   [distanceString.value, elevationString.value, movingTime.value].filter(Boolean).join(' • '),
 );
 
-const startDate = computed(() => (!props.item.route && props.item.localDate) || props.item.date);
+const startDate = computed(() => (!item.route && item.localDate) || item.date);
 
 const dateString = computed(() => {
   const yearString = yearFormat.format(startDate.value);

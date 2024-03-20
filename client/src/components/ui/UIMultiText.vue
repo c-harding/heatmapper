@@ -1,13 +1,14 @@
 <script setup lang="ts" generic="T extends string | number">
 import { computed } from 'vue';
-const props = defineProps<{
+
+const { texts, selected: selectedProp } = defineProps<{
   texts: Record<T, string>;
   selected?: T;
 }>();
 
-const textPairs = computed(() => Object.entries(props.texts));
+const textPairs = computed(() => Object.entries(texts));
 const selected = computed(() =>
-  props.selected && props.selected in props.texts ? props.selected : textPairs.value[0][0],
+  selectedProp && selectedProp in texts ? selectedProp : textPairs.value[0][0],
 );
 </script>
 

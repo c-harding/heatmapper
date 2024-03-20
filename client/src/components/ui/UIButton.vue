@@ -12,36 +12,33 @@ export interface ButtonError {
   showError: ShowError;
 }
 
-const props = withDefaults(
-  defineProps<{
-    icon?: string;
-    loading?: boolean;
-    disabled?: boolean;
-    onClick?: () => void | Promise<void>;
-    onRejection?: (value: ButtonError) => string | void;
-  }>(),
-  {
-    icon: undefined,
-    loading: false,
-    disabled: false,
-    onClick: undefined,
-    onRejection: undefined,
-  },
-);
+const {
+  icon,
+  loading: loadingProp = false,
+  disabled = false,
+  onClick,
+  onRejection,
+} = defineProps<{
+  icon?: string;
+  loading?: boolean;
+  disabled?: boolean;
+  onClick?: () => void | Promise<void>;
+  onRejection?: (value: ButtonError) => string | void;
+}>();
 
 const { targetRef: buttonRef, errorMessage, dismissLast, showError } = useErrorTooltip();
 
 const runningClickHandler = ref(false);
 
-const loading = computed(() => props.loading || runningClickHandler.value);
+const loading = computed(() => loadingProp || runningClickHandler.value);
 
 async function clickHandler() {
   if (runningClickHandler.value) return;
   runningClickHandler.value = true;
-  Promise.resolve(props.onClick?.())
+  Promise.resolve(onClick?.())
     .catch((error: unknown) => {
-      if (props.onRejection) {
-        props.onRejection({ error, showError });
+      if (onRejection) {
+        onRejection({ error, showError });
       } else if (error instanceof TooltipError) {
         const dismiss = showError(error.message, error.timeout);
         error.dismissalPromise?.then(dismiss);

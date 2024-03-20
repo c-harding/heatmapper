@@ -4,10 +4,15 @@ import { computed } from 'vue';
 import { type LoadingStats } from '@/services/ActivityService';
 import { capitalise, countActivities, countRoutes } from '@/utils/strings';
 
-const props = withDefaults(
-  defineProps<{ stats: LoadingStats; useRoutes?: boolean; error?: string }>(),
-  { useRoutes: false, error: undefined },
-);
+const {
+  stats,
+  useRoutes = false,
+  error,
+} = defineProps<{
+  stats: LoadingStats;
+  useRoutes?: boolean;
+  error?: string;
+}>();
 
 const findingString = computed(() => {
   const {
@@ -15,9 +20,9 @@ const findingString = computed(() => {
     closed = false,
     inCache = false,
     finding: { started = false, finished = false, length = 0 } = {},
-  } = props.stats;
+  } = stats;
 
-  const countItems = props.useRoutes ? countRoutes : countActivities;
+  const countItems = useRoutes ? countRoutes : countActivities;
   if (cleared) return `cleared cache`;
   if (finished && inCache) return `found ${countItems(length)} in cache`;
   if (finished || closed) return `found ${countItems(length)}`;

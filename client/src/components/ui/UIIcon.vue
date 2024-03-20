@@ -2,23 +2,20 @@
 import { useHead } from '@unhead/vue';
 import { computed } from 'vue';
 
-const props = withDefaults(
-  defineProps<{
-    inline?: boolean;
-    large?: boolean;
-    placeholder?: boolean;
-    bottom?: boolean;
-  }>(),
-  {
-    inline: false,
-    large: false,
-    placeholder: false,
-    bottom: false,
-  },
-);
+const {
+  inline = false,
+  large = false,
+  placeholder = false,
+  bottom = false,
+} = defineProps<{
+  inline?: boolean;
+  large?: boolean;
+  placeholder?: boolean;
+  bottom?: boolean;
+}>();
 
 const generated = computed(() => {
-  if (props.placeholder) return 'crop_square';
+  if (placeholder) return 'crop_square';
   return '';
 });
 

@@ -4,7 +4,7 @@ import { sportIconString } from '@/utils/icons';
 
 import type StravaSymbolProps from './StravaSymbolProps';
 
-defineProps<StravaSymbolProps>();
+const { sportType } = defineProps<StravaSymbolProps>();
 </script>
 
 <template>

@@ -1,71 +1,42 @@
 <script lang="ts" setup>
-import { computed, type PropType } from 'vue';
+import { computed } from 'vue';
 
 const isNumber = (n: number | string): n is number => !isNaN(parseFloat(`${n}`)) && isFinite(+n);
 
-type Size = 'tiny' | 'small' | 'medium' | 'big' | 'large' | 'huge' | 'massive';
+type Size = 'tiny' | 'small' | 'medium' | 'large' | 'big' | 'huge' | 'massive';
 
-const props = defineProps({
-  size: {
-    type: [Number, String] as PropType<number | Size>,
-    default: 32,
-  },
-  lineSize: {
-    type: Number,
-    default: 3,
-  },
-  lineBgColor: {
-    type: String,
-    default: 'transparent',
-  },
-  lineFgColor: {
-    type: String,
-    default: 'currentColor',
-  },
-  speed: {
-    type: Number,
-    default: 0.8,
-  },
-});
+const sizes: Record<Size | number, Record<'size' | 'lineSize', number>> = {
+  tiny: { size: 12, lineSize: 1 },
+  small: { size: 16, lineSize: 2 },
+  medium: { size: 32, lineSize: 3 },
+  large: { size: 48, lineSize: 3 },
+  big: { size: 64, lineSize: 4 },
+  huge: { size: 96, lineSize: 4 },
+  massive: { size: 128, lineSize: 5 },
+};
+
+const {
+  size = 32,
+  lineSize = 3,
+  lineBgColor = 'transparent',
+  lineFgColor = 'currentColor',
+  speed = 0.8,
+} = defineProps<{
+  size?: number | Size;
+  lineSize?: number;
+  lineBgColor?: string;
+  lineFgColor?: string;
+  speed?: number;
+}>();
 
 const sizePx = computed(() => {
-  switch (props.size) {
-    case 'tiny':
-      return 12;
-    case 'small':
-      return 16;
-    case 'medium':
-      return 32;
-    case 'large':
-      return 48;
-    case 'big':
-      return 64;
-    case 'huge':
-      return 96;
-    case 'massive':
-      return 128;
-  }
-  return isNumber(props.size) ? props.size : 32;
+  if (size in sizes) return sizes[size].size;
+  return isNumber(size) ? size : 32;
 });
 
 const lineSizePx = computed(() => {
-  switch (props.size) {
-    case 'tiny':
-      return 1;
-    case 'small':
-      return 2;
-    case 'medium':
-      return 3;
-    case 'large':
-      return 3;
-    case 'big':
-      return 4;
-    case 'huge':
-      return 4;
-    case 'massive':
-      return 5;
-  }
-  return isNumber(props.lineSize) ? props.lineSize : 4;
+  if (size in sizes) return sizes[size].lineSize;
+  return isNumber(lineSize) ? lineSize : 4;
 });
 
 const spinnerStyle = computed(() => ({

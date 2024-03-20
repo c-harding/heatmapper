@@ -14,7 +14,7 @@ const clickedOpen = ref(false);
 
 const value = defineModel<T>({ required: true });
 
-defineProps<{
+const { choices } = defineProps<{
   choices: readonly Choice[];
 }>();
 

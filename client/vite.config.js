@@ -18,7 +18,7 @@ process.env.VITE_APP_NAME ||= VITE_APP_NAME;
 export default defineConfig(({ mode }) => {
   return {
     plugins: [
-      vue(),
+      vue({ script: { propsDestructure: true } }),
       vueJsx({
         // options are passed on to @vue/babel-plugin-jsx
       }),

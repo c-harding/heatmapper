@@ -3,12 +3,13 @@ import { computed } from 'vue';
 
 import { type SegmentedControlItemContext } from './SegmentedControl.vue';
 
-const props = withDefaults(
-  defineProps<{ option: SegmentedControlItemContext; icon?: string; disabled?: boolean }>(),
-  { icon: undefined, disabled: false },
-);
+const {
+  option,
+  icon,
+  disabled: disabledProp = false,
+} = defineProps<{ option: SegmentedControlItemContext; icon?: string; disabled?: boolean }>();
 
-const disabled = computed(() => props.option.disabled || props.disabled);
+const disabled = computed(() => option.disabled || disabledProp);
 </script>
 
 <template>

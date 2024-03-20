@@ -4,9 +4,8 @@ import { computed, nextTick, ref, watch } from 'vue';
 import UIIcon from '../ui/UIIcon.vue';
 import { type ErrorMessage } from './useErrorTooltip';
 
-const props = defineProps<{
+const { errorMessage, onDismiss } = defineProps<{
   errorMessage?: ErrorMessage;
-
   onDismiss?: () => void;
 }>();
 
@@ -19,7 +18,7 @@ const marginAdjustments = ref<Record<string, string>>();
 const tooltipRef = ref<HTMLElement>();
 
 function dismiss() {
-  props.onDismiss?.();
+  onDismiss?.();
 }
 
 function calculateTooltipPosition(errorMessage: ErrorMessage) {
@@ -55,7 +54,7 @@ function adjustMargins() {
 }
 
 watch(
-  () => props.errorMessage,
+  () => errorMessage,
   (errorMessage) => {
     if (errorMessage) {
       errorPosition.value = calculateTooltipPosition(errorMessage);

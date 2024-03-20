@@ -25,19 +25,11 @@ function getRange(mapItems: readonly MapItem[], to: string, from?: string | stri
   return mapItems.slice(start, end + 1).map(({ id }) => id);
 }
 
-const props = withDefaults(
-  defineProps<{
-    selected?: string[];
-  }>(),
-  {
-    selected: () => [],
-  },
-);
+const selected = defineModel<string[]>('selected', { required: true });
 
 const emit = defineEmits<{
-  (e: 'update:selected', value: string[]): void;
-  (e: 'zoom-to-selected'): void;
-  (e: 'focus-sidebar'): void;
+  'zoom-to-selected': [];
+  'focus-sidebar': [];
 }>();
 
 const { mapItems } = useActivityService();
@@ -56,7 +48,7 @@ function toggleInArray<T>(array: T[], item: T): T[] {
 }
 
 function getSelection(id: string, e: MouseEvent): string[] {
-  if (e.metaKey || e.ctrlKey) return toggleInArray(props.selected, id);
+  if (e.metaKey || e.ctrlKey) return toggleInArray(selected.value, id);
   if (e.shiftKey) return getRange(mapItems.value, id, selectionBase.value);
   return [id];
 }
@@ -70,7 +62,7 @@ function select(id: string, e: MouseEvent): void {
   const newSelected = getSelection(id, e);
   if (newSelected.length === 1) selectionBase.value = newSelected;
   localSelected.value = newSelected;
-  emit('update:selected', newSelected);
+  selected.value = newSelected;
 }
 
 function forceSelect(): void {
@@ -78,19 +70,16 @@ function forceSelect(): void {
   emit('zoom-to-selected');
 }
 
-watch(
-  () => props.selected,
-  async (selected: string[]) => {
-    if (selected !== localSelected.value) {
-      localSelected.value = selected;
-      selectionBase.value = selected;
-      if (selected.length !== 0) emit('focus-sidebar');
-      await nextTick();
-      const el = sidebarItemList.value?.querySelector('.selected');
-      el?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-    }
-  },
-);
+watch(selected, async (selected: string[]) => {
+  if (selected !== localSelected.value) {
+    localSelected.value = selected;
+    selectionBase.value = selected;
+    if (selected.length !== 0) emit('focus-sidebar');
+    await nextTick();
+    const el = sidebarItemList.value?.querySelector('.selected');
+    el?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }
+});
 </script>
 
 <template>

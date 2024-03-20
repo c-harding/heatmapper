@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { computed } from 'vue';
-
 import UIIcon from './UIIcon.vue';
 
 export interface Option {
@@ -8,36 +6,19 @@ export interface Option {
   label: string;
 }
 
-const props = withDefaults(
-  defineProps<{
-    modelValue: string | null;
-    blankValue: string | null;
-    blankLabel: string | null;
-    clearButton?: boolean;
-    options: Option[];
-  }>(),
-  {
-    modelValue: null,
-    blankValue: null,
-    blankLabel: null,
-    clearButton: false,
-  },
-);
-
-const emit = defineEmits<{
-  (e: 'update:modelValue', id: string): void;
+const {
+  options,
+  blankValue = null,
+  blankLabel = null,
+  clearButton = false,
+} = defineProps<{
+  options: Option[];
+  blankValue: string | null;
+  blankLabel: string | null;
+  clearButton?: boolean;
 }>();
 
-const model = computed<string | null>({
-  get() {
-    return props.modelValue;
-  },
-  set(value) {
-    if (value !== null) {
-      emit('update:modelValue', value);
-    }
-  },
-});
+const model = defineModel<string | null>({ default: null });
 </script>
 
 <template>

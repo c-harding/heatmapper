@@ -5,9 +5,7 @@ export interface SegmentedControlItemContext {
   disabled: boolean;
 }
 
-const props = withDefaults(defineProps<{ disabled?: boolean }>(), {
-  disabled: false,
-});
+const { disabled = false } = defineProps<{ disabled?: boolean }>();
 
 const model = defineModel<T>();
 
@@ -19,7 +17,7 @@ function option(value: T): SegmentedControlItemContext {
   return {
     selected: model.value === value,
     select: () => (model.value = value),
-    disabled: props.disabled,
+    disabled,
   };
 }
 </script>
