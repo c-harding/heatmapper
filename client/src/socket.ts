@@ -113,14 +113,10 @@ export default class Socket {
   async completion() {
     const connection = await this.connection;
     if (
-      connection.readyState === connection.CLOSING ||
-      connection.readyState === connection.CLOSED
+      connection.readyState !== connection.CLOSING &&
+      connection.readyState !== connection.CLOSED
     ) {
-      return;
-    } else {
-      return new Promise<void>((resolve) => {
-        connection.addEventListener('close', () => resolve());
-      });
+      await new Promise((resolve) => connection.addEventListener('close', resolve));
     }
   }
 }

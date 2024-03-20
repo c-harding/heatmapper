@@ -9,6 +9,7 @@ import {
   TimeRange,
 } from '@strava-heatmapper/shared/interfaces';
 import { type WebsocketRequestHandler } from 'express-ws';
+import { AbortError } from 'node-fetch';
 
 import eagerIterator from '../eager-iterator';
 import { extractRequestToken } from '../request-utils';
@@ -119,6 +120,10 @@ function convertActivity({ id, map }, highDetail = false): ActivityMap {
 
 /**
  * Sort promises by execution time, instantly.
+ *
+ * This takes the number of promises provided, and creates an equal number of promises in return.
+ * The first promise in this returned array will resolve with the result of the first promise to resolve in the source
+ * array, and so on.
  */
 function sortPromises<T>(promises: Promise<T>[]): Promise<T>[] {
   const sorted: Promise<T>[] = [];
@@ -141,10 +146,11 @@ export class ActivitiesHandler {
   ) {}
 
   readonly get: WebsocketRequestHandler = (ws, req) => {
-    let live = true;
+    const abortController = new AbortController();
+    const isLive = () => !abortController.signal.aborted;
 
     function send(data: ResponseMessage) {
-      if (live) ws.send(JSON.stringify(data));
+      if (isLive()) ws.send(JSON.stringify(data));
     }
 
     async function requestLogin(token: string, url: string) {
@@ -152,7 +158,7 @@ export class ActivitiesHandler {
       return true;
     }
 
-    const strava = new Strava(this.domain, extractRequestToken(req), requestLogin);
+    const strava = new Strava(this.domain, extractRequestToken(req), requestLogin, abortController.signal);
 
     const stats: StatsMessage = {
       type: 'stats',
@@ -166,8 +172,8 @@ export class ActivitiesHandler {
         gear: convertGear(gear),
       });
 
-    ws.on('close', () => {
-      live = false;
+    ws.on('close', (code, reason) => {
+      abortController.abort([code, reason.toString('utf-8')].join(' '));
     });
 
     // TODO: cache this sensibly
@@ -176,8 +182,6 @@ export class ActivitiesHandler {
      */
     async function* activitiesIterator(start?: number, end?: number): AsyncGenerator<Activity[]> {
       for await (const page of eagerIterator(strava.getStravaActivitiesPages(start, end))) {
-        if (!live) return;
-
         stats.finding.length += page.length;
         sendStats();
 
@@ -194,17 +198,13 @@ export class ActivitiesHandler {
      * Fetches your routes from the Strava API
      */
     async function* routesIterator(): AsyncGenerator<Route[]> {
-      const routes: Route[] = [];
-
       for await (const page of eagerIterator(strava.getStravaRoutesPages())) {
-        if (!live) return;
+        if (!isLive()) return;
 
-        stats.finding.length = routes.length + page.length;
+        stats.finding.length += page.length;
         sendStats();
 
-        const newRoutes = page.map((route) => convertRouteSummary(route)).filter((route) => route.map);
-        routes.push(...newRoutes);
-        yield newRoutes;
+        yield page.map((route) => convertRouteSummary(route)).filter((route) => route.map);
       }
     }
 
@@ -219,7 +219,7 @@ export class ActivitiesHandler {
       // mutex section
       return async () => {
         for await (const chunk of chunkAsync(activityMaps, 50)) {
-          if (!live) return;
+          if (!isLive()) return;
           const maps = Object.fromEntries(chunk);
           send({ type: 'maps', chunk: maps });
         }
@@ -228,61 +228,67 @@ export class ActivitiesHandler {
     });
 
     ws.on('message', async (data) => {
-      const message: RequestMessage = JSON.parse(data.toString());
-      if (message.version) {
-        send({ type: 'version', version: this.modelVersion });
-      }
+      try {
+        const message: RequestMessage = JSON.parse(data.toString());
+        if (message.version) {
+          send({ type: 'version', version: this.modelVersion });
+        }
 
-      if (message.activities) {
-        stats.finding.started = true;
+        if (message.activities) {
+          stats.finding.started = true;
 
-        for (const { start, end } of TimeRange.cap(message.activities).reverse()) {
+          for (const { start, end } of TimeRange.cap(message.activities).reverse()) {
+            sendStats();
+            // TODO: add error handling (offline)
+            for await (const activities of activitiesIterator(start, end)) {
+              if (!isLive()) return;
+              send({
+                type: 'activities',
+                activities: activities,
+              });
+              sendStats();
+            }
+
+            if (!isLive()) return;
+            sendStats();
+          }
+
+          if (!isLive()) return;
+          stats.finding.finished = true;
           sendStats();
-          // TODO: add error handling (offline)
-          for await (const activities of activitiesIterator(start, end)) {
-            if (!live) return;
+        }
+
+        if (message.routes) {
+          stats.finding.started = true;
+
+          sendStats();
+          for await (const routes of routesIterator()) {
+            if (!isLive()) return;
+
             send({
-              type: 'activities',
-              activities: activities,
+              type: 'routes',
+              routes,
             });
             sendStats();
           }
 
-          if (!live) return;
+          if (!isLive()) return;
+          stats.finding.finished = true;
           sendStats();
         }
 
-        if (!live) return;
-        stats.finding.finished = true;
-        sendStats();
-      }
-
-      if (message.routes) {
-        stats.finding.started = true;
-
-        sendStats();
-        for await (const routes of routesIterator()) {
-          if (!live) return;
-
-          send({
-            type: 'routes',
-            routes,
-          });
-          sendStats();
+        if (message.maps) {
+          console.warn('deprecated: maps should not be fetched');
+          sendMaps(message.maps);
         }
 
-        if (!live) return;
-        stats.finding.finished = true;
-        sendStats();
-      }
-
-      if (message.maps) {
-        console.warn('deprecated: maps should not be fetched');
-        sendMaps(message.maps);
-      }
-
-      if (message.gear) {
-        sendGear(await strava.getGearById(message.gear));
+        if (message.gear) {
+          sendGear(await strava.getGearById(message.gear));
+        }
+      } catch (e: unknown) {
+        if (e instanceof AbortError) {
+          console.info('Request aborted');
+        }
       }
     });
   };

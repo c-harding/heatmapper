@@ -8,12 +8,30 @@ const callbacks = new Map<string, (registration: OAuthCallbackResponse) => Promi
 
 const CALLBACK_TIMEOUT = 15 * 60 * 1000; // 15 min
 
-export function addCallback(name: string, mapper?: undefined): Promise<OAuthCallbackResponse>;
+interface AddCallbackOptions {
+  timeout?: number;
+  signal?: AbortSignal;
+}
+
+export function addCallback(
+  name: string,
+  options?: AddCallbackOptions,
+  mapper?: undefined,
+): Promise<OAuthCallbackResponse>;
+export function addCallback<T>(
+  name: string,
+  options: AddCallbackOptions,
+  mapper: (response: OAuthCallbackResponse) => T,
+): Promise<Awaited<T>>;
 export function addCallback<T>(name: string, mapper: (response: OAuthCallbackResponse) => T): Promise<Awaited<T>>;
 export function addCallback(
   name: string,
-  mapper?: (response: OAuthCallbackResponse) => unknown | Promise<unknown>,
+  arg2?: AddCallbackOptions | ((response: OAuthCallbackResponse) => unknown | Promise<unknown>),
+  arg3?: (response: OAuthCallbackResponse) => unknown | Promise<unknown>,
 ): Promise<unknown> {
+  const [options, mapper] = typeof arg2 === 'function' ? [undefined, arg2] : [arg2, arg3];
+  const { timeout = CALLBACK_TIMEOUT, signal } = options ?? {};
+
   return new Promise((resolve, reject) => {
     callbacks.set(name, async (data) => {
       callbacks.delete(name);
@@ -27,10 +45,11 @@ export function addCallback(
         }
       }
     });
+    signal?.addEventListener('abort', () => reject({ error: 'Abort', cause: signal.reason }), { once: true });
     setTimeout(() => {
       callbacks.delete(name);
-      reject({ error: 'Timeout', time: CALLBACK_TIMEOUT });
-    }, CALLBACK_TIMEOUT);
+      reject({ error: 'Timeout', time: timeout });
+    }, timeout);
   });
 }
 

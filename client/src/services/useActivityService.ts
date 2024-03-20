@@ -141,10 +141,14 @@ function makeActivityService(): ActivityService {
     }
   }
 
-  function discardCache(clearStorage = false) {
+  function cancelLoading() {
     socketController.abort();
-    clearMapItems(clearStorage);
     socketController = new AbortController();
+  }
+
+  function discardCache(clearStorage = false) {
+    cancelLoading();
+    clearMapItems(clearStorage);
   }
 
   function clearMapItems(clearStorage = false) {
@@ -294,6 +298,7 @@ function makeActivityService(): ActivityService {
 
     mapItems: visibleMapItems,
 
+    cancelLoading,
     discardCache,
     load,
   };

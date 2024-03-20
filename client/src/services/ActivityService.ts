@@ -28,6 +28,7 @@ export interface ActivityService {
 
   mapItems: Readonly<Ref<readonly MapItem[]>>;
 
+  cancelLoading(): void;
   discardCache(clearStorage?: boolean): void;
   load(start?: Date, end?: Date): Promise<void>;
 }

@@ -15,6 +15,7 @@ import UIButton from '../ui/UIButton.vue';
 import UIDateInput from '../ui/UIDateInput.vue';
 import UIDropdown from '../ui/UIDropdown.vue';
 import UIModal from '../ui/UIModal.vue';
+import UIMultiText from '../ui/UIMultiText.vue';
 import UserLogin from './UserLogin.vue';
 import UserSettings from './UserSettings.vue';
 
@@ -28,6 +29,7 @@ const {
   sportType,
   gear,
   useRoutes,
+  cancelLoading,
   discardCache,
   load,
   continueLogin: continueActivityLogin,
@@ -124,7 +126,15 @@ defineExpose({ gear });
       </div>
       <div class="buttons">
         <UIButton icon="settings" @click="settingsButton">User</UIButton>
-        <UIButton icon="delete" @click="discardCache(true)">Discard cache</UIButton>
+        <UIButton
+          :icon="loading ? 'close' : 'delete'"
+          @click="loading ? cancelLoading() : discardCache(true)"
+        >
+          <UIMultiText
+            :texts="{ false: 'Discard cache', true: 'Cancel loading' }"
+            :selected="loading ? 'true' : 'false'"
+          />
+        </UIButton>
       </div>
     </div>
     <UserLogin v-if="continueLogin" @login="continueLogin($event)" />

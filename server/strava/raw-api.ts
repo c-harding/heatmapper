@@ -28,10 +28,11 @@ export default class RawStravaApi {
 
   constructor(
     private readonly domain: string,
-    tokenCookie: string | undefined,
-    private readonly requestLogin: ((token: string, url: string) => Promise<boolean>) | null,
+    requestToken: string | undefined,
+    private readonly loginCallback: ((token: string, url: string) => Promise<boolean>) | null,
+    private readonly abortSignal?: AbortSignal,
   ) {
-    this.token = tokenCookie && validateUUID(tokenCookie) ? tokenCookie : uuid();
+    this.token = requestToken && validateUUID(requestToken) ? requestToken : uuid();
   }
 
   private async loadCache(): Promise<Cache> {
@@ -76,6 +77,7 @@ export default class RawStravaApi {
         ...calculatedParams,
       }),
       headers: { 'Content-Type': 'application/json' },
+      signal: this.abortSignal,
     });
     if (res.status >= 400 && params) {
       console.error('/token:', res.status, 'body:', await res.json());
@@ -167,20 +169,21 @@ export default class RawStravaApi {
 
     const data = await fetch(API, {
       headers: { Authorization: `Bearer ${await this.getStravaToken()}` },
+      signal: this.abortSignal,
     });
     return data;
   }
 
   private async getAccessTokenFromBrowser(): Promise<void> {
-    if (!this.requestLogin) throw new CannotLogin('requestLogin is null');
-    const athleteInfoPromise = addCallback(this.token, (oauthResponse) => {
+    if (!this.loginCallback) throw new CannotLogin('requestLogin is null');
+    const athleteInfoPromise = addCallback(this.token, { signal: this.abortSignal }, (oauthResponse) => {
       return this.getStravaToken({
         code: oauthResponse.code,
         grant_type: 'authorization_code',
       });
     });
 
-    const continueAfterLogin = await this.requestLogin(
+    const continueAfterLogin = await this.loginCallback(
       this.token,
       `http://www.strava.com/oauth/authorize?client_id=${stravaClientId}&response_type=code&redirect_uri=${this.domain}/api/token&state=${this.token}&approval_prompt=auto&scope=read_all,activity:read_all`,
     );

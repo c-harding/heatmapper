@@ -8,15 +8,21 @@ export class Strava {
 
   constructor(
     domain: string,
-    tokenCookie: string | undefined,
-    requestLogin: ((token: string, url: string) => Promise<boolean>) | null,
+    requestToken: string | undefined,
+    loginCallback: ((token: string, url: string) => Promise<boolean>) | null,
+    abortSignal?: AbortSignal,
   ) {
-    this.rawApi = new RawStravaApi(domain, tokenCookie, requestLogin);
+    this.rawApi = new RawStravaApi(domain, requestToken, loginCallback, abortSignal);
   }
 
-  private async getActivitiesPage(i: number, start?: number, end?: number): Promise<SummaryActivity[]> {
+  private async getActivitiesPage(
+    i: number,
+    pageSize: number,
+    start?: number,
+    end?: number,
+  ): Promise<SummaryActivity[]> {
     return this.rawApi.get('/athlete/activities', {
-      per_page: 200,
+      per_page: pageSize,
       page: i,
       before: end === undefined ? undefined : Math.floor(end),
       after: start === undefined ? undefined : Math.floor(start),
@@ -35,11 +41,12 @@ export class Strava {
    * Fetches your data from the Strava API
    */
   async *getStravaActivitiesPages(start?: number, end?: number): AsyncGenerator<SummaryActivity[], void, undefined> {
+    const pageSize = 200;
     let i = 1;
     while (true) {
-      const page = await this.getActivitiesPage(i, start, end);
-      if (!page.length) break;
-      yield page;
+      const page = await this.getActivitiesPage(i, pageSize, start, end);
+      if (page.length) yield page;
+      if (page.length < pageSize) break;
       i += 1;
     }
   }
@@ -53,9 +60,9 @@ export class Strava {
     }
   }
 
-  private async getRoutesPage(i: number): Promise<SummaryRoute[]> {
+  private async getRoutesPage(i: number, pageSize: number): Promise<SummaryRoute[]> {
     return this.rawApi.get('/athletes/{athlete}/routes', {
-      per_page: 200,
+      per_page: pageSize,
       page: i,
     });
   }
@@ -64,12 +71,13 @@ export class Strava {
    * Fetches your data from the Strava API
    */
   public async *getStravaRoutesPages(): AsyncGenerator<SummaryRoute[], void, undefined> {
+    const pageSize = 200;
     let i = 1;
     while (true) {
-      const page = await this.getRoutesPage(i);
+      const page = await this.getRoutesPage(i, pageSize);
       console.log('route page', i, 'has length', page.length);
-      if (!page.length) break;
-      yield page;
+      if (page.length) yield page;
+      if (page.length < pageSize) break;
       i += 1;
     }
   }

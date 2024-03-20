@@ -1,3 +1,5 @@
+import { AbortError } from 'node-fetch';
+
 interface RecursiveIterator<T> {
   next: IteratorResult<T>;
   nextIterator?: Promise<RecursiveIterator<T>>;
@@ -8,32 +10,36 @@ export const sleep = (delay: number): Promise<void> => new Promise((resolve) => 
 export const tick = (): Promise<void> => sleep(0);
 
 const eagerIterator = <T>(asyncIterable: AsyncIterable<T>): AsyncIterableIterator<T> => {
-  let returned = false;
+  const returned = false;
 
   const eagerIteratorStep = async (asyncIterator: AsyncIterator<T>): Promise<RecursiveIterator<T>> => {
     if (returned) return { next: { done: true, value: undefined } };
     await tick();
-    const next = await asyncIterator.next();
-    if (next.done) return { next };
-    return { next, nextIterator: eagerIteratorStep(asyncIterator) };
+    try {
+      const next = await asyncIterator.next();
+      if (next.done) return { next };
+      return { next, nextIterator: eagerIteratorStep(asyncIterator) };
+    } catch (e) {
+      if (e instanceof AbortError) return { next: { done: true, value: undefined } };
+      else throw e;
+    }
   };
 
-  let iteratorPromise = eagerIteratorStep(asyncIterable[Symbol.asyncIterator]());
+  let iteratorPromise: Promise<RecursiveIterator<T> | undefined> = eagerIteratorStep(
+    asyncIterable[Symbol.asyncIterator](),
+  );
   return {
     async next() {
-      if (returned) return { done: true, value: undefined };
       const currentIteratorPromise = iteratorPromise;
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      iteratorPromise = currentIteratorPromise.then((currentIterator) => currentIterator.nextIterator!);
-      const { next } = await currentIteratorPromise;
-      if (next.done) returned = true;
-      return next;
+      iteratorPromise = currentIteratorPromise.then((currentIterator) => currentIterator?.nextIterator);
+      const currentIterator = await currentIteratorPromise;
+      return currentIterator?.next ?? { done: true, value: undefined };
     },
 
     // Handle early termination.
     // A return/break in a for-await loop will call this, preventing further loading.
     async return(value = undefined) {
-      returned = true;
+      iteratorPromise = Promise.resolve(undefined);
       return { done: true, value };
     },
     [Symbol.asyncIterator]() {
