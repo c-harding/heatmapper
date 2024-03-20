@@ -14,9 +14,6 @@ export interface FilterModel {
 
 // TODO: combine LoadingStats and ClientStats
 export interface ClientStats {
-  mapsRequested: number;
-  mapsLoaded: number;
-  mapsNotCached: number;
   inCache: boolean;
 }
 

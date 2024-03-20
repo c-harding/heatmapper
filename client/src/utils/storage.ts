@@ -6,18 +6,6 @@ export interface ActivityStore {
   activities: Activity[];
 }
 
-export function saveCachedMap(id: number | string, map: string) {
-  localStorage.setItem(`map:summary:${id}`, map);
-}
-
-export function saveCachedMaps(mappings: Record<string, string>) {
-  Object.entries(mappings).map(([id, map]) => saveCachedMap(id, map));
-}
-
-export function getCachedMap(id: number | string) {
-  return localStorage.getItem(`map:summary:${id}`);
-}
-
 export function saveCachedGear(id: string, gear: Gear) {
   localStorage.setItem(`gear:${id}`, JSON.stringify(gear));
 }
@@ -56,22 +44,10 @@ export function appendCachedActivities(activities: Activity[], end: number, star
     covered: TimeRange.merge(existingStore.covered.concat({ start, end })),
     activities: existingStore.activities
       .filter((existingActivity) => !ids.has(existingActivity.id))
-      .concat(activities.map((activity) => ({ ...activity, map: '' })))
+      .concat(activities)
       .sort((a, b) => b.date - a.date),
   };
   localStorage.setItem('activities', JSON.stringify(newStore));
-}
-
-export function getCachedMaps(ids: string[]) {
-  const notCached: string[] = [];
-
-  const cached: Record<string, string> = {};
-  for (const id of ids) {
-    const fromCache = getCachedMap(id);
-    if (fromCache) cached[id] = fromCache;
-    else notCached.push(id.toString());
-  }
-  return { cached, notCached };
 }
 
 export function getCachedGears(ids: string[]) {

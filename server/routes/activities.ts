@@ -147,8 +147,6 @@ export class ActivitiesHandler {
       if (live) ws.send(JSON.stringify(data));
     }
 
-    const fetchedMaps = new Map<string, string>();
-
     async function requestLogin(token: string, url: string) {
       send({ type: 'login', cookie: token, url });
       return true;
@@ -210,14 +208,11 @@ export class ActivitiesHandler {
       }
     }
 
+    /** @deprecated maps are now sent as part of the request, this method now only serves high-res maps */
     const sendMaps = completeInOrder(async (activities: string[]) => {
       const activityMaps = sortPromises(
         activities.map(async (id) => {
-          const highDetail = false;
-          let map = fetchedMaps.get(id);
-          if (map) fetchedMaps.delete(id);
-          if (map && !highDetail) return [id, map];
-          map = convertActivity(await strava.getActivity(id), highDetail).map;
+          const map = convertActivity(await strava.getActivity(id), true).map;
           return [id, map];
         }),
       );
@@ -226,7 +221,7 @@ export class ActivitiesHandler {
         for await (const chunk of chunkAsync(activityMaps, 50)) {
           if (!live) return;
           const maps = Object.fromEntries(chunk);
-          send({ type: 'maps', chunk: maps } as ResponseMessage);
+          send({ type: 'maps', chunk: maps });
         }
         sendStats();
       };
@@ -246,13 +241,10 @@ export class ActivitiesHandler {
           // TODO: add error handling (offline)
           for await (const activities of activitiesIterator(start, end)) {
             if (!live) return;
-            activities.forEach(({ map, id }) => {
-              fetchedMaps.set(id.toString(), map);
-            });
             send({
               type: 'activities',
-              activities: activities.map(({ map, ...activity }) => activity),
-            } as ResponseMessage);
+              activities: activities,
+            });
             sendStats();
           }
 
@@ -271,13 +263,11 @@ export class ActivitiesHandler {
         sendStats();
         for await (const routes of routesIterator()) {
           if (!live) return;
-          routes.forEach(({ map, id }) => {
-            fetchedMaps.set(id, map);
-          });
+
           send({
             type: 'routes',
-            routes: routes.map(({ map, ...routes }) => routes),
-          } as ResponseMessage);
+            routes,
+          });
           sendStats();
         }
 
@@ -287,6 +277,7 @@ export class ActivitiesHandler {
       }
 
       if (message.maps) {
+        console.warn('deprecated: maps should not be fetched');
         sendMaps(message.maps);
       }
 

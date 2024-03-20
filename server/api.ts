@@ -5,12 +5,12 @@ import { ActivitiesHandler } from './routes/activities';
 import { getToken } from './routes/token';
 import { UserHandler } from './routes/user';
 
-const VERSION = 2;
+const MODEL_VERSION = 3;
 
 export default function apiRouter(domain: string): express.Router {
   const router = express.Router() as Router;
 
-  const activitiesHandler = new ActivitiesHandler(domain, VERSION);
+  const activitiesHandler = new ActivitiesHandler(domain, MODEL_VERSION);
   router.ws('/activities', activitiesHandler.get);
 
   router.get('/token', getToken);

@@ -14,6 +14,8 @@ interface RoutesMessage {
   type: 'routes';
   routes: Route[];
 }
+
+/** @deprecated maps are now sent as part of the original route */
 interface MapsMessage {
   type: 'maps';
   chunk: Record<string, string>;

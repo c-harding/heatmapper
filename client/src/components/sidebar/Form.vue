@@ -6,7 +6,7 @@ import { useActivityService } from '@/services/useActivityService';
 import useUser from '@/services/useUser';
 import { sportGroups, sportTypes } from '@/sportTypes';
 import { combineCallbacks } from '@/utils/functions';
-import { capitalise, count, countActivities, nonEmpties } from '@/utils/strings';
+import { capitalise, countActivities, nonEmpties } from '@/utils/strings';
 
 import SegmentedControl from '../segmented-control/SegmentedControl.vue';
 import SegmentedControlItem from '../segmented-control/SegmentedControlItem.vue';
@@ -52,15 +52,6 @@ function findingString(
   return '';
 }
 
-function mapString(requested = 0, length = 0, uncached = 0) {
-  if (uncached && requested === 0) return 'but no maps cached';
-  if (uncached) return `loaded ${length} maps, ${uncached} maps not cached`;
-  if (requested && requested === length) return 'loaded all maps';
-  if (length) return `loaded ${length} of ${count(requested, 'map')} so far`;
-  if (requested) return `requested ${count(requested, 'map')}`;
-  return '';
-}
-
 const settingsOpen = ref(false);
 
 const sortedSportTypes = [...Object.entries(sportGroups), ...Object.entries(sportTypes)]
@@ -74,14 +65,7 @@ const statusMessage = computed(() => {
 function statsMessage(): string {
   if (stats.value.cleared) return 'Cleared cache';
   return capitalise(
-    nonEmpties(
-      findingString(stats.value.finding, clientStats.value.inCache),
-      mapString(
-        clientStats.value.mapsRequested,
-        clientStats.value.mapsLoaded,
-        clientStats.value.mapsNotCached,
-      ),
-    ).join(', '),
+    nonEmpties(findingString(stats.value.finding, clientStats.value.inCache)).join(', '),
   );
 }
 

@@ -14,11 +14,8 @@ import {
   getActivityStore,
   getCachedActivities,
   getCachedGear,
-  getCachedMap,
-  getCachedMaps,
   resetActivityStore,
   saveCachedGear,
-  saveCachedMaps,
 } from '@/utils/storage';
 
 import { type ActivityService, activityServiceToken, type LoadingStats } from './ActivityService';
@@ -59,26 +56,8 @@ function makeActivityService(): ActivityService {
   const gear = reactive(new Map<string, Gear | null>());
 
   const clientStats = ref({
-    mapsRequested: 0,
-    mapsLoaded: 0,
-    mapsNotCached: 0,
     inCache: true,
   });
-
-  function receiveMaps(maps: Record<string, string>): void {
-    clientStats.value.mapsLoaded += Object.keys(maps).length;
-
-    Object.entries(maps).forEach(([item, map]) => {
-      const i = allMapItems.value.findIndex(({ id }) => id.toString() === item);
-      if (i > -1) {
-        allMapItems.value[i].map = map;
-      }
-    });
-
-    // Trigger change detection for mapItems
-    allActivities.value = allActivities.value.slice();
-    allRoutes.value = allRoutes.value.slice();
-  }
 
   function addMapItems<T extends MapItem>(
     collection: Ref<readonly T[]>,
@@ -98,24 +77,9 @@ function makeActivityService(): ActivityService {
   }
 
   function checkFinished(socket?: Socket): void {
-    if (
-      clientStats.value.mapsRequested === clientStats.value.mapsLoaded &&
-      stats.value.finding?.finished
-    ) {
+    if (stats.value.finding?.finished) {
       socket?.close();
     }
-  }
-
-  async function requestMaps(ids: string[], socket?: Socket) {
-    clientStats.value.mapsRequested += ids.length;
-    const { cached, notCached } = getCachedMaps(ids);
-    receiveMaps(cached);
-    if (socket && notCached.length) {
-      await socket.sendRequest({
-        maps: notCached,
-      });
-    }
-    checkFinished(socket);
   }
 
   function requestGear(ids: (string | undefined)[], socket?: Socket) {
@@ -149,10 +113,7 @@ function makeActivityService(): ActivityService {
   function receiveRoutes(routes: Route[], socket: Socket, start?: Date, end?: Date): void {
     const filteredRoutes = filterActivities(routes, start, end);
     addMapItems(allRoutes, filteredRoutes);
-    requestMaps(
-      filteredRoutes.map(({ id }) => id),
-      socket,
-    );
+    checkFinished();
   }
 
   function receiveActivities(
@@ -167,10 +128,7 @@ function makeActivityService(): ActivityService {
       filteredActivities.map(({ gear }) => gear),
       socket,
     );
-    requestMaps(
-      filteredActivities.map(({ id }) => id),
-      socket,
-    );
+    checkFinished();
   }
 
   function loadFromCache(partial = false, start?: Date | undefined, end?: Date | undefined): void {
@@ -179,9 +137,7 @@ function makeActivityService(): ActivityService {
       if (!partial) {
         stats.value = { finding: { started: true, finished: true, length: activities.length } };
       }
-      const cachedActivities = activities.filter(({ id }) => getCachedMap(id));
-      clientStats.value.mapsNotCached = activities.length - cachedActivities.length;
-      receiveActivities(cachedActivities, undefined, start, end);
+      receiveActivities(activities, undefined, start, end);
     }
   }
 
@@ -219,10 +175,8 @@ function makeActivityService(): ActivityService {
     discardCache(false);
 
     if (partial) loadFromCache(partial, start, end);
+
     clientStats.value = {
-      mapsRequested: 0,
-      mapsLoaded: 0,
-      mapsNotCached: 0,
       inCache: false,
     };
     stats.value = {};
@@ -270,11 +224,6 @@ function makeActivityService(): ActivityService {
             const routeCount = data.routes.length;
             if (routeCount === 0) break;
             receiveRoutes(data.routes, socket, start, end);
-            break;
-          }
-          case 'maps': {
-            saveCachedMaps(data.chunk);
-            receiveMaps(data.chunk);
             break;
           }
           case 'gear': {
