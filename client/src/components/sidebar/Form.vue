@@ -124,7 +124,7 @@ defineExpose({ gear });
       </div>
       <div class="buttons">
         <UIButton icon="settings" @click="settingsButton">User</UIButton>
-        <UIButton icon="delete" @click="discardCache">Discard cache</UIButton>
+        <UIButton icon="delete" @click="discardCache(true)">Discard cache</UIButton>
       </div>
     </div>
     <UserLogin v-if="continueLogin" @login="continueLogin($event)" />
