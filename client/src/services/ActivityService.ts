@@ -25,7 +25,7 @@ export interface ActivityService {
 
   cancelLoading(): void;
   discardCache(clearStorage?: boolean): void;
-  load(start?: Date, end?: Date): Promise<void>;
+  load(partial: boolean, start?: Date, end?: Date): Promise<void>;
 }
 
 export const activityServiceToken: InjectionKey<ActivityService> = Symbol('ActivityService');

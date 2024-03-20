@@ -1,5 +1,8 @@
 interface TimeRange {
+  /** The start of the range, a unix timestamp in seconds */
   start?: number;
+
+  /** The end of the range, a unix timestamp in seconds */
   end?: number;
 }
 
@@ -72,12 +75,22 @@ namespace TimeRange {
   /**
    * Restrict the provided time ranges to only include the parts lying between a given start and end time
    * @param ranges The input time ranges
-   * @param start The earliest time to consider
-   * @param end The latest time to consider
+   * @param start The earliest time to consider (unix timestamp in seconds)
+   * @param end The latest time to consider (unix timestamp in seconds)
    * @returns The parts of the input time ranges that lie between the start and end times
    */
   export function cap(ranges: TimeRange[], start = 0, end?: number): TimeRange[] {
     return subtract(ranges, [{ start: end ?? Date.now() / 1000 }, { end: start }]);
+  }
+
+  /**
+   * Determine whether the provided time ranges include the given time
+   * @param ranges The input time ranges
+   * @param time The time to compare with the ranges
+   * @returns True if the time falls within one of the ranges, else false.
+   */
+  export function includes(ranges: TimeRange[], time: number) {
+    return ranges.some(({ start = 0, end = Date.now() / 1000 }) => start <= time && time <= end);
   }
 }
 

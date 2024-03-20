@@ -186,7 +186,6 @@ export class ActivitiesHandler {
       abortController.abort([code, reason.toString('utf-8')].join(' '));
     });
 
-    // TODO: cache this sensibly
     /**
      * Fetches your data from the Strava API
      */

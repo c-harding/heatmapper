@@ -12,6 +12,8 @@ import Socket from '@/socket';
 import {
   appendCachedActivities,
   appendCachedRoutes,
+  clearCachedActivities,
+  clearCachedRoutes,
   getActivityStore,
   getCachedActivities,
   getCachedGear,
@@ -171,18 +173,19 @@ function makeActivityService(): ActivityService {
     socketController = new AbortController();
   }
 
-  function discardCache(clearStorage = false) {
+  function discardCache(clearStorage = false, start?: Date, end?: Date): void {
     cancelLoading();
-    clearMapItems(clearStorage);
+    clearMapItems(clearStorage, start, end);
   }
 
-  function clearMapItems(clearStorage = false) {
+  function clearMapItems(clearStorage = false, start?: Date, end?: Date): void {
     if (useRoutes.value) {
+      clearCachedRoutes();
       routeStats.value = { cleared: true, inCache: false };
       allRoutes.value = [];
     } else {
       if (clearStorage) {
-        localStorage.clear();
+        clearCachedActivities(start, end);
       }
       activityStats.value = { cleared: true, inCache: false };
       allActivities.value = [];
@@ -202,17 +205,6 @@ function makeActivityService(): ActivityService {
     start,
     end,
   }: SocketOptions = {}): Promise<void> {
-    discardCache(false);
-
-    if (!routes && partial) loadFromActivityCache(partial, start, end);
-
-    const setStats = (stats: LoadingStats) => {
-      if (routes) routeStats.value = stats;
-      else activityStats.value = stats;
-    };
-    setStats({ inCache: false });
-    error.value = undefined;
-
     // The dates shown in the UI are formatted in event-local time.
     // In order to ensure that all events are correctly shown, we need to ensure that the start
     // timestamp represents the earliest point that this date is reached anywhere on Earth, and that
@@ -223,6 +215,17 @@ function makeActivityService(): ActivityService {
     const endTimestamp = end
       ? (end.getTime() + DAY - MAX_TIMEZONE_ADJUSTMENT) / 1000
       : Date.now() / 1000;
+
+    discardCache(routes || !partial, start, end);
+
+    if (!routes && partial) loadFromActivityCache(partial, start, end);
+
+    const setStats = (stats: LoadingStats) => {
+      if (routes) routeStats.value = stats;
+      else activityStats.value = stats;
+    };
+    setStats({ inCache: false });
+    error.value = undefined;
 
     let latestActivityDate = startTimestamp;
 
@@ -309,8 +312,8 @@ function makeActivityService(): ActivityService {
     return await socket.completion();
   }
 
-  async function load(start?: Date, end?: Date): Promise<void> {
-    await sockets({ partial: useRoutes.value ? false : true, routes: useRoutes.value, start, end });
+  async function load(partial: boolean, start?: Date, end?: Date): Promise<void> {
+    await sockets({ partial, routes: useRoutes.value, start, end });
   }
 
   loadFromCache();

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 
 import { useActivityService } from '@/services/useActivityService';
 import useUser from '@/services/useUser';
@@ -62,10 +62,16 @@ async function settingsButton() {
 
 const loading = ref(false);
 
+const unchangedSinceLoad = ref(false);
+
 async function loadButton() {
   loading.value = true;
+
+  /** Keep existing data unless the form is unchanged since the last click */
+  const partialLoad = !unchangedSinceLoad.value;
+
   try {
-    await load(start.value, end.value);
+    await load(partialLoad, start.value, end.value);
   } catch (cause) {
     const message = `An error occurred when fetching the ${
       useRoutes.value ? 'activities' : 'routes'
@@ -74,7 +80,12 @@ async function loadButton() {
     throw new TooltipError(message, { timeout: 0, cause });
   }
   loading.value = false;
+  unchangedSinceLoad.value = true;
 }
+
+watch([start, end, useRoutes], () => {
+  unchangedSinceLoad.value = false;
+});
 
 defineExpose({ gear });
 </script>
@@ -97,7 +108,12 @@ defineExpose({ gear });
           <SegmentedControlItem :option="option(false)">Activities</SegmentedControlItem>
           <SegmentedControlItem :option="option(true)">Routes</SegmentedControlItem>
         </SegmentedControl>
-        <UIButton @click="loadButton">Load</UIButton>
+        <UIButton @click="loadButton">
+          <UIMultiText
+            :texts="{ false: 'Load', true: 'Reload' }"
+            :selected="unchangedSinceLoad ? 'true' : 'false'"
+          />
+        </UIButton>
       </div>
       <div class="buttons">
         <UIButton icon="settings" @click="settingsButton">User</UIButton>

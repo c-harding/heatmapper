@@ -84,6 +84,26 @@ export function appendCachedRoutes(routes: Route[]) {
   localStorage.setItem('routes', JSON.stringify(newStore));
 }
 
+export function clearCachedActivities(start?: Date, end?: Date) {
+  const store = getActivityStore();
+  if (!start && !end) {
+    store.activities = [];
+  } else {
+    const timeRange: TimeRange = {
+      start: start && start.getTime() / 1000,
+      end: end && end.getTime() / 1000,
+    };
+    store.activities = store.activities.filter(
+      (activity) => !TimeRange.includes([timeRange], activity.date),
+    );
+  }
+  localStorage.setItem('activities', JSON.stringify(store));
+}
+
+export function clearCachedRoutes() {
+  localStorage.removeItem('routes');
+}
+
 export function getCachedGears(ids: string[]) {
   const notCached: string[] = [];
 
