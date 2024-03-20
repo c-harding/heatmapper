@@ -1,12 +1,10 @@
 <script setup lang="ts">
-import { type FindingStats } from '@strava-heatmapper/shared/interfaces';
 import { computed, ref } from 'vue';
 
 import { useActivityService } from '@/services/useActivityService';
 import useUser from '@/services/useUser';
 import { sportGroups, sportTypes } from '@/sportTypes';
 import { combineCallbacks } from '@/utils/functions';
-import { capitalise, countActivities, nonEmpties } from '@/utils/strings';
 
 import SegmentedControl from '../segmented-control/SegmentedControl.vue';
 import SegmentedControlItem from '../segmented-control/SegmentedControlItem.vue';
@@ -16,6 +14,7 @@ import UIDateInput from '../ui/UIDateInput.vue';
 import UIDropdown from '../ui/UIDropdown.vue';
 import UIModal from '../ui/UIModal.vue';
 import UIMultiText from '../ui/UIMultiText.vue';
+import LoadingStatus from './LoadingStatus.vue';
 import UserLogin from './UserLogin.vue';
 import UserSettings from './UserSettings.vue';
 
@@ -24,7 +23,6 @@ const end = ref<Date>();
 
 const {
   error,
-  clientStats,
   stats,
   sportType,
   gear,
@@ -41,35 +39,11 @@ const continueLogin = computed(() =>
   combineCallbacks([continueUserLogin.value, continueActivityLogin.value]),
 );
 
-function findingString(stats?: FindingStats, inCache?: boolean): string;
-function findingString(
-  { started = false, finished = false, length = 0 }: Partial<FindingStats> = {},
-  inCache = false,
-) {
-  // TODO: generic for activities/routes
-  if (finished && inCache) return `found ${countActivities(length)} in cache`;
-  if (finished) return `found ${countActivities(length)}`;
-  if (length) return `found ${countActivities(length)} so far`;
-  if (started) return 'finding activities';
-  return '';
-}
-
 const settingsOpen = ref(false);
 
 const sortedSportTypes = [...Object.entries(sportGroups), ...Object.entries(sportTypes)]
   .map(([value, label]) => ({ value, label }))
   .sort((a, b) => a.label.localeCompare(b.label));
-
-const statusMessage = computed(() => {
-  return error.value || statsMessage();
-});
-
-function statsMessage(): string {
-  if (stats.value.cleared) return 'Cleared cache';
-  return capitalise(
-    nonEmpties(findingString(stats.value.finding, clientStats.value.inCache)).join(', '),
-  );
-}
 
 function onLogout(): void {
   document.cookie = `token=;expires=${new Date(0).toUTCString()}`;
@@ -93,10 +67,11 @@ async function loadButton() {
   try {
     await load(start.value, end.value);
   } catch (cause) {
-    throw new TooltipError(
-      `An error occurred when fetching the ${useRoutes.value ? 'activities' : 'routes'}`,
-      { timeout: 0, cause },
-    );
+    const message = `An error occurred when fetching the ${
+      useRoutes.value ? 'activities' : 'routes'
+    }`;
+    console.error(message, cause);
+    throw new TooltipError(message, { timeout: 0, cause });
   }
   loading.value = false;
 }
@@ -138,7 +113,7 @@ defineExpose({ gear });
       </div>
     </div>
     <UserLogin v-if="continueLogin" @login="continueLogin($event)" />
-    <p v-else class="small" :class="{ error }" v-text="statusMessage" />
+    <LoadingStatus v-else :stats="stats" :use-routes="useRoutes" :error="error" />
     <div class="controls">
       <label>
         <span>Sport type</span>
@@ -182,15 +157,6 @@ aside .buttons {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-evenly;
-}
-
-.error {
-  color: red;
-}
-
-p.small {
-  font-size: 0.8em;
-  margin: 0;
 }
 
 .modal {

@@ -1,4 +1,5 @@
-export function count(n: number, singular: string, plural = singular + 's'): string {
+export function count(n: number | null, singular: string, plural = singular + 's'): string {
+  if (n === null) return plural;
   switch (n) {
     case 0:
       return `no ${plural}`;
@@ -9,11 +10,11 @@ export function count(n: number, singular: string, plural = singular + 's'): str
   }
 }
 
-export const countActivities = (n: number) => count(n, 'activity', 'activities');
+export const countActivities = (n: number | null) => count(n, 'activity', 'activities');
 
-export const countRoutes = (n: number) => count(n, 'route');
+export const countRoutes = (n: number | null) => count(n, 'route');
 
-export const countOtherSessions = (n: number) => count(n, 'other session');
+export const countOtherSessions = (n: number | null) => count(n, 'other session');
 
 export const capitalise = (string: string) => string.slice(0, 1).toUpperCase() + string.slice(1);
 

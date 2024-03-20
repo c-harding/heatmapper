@@ -33,7 +33,8 @@ function makeActivityService(): ActivityService {
 
   const { continueLogin, waitForLogin } = useContinueLogin();
 
-  const stats = ref<LoadingStats>({});
+  const routeStats = ref<LoadingStats>({ inCache: false });
+  const activityStats = ref<LoadingStats>({ inCache: true });
 
   const sportType = ref('');
   const useRoutes = ref(false);
@@ -46,6 +47,8 @@ function makeActivityService(): ActivityService {
     useRoutes.value ? allRoutes.value : allActivities.value,
   );
 
+  const stats = computed(() => (useRoutes.value ? routeStats.value : activityStats.value));
+
   const visibleMapItems = computed<readonly MapItem[]>(() =>
     sportType.value
       ? allMapItems.value.filter((item) => sportType.value.split(',').includes(item.type))
@@ -54,10 +57,6 @@ function makeActivityService(): ActivityService {
 
   /** A map of all gear, where null represents gear that is not yet fetched */
   const gear = reactive(new Map<string, Gear | null>());
-
-  const clientStats = ref({
-    inCache: true,
-  });
 
   function addMapItems<T extends MapItem>(
     collection: Ref<readonly T[]>,
@@ -135,7 +134,10 @@ function makeActivityService(): ActivityService {
     const activities = getCachedActivities();
     if (activities && activities.length) {
       if (!partial) {
-        stats.value = { finding: { started: true, finished: true, length: activities.length } };
+        activityStats.value = {
+          inCache: true,
+          finding: { started: true, finished: true, length: activities.length },
+        };
       }
       receiveActivities(activities, undefined, start, end);
     }
@@ -152,13 +154,14 @@ function makeActivityService(): ActivityService {
   }
 
   function clearMapItems(clearStorage = false) {
-    if (clearStorage) {
-      localStorage.clear();
-      stats.value = { cleared: true };
-    }
     if (useRoutes.value) {
+      routeStats.value = { cleared: true, inCache: false };
       allRoutes.value = [];
     } else {
+      if (clearStorage) {
+        localStorage.clear();
+      }
+      activityStats.value = { cleared: true, inCache: false };
       allActivities.value = [];
     }
   }
@@ -180,10 +183,11 @@ function makeActivityService(): ActivityService {
 
     if (partial) loadFromCache(partial, start, end);
 
-    clientStats.value = {
-      inCache: false,
+    const setStats = (stats: LoadingStats) => {
+      if (routes) routeStats.value = stats;
+      else activityStats.value = stats;
     };
-    stats.value = {};
+    setStats({ inCache: false });
     error.value = undefined;
 
     // The dates shown in the UI are formatted in event-local time.
@@ -206,7 +210,7 @@ function makeActivityService(): ActivityService {
         switch (data.type) {
           case 'stats': {
             const oldStats = stats.value;
-            stats.value = data;
+            setStats({ inCache: false, finding: data.finding });
             if (!oldStats?.finding?.finished && data.finding.finished) {
               appendCachedActivities([], latestActivityDate, startTimestamp);
             }
@@ -246,9 +250,9 @@ function makeActivityService(): ActivityService {
       },
       (errored) => {
         if (errored) {
-          error.value = 'Error fetching activities';
+          error.value = `Error fetching ${routes ? 'routes' : 'activities'}`;
         } else {
-          stats.value.status = 'disconnected';
+          stats.value.closed = true;
         }
       },
       socketController,
@@ -289,8 +293,7 @@ function makeActivityService(): ActivityService {
 
   return {
     continueLogin,
-    stats: readonly(stats),
-    clientStats: readonly(clientStats),
+    stats,
     sportType,
     useRoutes,
     error,
