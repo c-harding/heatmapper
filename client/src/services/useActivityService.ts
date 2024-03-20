@@ -11,10 +11,12 @@ import { computed, inject, provide, reactive, readonly, type Ref, ref } from 'vu
 import Socket from '@/socket';
 import {
   appendCachedActivities,
+  appendCachedRoutes,
   getActivityStore,
   getCachedActivities,
   getCachedGear,
-  resetActivityStore,
+  getCachedRoutes,
+  resetStore,
   saveCachedGear,
 } from '@/utils/storage';
 
@@ -109,7 +111,7 @@ function makeActivityService(): ActivityService {
     });
   }
 
-  function receiveRoutes(routes: Route[], socket: Socket, start?: Date, end?: Date): void {
+  function receiveRoutes(routes: Route[], start?: Date, end?: Date): void {
     const filteredRoutes = filterActivities(routes, start, end);
     addMapItems(allRoutes, filteredRoutes);
     checkFinished();
@@ -130,9 +132,13 @@ function makeActivityService(): ActivityService {
     checkFinished();
   }
 
-  function loadFromCache(partial = false, start?: Date | undefined, end?: Date | undefined): void {
+  function loadFromActivityCache(
+    partial = false,
+    start?: Date | undefined,
+    end?: Date | undefined,
+  ): void {
     const activities = getCachedActivities();
-    if (activities && activities.length) {
+    if (activities?.length) {
       if (!partial) {
         activityStats.value = {
           inCache: true,
@@ -141,6 +147,23 @@ function makeActivityService(): ActivityService {
       }
       receiveActivities(activities, undefined, start, end);
     }
+  }
+
+  function loadFromRouteCache(): void {
+    const routes = getCachedRoutes();
+    if (routes?.length) {
+      activityStats.value = {
+        inCache: true,
+        finding: { started: true, finished: true, length: routes.length },
+      };
+
+      receiveRoutes(routes);
+    }
+  }
+
+  function loadFromCache() {
+    loadFromActivityCache(false);
+    loadFromRouteCache();
   }
 
   function cancelLoading() {
@@ -181,7 +204,7 @@ function makeActivityService(): ActivityService {
   }: SocketOptions = {}): Promise<void> {
     discardCache(false);
 
-    if (partial) loadFromCache(partial, start, end);
+    if (!routes && partial) loadFromActivityCache(partial, start, end);
 
     const setStats = (stats: LoadingStats) => {
       if (routes) routeStats.value = stats;
@@ -231,7 +254,8 @@ function makeActivityService(): ActivityService {
           case 'routes': {
             const routeCount = data.routes.length;
             if (routeCount === 0) break;
-            receiveRoutes(data.routes, socket, start, end);
+            receiveRoutes(data.routes, start, end);
+            appendCachedRoutes(data.routes);
             break;
           }
           case 'gear': {
@@ -263,7 +287,7 @@ function makeActivityService(): ActivityService {
     const storeVersion = getActivityStore().version;
     if (storeVersion !== serverVersion) {
       allActivities.value = [];
-      resetActivityStore(serverVersion);
+      resetStore(serverVersion);
     }
 
     if (routes) {

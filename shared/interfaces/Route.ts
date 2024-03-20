@@ -1,3 +1,5 @@
+import type SportType from './SportType';
+
 export default interface Route {
   route: true;
   id: string;
@@ -6,7 +8,7 @@ export default interface Route {
   map: string;
   distance: number;
   elevation: { gain: number };
-  type: 'Ride' | 'Run' | 'Walk';
+  type: SportType;
   subType: 'Road' | 'MountainBike' | 'Cross' | 'Trail' | 'Mixed';
   starred: boolean;
 }

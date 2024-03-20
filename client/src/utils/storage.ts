@@ -1,9 +1,18 @@
-import { type Activity, type Gear, TimeRange } from '@strava-heatmapper/shared/interfaces';
+import {
+  type Activity,
+  type Gear,
+  type Route,
+  TimeRange,
+} from '@strava-heatmapper/shared/interfaces';
 
 export interface ActivityStore {
   version: number;
   covered: TimeRange[];
   activities: Activity[];
+}
+
+export interface RouteStore {
+  routes: Route[];
 }
 
 export function saveCachedGear(id: string, gear: Gear) {
@@ -25,15 +34,28 @@ export function getActivityStore(): ActivityStore {
   };
 }
 
-export function resetActivityStore(version: number) {
+export function getRouteStore(): RouteStore {
+  const rawCache = localStorage.getItem('routes');
+  const cache = rawCache ? (JSON.parse(rawCache) as Partial<RouteStore>) : undefined;
+  return {
+    routes: cache?.routes ?? [],
+  };
+}
+
+export function resetStore(version: number) {
   localStorage.setItem(
     'activities',
     JSON.stringify({ activities: [], covered: [], version } satisfies ActivityStore),
   );
+  localStorage.setItem('routes', JSON.stringify({ routes: [] } satisfies RouteStore));
 }
 
 export function getCachedActivities(): Activity[] {
   return getActivityStore().activities;
+}
+
+export function getCachedRoutes(): Route[] {
+  return getRouteStore().routes;
 }
 
 export function appendCachedActivities(activities: Activity[], end: number, start?: number) {
@@ -48,6 +70,18 @@ export function appendCachedActivities(activities: Activity[], end: number, star
       .sort((a, b) => b.date - a.date),
   };
   localStorage.setItem('activities', JSON.stringify(newStore));
+}
+
+export function appendCachedRoutes(routes: Route[]) {
+  const existingStore = getRouteStore();
+  const ids = new Set(routes.map((route) => route.id));
+  const newStore: RouteStore = {
+    routes: existingStore.routes
+      .filter((existingRoute) => !ids.has(existingRoute.id))
+      .concat(routes)
+      .sort((a, b) => b.date - a.date),
+  };
+  localStorage.setItem('routes', JSON.stringify(newStore));
 }
 
 export function getCachedGears(ids: string[]) {
