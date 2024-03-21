@@ -43,12 +43,14 @@ function dateToYYYYMMDD(date: Date | null): string | null {
 
   max-width: max-content;
   min-width: 3em;
+  min-height: 1.75rem;
+  box-sizing: border-box;
 }
 
 input {
   background-color: inherit;
   border: none;
-  margin: 0.5em 1em;
+  margin: 0.15rem 0.4rem;
   color: var(--color-full);
   appearance: none;
 

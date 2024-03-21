@@ -92,7 +92,7 @@ defineExpose({ gear });
 
 <template>
   <aside>
-    <div class="controls">
+    <div class="controls row">
       <label>
         <span>Start date</span>
         <UIDateInput v-model="start" name="start" />
