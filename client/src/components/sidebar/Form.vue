@@ -136,7 +136,7 @@ defineExpose({ gear });
       </div>
     </div>
     <UserLogin v-if="continueLogin" @login="continueLogin($event)" />
-    <LoadingStatus v-else :stats="stats" :use-routes="useRoutes" :error="error" />
+    <LoadingStatus v-else :stats="undefined" :use-routes="useRoutes" :error="error" />
     <div class="controls row">
       <label>
         <span>Sport type</span>
