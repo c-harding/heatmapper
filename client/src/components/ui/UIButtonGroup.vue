@@ -10,9 +10,16 @@
 .button-group {
   display: flex;
   margin: 0.5rem;
+  display: relative;
 
   :slotted(button) {
     margin: 0;
+
+    display: relative;
+
+    &:focus {
+      z-index: 1;
+    }
 
     &:not(:first-child) {
       border-start-start-radius: 0;

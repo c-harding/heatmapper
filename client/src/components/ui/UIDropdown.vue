@@ -84,16 +84,13 @@ const model = defineModel<string | null>({ default: null });
     margin-inline-end: -1.5rem;
     padding-inline-end: 1.5rem;
     border: none;
+    border-radius: inherit;
     appearance: none;
     background-color: transparent;
     font: inherit;
     color: inherit;
     font-size: 0.9em;
     text-overflow: ellipsis;
-
-    &:focus {
-      outline: none;
-    }
 
     option {
       background-color: var(--background-full);
