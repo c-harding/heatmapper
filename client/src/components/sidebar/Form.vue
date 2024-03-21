@@ -93,6 +93,11 @@ async function loadButton() {
   unchangedSinceLoad.value = true;
 }
 
+function cancelButton() {
+  cancelLoading();
+  unchangedSinceLoad.value = false;
+}
+
 watch([start, end, useRoutes], () => {
   unchangedSinceLoad.value = false;
 });
@@ -130,7 +135,7 @@ defineExpose({ gear });
               :selected="unchangedSinceLoad ? 'reload' : 'load'"
             />
           </UIButton>
-          <UIButton @click="loading ? cancelLoading() : discardCache(true)">
+          <UIButton @click="loading ? cancelButton() : discardCache(true)">
             <UIMultiText :selected="loading ? 'cancel' : 'discard'">
               <template #cancel>Cancel</template>
               <template #discard>
