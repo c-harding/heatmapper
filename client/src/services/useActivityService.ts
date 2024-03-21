@@ -22,7 +22,12 @@ import {
   saveCachedGear,
 } from '@/utils/storage';
 
-import { type ActivityService, activityServiceToken, type LoadingStats } from './ActivityService';
+import {
+  type ActivityService,
+  activityServiceToken,
+  type FilterModel,
+  type LoadingStats,
+} from './ActivityService';
 import { useContinueLogin } from './useContinueLogin';
 
 /** One day in milliseconds */
@@ -40,7 +45,10 @@ function makeActivityService(): ActivityService {
   const routeStats = ref<LoadingStats>({ inCache: false });
   const activityStats = ref<LoadingStats>({ inCache: true });
 
-  const sportType = ref('');
+  const filterModel: FilterModel = reactive({
+    sportType: '',
+    starred: false,
+  });
   const useRoutes = ref(false);
 
   const error = ref<string>();
@@ -53,11 +61,20 @@ function makeActivityService(): ActivityService {
 
   const stats = computed(() => (useRoutes.value ? routeStats.value : activityStats.value));
 
-  const visibleMapItems = computed<readonly MapItem[]>(() =>
-    sportType.value
-      ? allMapItems.value.filter((item) => sportType.value.split(',').includes(item.type))
-      : allMapItems.value,
-  );
+  const visibleMapItems = computed<readonly MapItem[]>(() => {
+    const filters: ((value: MapItem) => boolean)[] = [
+      filterModel.sportType &&
+        ((item: MapItem) => filterModel.sportType?.split(',').includes(item.type) ?? true),
+
+      filterModel.starred && ((item: MapItem) => !item.route || item.starred),
+    ]
+      // Remove falsy filters
+      .filter((f): f is (value: MapItem) => boolean => !!f);
+
+    return filters.length
+      ? allMapItems.value.filter((item) => filters.every((filter) => filter(item)))
+      : allMapItems.value;
+  });
 
   /** A map of all gear, where null represents gear that is not yet fetched */
   const gear = reactive(new Map<string, Gear | null>());
@@ -154,7 +171,7 @@ function makeActivityService(): ActivityService {
   function loadFromRouteCache(): void {
     const routes = getCachedRoutes();
     if (routes?.length) {
-      activityStats.value = {
+      routeStats.value = {
         inCache: true,
         finding: { started: true, finished: true, length: routes.length },
       };
@@ -321,7 +338,7 @@ function makeActivityService(): ActivityService {
   return {
     continueLogin,
     stats,
-    sportType,
+    filterModel,
     useRoutes,
     error,
     gear: readonly(gear),

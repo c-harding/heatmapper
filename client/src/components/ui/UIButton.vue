@@ -65,15 +65,17 @@ async function clickHandler() {
 button {
   display: grid;
   grid-template-areas: 'button';
+  align-items: center;
 
-  margin: 1ex;
-  padding: 0.15em 0.4em;
+  margin: 0.5rem;
+  padding: 0.15rem 0.4rem;
   border-radius: var(--border-radius);
   border: 1px solid var(--color-weak);
   background-color: var(--background-strong);
   color: var(--color-full);
   max-width: max-content;
   min-width: min-content;
+  min-height: 1.75rem;
   font-size: 0.9em;
 
   &:hover:not(:disabled) {
@@ -89,9 +91,11 @@ button {
     grid-area: button;
     display: flex;
     position: relative;
+    align-items: center;
+    height: 1.2em;
   }
 
-  .icon {
+  .icon:not(:last-child) {
     margin-right: 0.5ex;
   }
 

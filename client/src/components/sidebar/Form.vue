@@ -24,7 +24,7 @@ const end = ref<Date>();
 const {
   error,
   stats,
-  sportType,
+  filterModel,
   gear,
   useRoutes,
   cancelLoading,
@@ -130,14 +130,21 @@ defineExpose({ gear });
     </div>
     <UserLogin v-if="continueLogin" @login="continueLogin($event)" />
     <LoadingStatus v-else :stats="stats" :use-routes="useRoutes" :error="error" />
-    <div class="controls">
+    <div class="controls row">
       <label>
         <span>Sport type</span>
         <UIDropdown
-          v-model="sportType"
+          v-model="filterModel.sportType"
           :options="sortedSportTypes"
           blank-value=""
           blank-label="All sports"
+        />
+      </label>
+      <label :class="{ hidden: !useRoutes }">
+        <span>Starred</span>
+        <UIButton
+          :icon="filterModel.starred ? 'star' : 'star_border'"
+          @click="filterModel.starred = !filterModel.starred"
         />
       </label>
     </div>
@@ -156,16 +163,39 @@ aside {
   gap: 0.5em;
 }
 
+.hidden {
+  visibility: hidden;
+}
+
 .controls {
   min-width: 0;
   display: flex;
   flex-direction: column;
   justify-content: center;
+  padding-top: 1.2em;
+
+  &.row {
+    flex-direction: row;
+  }
 
   label {
     display: flex;
     align-items: center;
     min-width: 0;
+  }
+
+  &.row label {
+    margin-top: -1.2em;
+    flex-direction: column;
+    align-items: start;
+
+    span {
+      height: 1.2em;
+      font-size: 0.9em;
+      font-weight: bold;
+      padding-inline: 0.5rem;
+      display: block;
+    }
   }
 }
 

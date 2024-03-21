@@ -31,7 +31,7 @@ function option(value: T): SegmentedControlItemContext {
 ul {
   display: flex;
   gap: 1px;
-  margin: 1ex;
+  margin: 0.5rem;
   padding: 0;
 
   border-radius: var(--border-radius);

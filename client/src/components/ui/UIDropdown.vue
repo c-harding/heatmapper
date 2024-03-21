@@ -33,7 +33,7 @@ const model = defineModel<string | null>({ default: null });
       </option>
       <slot />
     </select>
-    <UIIcon v-if="clearButton && model !== blankValue" inline large @click="model = blankValue">
+    <UIIcon v-if="clearButton && model !== blankValue" inline @click="model = blankValue">
       close
     </UIIcon>
     <UIIcon v-else class="down-arrow" inline large> expand_more </UIIcon>
@@ -43,7 +43,9 @@ const model = defineModel<string | null>({ default: null });
 <style lang="scss">
 .dropdown {
   display: flex;
-  margin: 1ex;
+  margin: 0.5rem;
+  min-height: 1.75rem;
+  box-sizing: border-box;
 
   border-radius: var(--border-radius);
   border: 1px solid var(--color-weak);
@@ -69,9 +71,9 @@ const model = defineModel<string | null>({ default: null });
   select {
     flex-shrink: 1;
     min-width: 0;
-    padding-inline-start: 1ex;
-    margin-inline-end: -1.5em;
-    padding-inline-end: 1.5em;
+    padding-inline-start: 0.5rem;
+    margin-inline-end: -1.5rem;
+    padding-inline-end: 1.5rem;
     border: none;
     appearance: none;
     background-color: transparent;

@@ -35,7 +35,7 @@ function dateToYYYYMMDD(date: Date | null): string | null {
 <style lang="scss" scoped>
 .date-input {
   display: flex;
-  margin: 1ex;
+  margin: 0.5rem;
 
   border-radius: var(--border-radius);
   border: 1px solid var(--color-weak);

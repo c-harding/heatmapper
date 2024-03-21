@@ -34,6 +34,7 @@ li {
 
   max-width: max-content;
   min-width: 2em;
+  min-height: 1.75rem;
 
   &.selected {
     border-color: var(--color-strong);
@@ -45,7 +46,7 @@ li {
   }
 
   button {
-    $button-padding: 0.15em;
+    $button-padding: 0.15rem;
 
     flex: 1;
     appearance: none;
@@ -64,6 +65,7 @@ li {
       grid-area: button;
       display: flex;
       justify-content: center;
+      align-items: center;
     }
 
     > .bold {

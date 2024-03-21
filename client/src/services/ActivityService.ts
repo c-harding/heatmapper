@@ -8,15 +8,14 @@ export interface LoadingStats {
 }
 
 export interface FilterModel {
-  sportType?: string;
-  start?: Date;
-  end?: Date;
+  sportType: string;
+  starred: boolean;
 }
 
 export interface ActivityService {
   continueLogin: Readonly<Ref<((withCookies: boolean) => void) | undefined>>;
   stats: Readonly<Ref<LoadingStats>>;
-  sportType: Ref<string>;
+  readonly filterModel: FilterModel;
   error: Ref<string | undefined>;
   gear: ReadonlyMap<string, Gear | null>;
   useRoutes: Ref<boolean>;
