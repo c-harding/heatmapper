@@ -15,9 +15,9 @@ import {
   clearCachedActivities,
   clearCachedRoutes,
   getActivityStore,
-  getCachedActivities,
   getCachedGear,
   getCachedRoutes,
+  getStoreMeta,
   resetStore,
   saveCachedGear,
 } from '@/utils/storage';
@@ -27,6 +27,7 @@ import {
   activityServiceToken,
   type FilterModel,
   type LoadingStats,
+  type MapItemTypes,
 } from './ActivityService';
 import { useContinueLogin } from './useContinueLogin';
 
@@ -103,12 +104,7 @@ function makeActivityService({
     );
   }
 
-  function checkFinished(socket?: Socket): void {
-    if (stats.value.finding?.finished) {
-      socket?.close();
-    }
-  }
-
+  // TODO: keep alive. Verify that every gear request resolves
   function requestGear(ids: (string | undefined)[], socket?: Socket) {
     const validIds = ids.filter((id?: string): id is string => !!id);
 
@@ -125,22 +121,16 @@ function makeActivityService({
     }
   }
 
-  async function startLoading(socket: Socket, ranges: TimeRange[]) {
+  async function startLoading(socket: Socket, activityRanges?: TimeRange[], routes = false) {
     await socket.sendRequest({
-      activities: ranges,
-    });
-  }
-
-  async function startLoadingRoutes(socket: Socket) {
-    await socket.sendRequest({
-      routes: true,
+      activities: activityRanges,
+      routes,
     });
   }
 
   function receiveRoutes(routes: Route[], start?: Date, end?: Date): void {
     const filteredRoutes = filterActivities(routes, start, end);
     addMapItems(allRoutes, filteredRoutes);
-    checkFinished();
   }
 
   function receiveActivities(
@@ -155,15 +145,14 @@ function makeActivityService({
       filteredActivities.map(({ gear }) => gear),
       socket,
     );
-    checkFinished();
   }
 
   function loadFromActivityCache(
     partial = false,
     start?: Date | undefined,
     end?: Date | undefined,
-  ): void {
-    const activities = getCachedActivities();
+  ): TimeRange[] {
+    const { covered, activities } = getActivityStore();
     if (activities?.length) {
       if (!partial) {
         activityStats.value = {
@@ -173,6 +162,7 @@ function makeActivityService({
       }
       receiveActivities(activities, undefined, start, end);
     }
+    return covered;
   }
 
   function loadFromRouteCache(): void {
@@ -197,34 +187,52 @@ function makeActivityService({
     socketController = new AbortController();
   }
 
-  function discardCache(clearStorage = false, start?: Date, end?: Date): void {
+  function discardCache(
+    mapItemTypes: boolean | MapItemTypes,
+    clearStorage = false,
+    start?: Date,
+    end?: Date,
+  ): void {
     cancelLoading();
-    clearMapItems(clearStorage, start, end);
+    clearMapItems(
+      typeof mapItemTypes === 'boolean'
+        ? { activities: mapItemTypes, routes: mapItemTypes }
+        : mapItemTypes,
+      clearStorage,
+      start,
+      end,
+    );
   }
 
-  function clearMapItems(clearStorage = false, start?: Date, end?: Date): void {
-    if (useRoutes.value) {
-      clearCachedRoutes();
-      routeStats.value = { cleared: true, inCache: false };
-      allRoutes.value = [];
-    } else {
+  function clearMapItems(
+    { activities = false, routes = false }: MapItemTypes,
+    clearStorage = false,
+    start?: Date,
+    end?: Date,
+  ): void {
+    if (activities) {
       if (clearStorage) {
         clearCachedActivities(start, end);
       }
       activityStats.value = { cleared: true, inCache: false };
       allActivities.value = [];
     }
+    if (routes) {
+      clearCachedRoutes();
+      routeStats.value = { cleared: true, inCache: false };
+      allRoutes.value = [];
+    }
   }
 
-  interface SocketOptions {
+  interface SocketOptions extends MapItemTypes {
     partial?: boolean;
-    routes?: boolean;
     start?: Date;
     end?: Date;
   }
 
   async function sockets({
     partial = false,
+    activities = false,
     routes = false,
     start,
     end,
@@ -240,18 +248,24 @@ function makeActivityService({
       ? (end.getTime() + DAY - MAX_TIMEZONE_ADJUSTMENT) / 1000
       : Date.now() / 1000;
 
-    discardCache(routes || !partial, start, end);
+    discardCache({ activities, routes }, !partial, start, end);
 
-    if (!routes && partial) loadFromActivityCache(partial, start, end);
-
-    const setStats = (stats: LoadingStats) => {
-      if (routes) routeStats.value = stats;
-      else activityStats.value = stats;
-    };
-    setStats({ inCache: false });
+    if (activities) activityStats.value = { inCache: false };
+    if (routes) routeStats.value = { inCache: false };
     error.value = undefined;
 
     let latestActivityDate = startTimestamp;
+
+    function checkFinished(socket: Socket | undefined): boolean {
+      const finished =
+        !continueLogin &&
+        (!activities || activityStats.value.finding?.finished === true) &&
+        (!routes || routeStats.value.finding?.finished === true);
+      if (finished) {
+        socket?.close();
+      }
+      return finished;
+    }
 
     const protocol = window.location.protocol.includes('https') ? 'wss' : 'ws';
     const socket = new Socket(
@@ -259,10 +273,17 @@ function makeActivityService({
       (data: ResponseMessage) => {
         switch (data.type) {
           case 'stats': {
-            const oldStats = stats.value;
-            setStats({ inCache: false, finding: data.finding });
-            if (!oldStats?.finding?.finished && data.finding.finished) {
-              appendCachedActivities([], latestActivityDate, startTimestamp);
+            if (data.for === 'activities') {
+              const wasFinished = activityStats.value.finding?.finished;
+              activityStats.value = { inCache: false, finding: data.finding };
+
+              if (!wasFinished && data.finding.finished) {
+                appendCachedActivities([], latestActivityDate, startTimestamp);
+              }
+            } else if (data.for === 'routes') {
+              routeStats.value = { inCache: false, finding: data.finding };
+            } else {
+              console.warn('Received unknown stat type', data.for);
             }
             break;
           }
@@ -270,6 +291,7 @@ function makeActivityService({
             const activityCount = data.activities.length;
             if (activityCount === 0) break;
             receiveActivities(data.activities, socket, start, end);
+            checkFinished(socket);
 
             // API returns roughly in descending order
             const latestDate = new Date(data.activities[0].date).getTime() / 1000;
@@ -282,6 +304,7 @@ function makeActivityService({
             const routeCount = data.routes.length;
             if (routeCount === 0) break;
             receiveRoutes(data.routes, start, end);
+            checkFinished(socket);
             appendCachedRoutes(data.routes);
             break;
           }
@@ -309,35 +332,38 @@ function makeActivityService({
       socketController,
     );
 
-    const { version: serverVersion } = await socket.sendRequest({ version: true }, 'version');
+    const { version: serverVersion, user } = await socket.sendRequest(
+      { handshake: true },
+      'handshake',
+    );
 
-    const storeVersion = getActivityStore().version;
-    if (storeVersion !== serverVersion) {
+    const store = getStoreMeta();
+    if (store.version !== serverVersion || store.user !== user) {
       allActivities.value = [];
-      resetStore(serverVersion);
+      allRoutes.value = [];
+      resetStore(serverVersion, user);
     }
 
-    if (routes) {
-      // TODO: send ranges
-      startLoadingRoutes(socket);
+    let activityRanges: TimeRange[] | undefined;
+    if (!activities) {
+      activityRanges = undefined;
+    } else if (partial) {
+      const covered = loadFromActivityCache(partial, start, end);
+      activityRanges = TimeRange.cap(TimeRange.invert(covered), startTimestamp ?? 0, endTimestamp);
     } else {
-      let ranges: TimeRange[];
-      const { covered, activities } = getActivityStore();
-      if (partial) {
-        ranges = TimeRange.cap(TimeRange.invert(covered), startTimestamp ?? 0, endTimestamp);
-        receiveActivities(activities, socket, start, end);
-      } else {
-        ranges = [{ start: startTimestamp, end: endTimestamp }];
-      }
+      activityRanges = [{ start: startTimestamp, end: endTimestamp }];
+    }
 
-      startLoading(socket, ranges);
+    if (!checkFinished(socket)) {
+      // TODO: send routeRanges
+      startLoading(socket, activityRanges, routes);
     }
 
     return await socket.completion();
   }
 
   async function load(partial: boolean, start?: Date, end?: Date): Promise<void> {
-    await sockets({ partial, routes: useRoutes.value, start, end });
+    await sockets({ partial, routes: useRoutes.value, activities: !useRoutes.value, start, end });
   }
 
   loadFromCache();

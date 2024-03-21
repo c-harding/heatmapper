@@ -156,11 +156,6 @@ export class ActivitiesHandler {
 
     const strava = new Strava(this.domain, extractRequestToken(req), requestLogin, abortController.signal);
 
-    const stats: StatsMessage = {
-      type: 'stats',
-      finding: { started: false, finished: false, length: 0 },
-    };
-    const sendStats = () => send(stats);
     const sendGear = (gear: DetailedGear) =>
       send({
         type: 'gear',
@@ -177,15 +172,7 @@ export class ActivitiesHandler {
      */
     async function* activitiesIterator(start?: number, end?: number): AsyncGenerator<Activity[]> {
       for await (const page of eagerIterator(strava.getStravaActivitiesPages(start, end))) {
-        stats.finding.length += page.length;
-        sendStats();
-
-        const newActivities = page
-          .map((activity) => convertActivitySummary(activity))
-          .filter((activity) => activity.map);
-        if (newActivities.length) {
-          yield newActivities;
-        }
+        yield page.map((activity) => convertActivitySummary(activity));
       }
     }
 
@@ -194,17 +181,13 @@ export class ActivitiesHandler {
      */
     async function* routesIterator(): AsyncGenerator<Route[]> {
       for await (const page of eagerIterator(strava.getStravaRoutesPages())) {
-        if (!isLive()) return;
-
-        stats.finding.length += page.length;
-        sendStats();
-
         yield page.map((route) => convertRouteSummary(route)).filter((route) => route.map);
       }
     }
 
     /** @deprecated maps are now sent as part of the request, this method now only serves high-res maps */
-    const sendMaps = completeInOrder(async (activities: string[]) => {
+    const handleMaps = completeInOrder(async (activities: string[]) => {
+      console.warn('deprecated: maps should not be fetched');
       const activityMaps = sortPromises(
         activities.map(async (id) => {
           const map = convertActivity(await strava.getActivity(id), true).map;
@@ -218,71 +201,91 @@ export class ActivitiesHandler {
           const maps = Object.fromEntries(chunk);
           send({ type: 'maps', chunk: maps });
         }
-        sendStats();
       };
     });
+
+    const handleHandshake = async () => {
+      send({
+        type: 'handshake',
+        version: this.modelVersion,
+        user: await strava.getUserId(),
+      });
+    };
+
+    const handleActivities = async (activities: TimeRange[]) => {
+      const stats: StatsMessage = {
+        type: 'stats',
+        for: 'activities',
+        finding: { started: false, finished: false, length: 0 },
+      };
+
+      stats.finding.started = true;
+
+      for (const { start, end } of TimeRange.cap(activities).reverse()) {
+        send(stats);
+        // TODO: add error handling (offline)
+        for await (const activities of activitiesIterator(start, end)) {
+          stats.finding.length += activities.length;
+
+          if (!isLive()) return;
+          send({
+            type: 'activities',
+            activities: activities.filter((activity) => activity.map),
+          });
+          send(stats);
+        }
+      }
+
+      if (!isLive()) return;
+      stats.finding.finished = true;
+      send(stats);
+    };
+
+    const handleRoutes = async () => {
+      const stats: StatsMessage = {
+        type: 'stats',
+        for: 'routes',
+        finding: { started: false, finished: false, length: 0 },
+      };
+
+      stats.finding.started = true;
+
+      send(stats);
+      for await (const routes of routesIterator()) {
+        stats.finding.length += routes.length;
+        if (!isLive()) return;
+
+        send({
+          type: 'routes',
+          routes,
+        });
+        send(stats);
+      }
+
+      if (!isLive()) return;
+      stats.finding.finished = true;
+      send(stats);
+    };
+
+    const handleGear = async (gear: string) => {
+      sendGear(await strava.getGearById(gear));
+    };
 
     ws.on('message', async (data) => {
       try {
         const message: RequestMessage = JSON.parse(data.toString());
-        if (message.version) {
-          send({ type: 'version', version: this.modelVersion });
-        }
-
-        if (message.activities) {
-          stats.finding.started = true;
-
-          for (const { start, end } of TimeRange.cap(message.activities).reverse()) {
-            sendStats();
-            // TODO: add error handling (offline)
-            for await (const activities of activitiesIterator(start, end)) {
-              if (!isLive()) return;
-              send({
-                type: 'activities',
-                activities: activities,
-              });
-              sendStats();
-            }
-
-            if (!isLive()) return;
-            sendStats();
-          }
-
-          if (!isLive()) return;
-          stats.finding.finished = true;
-          sendStats();
-        }
-
-        if (message.routes) {
-          stats.finding.started = true;
-
-          sendStats();
-          for await (const routes of routesIterator()) {
-            if (!isLive()) return;
-
-            send({
-              type: 'routes',
-              routes,
-            });
-            sendStats();
-          }
-
-          if (!isLive()) return;
-          stats.finding.finished = true;
-          sendStats();
-        }
-
-        if (message.maps) {
-          console.warn('deprecated: maps should not be fetched');
-          sendMaps(message.maps);
-        }
-
-        if (message.gear) {
-          sendGear(await strava.getGearById(message.gear));
-        }
+        await Promise.all([
+          message.handshake && handleHandshake(),
+          message.activities && handleActivities(message.activities),
+          message.routes && handleRoutes(),
+          message.maps && handleMaps(message.maps),
+          message.gear && handleGear(message.gear),
+        ]);
       } catch (e: unknown) {
         if (e instanceof AbortError) {
           console.info('Request aborted');
+        } else {
+          console.trace('Encountered error:', e);
         }
       }
     });

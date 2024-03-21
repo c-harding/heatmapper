@@ -37,6 +37,10 @@ export class Strava {
     return this.rawApi.getUserInfo();
   }
 
+  async getUserId(): Promise<number> {
+    return this.rawApi.getUserId();
+  }
+
   /**
    * Fetches your data from the Strava API
    */

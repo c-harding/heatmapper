@@ -57,7 +57,7 @@ const sortedSportTypes = computed(() =>
 
 function onLogout(): void {
   document.cookie = `token=;expires=${new Date(0).toUTCString()}`;
-  discardCache(true);
+  discardCache(true, true);
   settingsOpen.value = false;
 }
 
@@ -135,7 +135,7 @@ defineExpose({ gear });
               :selected="unchangedSinceLoad ? 'reload' : 'load'"
             />
           </UIButton>
-          <UIButton @click="loading ? cancelButton() : discardCache(true)">
+          <UIButton @click="loading ? cancelButton() : discardCache(true, true)">
             <UIMultiText :selected="loading ? 'cancel' : 'discard'">
               <template #cancel>Cancel</template>
               <template #discard>

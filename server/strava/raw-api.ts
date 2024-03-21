@@ -117,16 +117,21 @@ export default class RawStravaApi {
     return data.refresh_token;
   }
 
-  async getUserInfo(): Promise<User> {
-    let cache;
+  async getUserId(): Promise<number> {
+    let cache: Cache;
     try {
       cache = await this.loadCache();
     } catch (err: unknown) {
       await this.getAccessTokenFromBrowser();
       cache = await this.loadCache();
     }
+    return cache.stravaAthlete;
+  }
+
+  async getUserInfo(): Promise<User> {
+    const userId = await this.getUserId();
     try {
-      const jsonStr = await readFile(userCacheFile(cache.stravaAthlete), 'utf-8');
+      const jsonStr = await readFile(userCacheFile(userId), 'utf-8');
       const user = JSON.parse(jsonStr) as User;
       // if the ID is missing, we refetch the data,
       // because the existing cache file comes from a manual migration script

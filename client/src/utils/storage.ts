@@ -5,8 +5,12 @@ import {
   TimeRange,
 } from '@strava-heatmapper/shared/interfaces';
 
-export interface ActivityStore {
+export interface StoreMeta {
   version: number;
+  user: number;
+}
+
+export interface ActivityStore {
   covered: TimeRange[];
   activities: Activity[];
 }
@@ -24,11 +28,19 @@ export function getCachedGear(id: string): Gear | undefined {
   if (json) return JSON.parse(json) as Gear;
 }
 
+export function getStoreMeta(): StoreMeta {
+  const rawCache = localStorage.getItem('meta');
+  const cache = rawCache ? (JSON.parse(rawCache) as Partial<StoreMeta>) : undefined;
+  return {
+    version: cache?.version ?? 0,
+    user: cache?.user ?? -1,
+  };
+}
+
 export function getActivityStore(): ActivityStore {
   const rawCache = localStorage.getItem('activities');
   const cache = rawCache ? (JSON.parse(rawCache) as Partial<ActivityStore>) : undefined;
   return {
-    version: cache?.version ?? 0,
     covered: cache?.covered ?? [],
     activities: cache?.activities ?? [],
   };
@@ -42,10 +54,11 @@ export function getRouteStore(): RouteStore {
   };
 }
 
-export function resetStore(version: number) {
+export function resetStore(version: number, user: number) {
+  localStorage.setItem('meta', JSON.stringify({ version, user } satisfies StoreMeta));
   localStorage.setItem(
     'activities',
-    JSON.stringify({ activities: [], covered: [], version } satisfies ActivityStore),
+    JSON.stringify({ activities: [], covered: [] } satisfies ActivityStore),
   );
   localStorage.setItem('routes', JSON.stringify({ routes: [] } satisfies RouteStore));
 }
@@ -62,7 +75,6 @@ export function appendCachedActivities(activities: Activity[], end: number, star
   const existingStore = getActivityStore();
   const ids = new Set(activities.map((activity) => activity.id));
   const newStore: ActivityStore = {
-    version: existingStore.version,
     covered: TimeRange.merge(existingStore.covered.concat({ start, end })),
     activities: existingStore.activities
       .filter((existingActivity) => !ids.has(existingActivity.id))

@@ -1,9 +1,9 @@
 import type TimeRange from './TimeRange';
 
 export default interface RequestMessage {
-  version?: true;
+  handshake?: true;
   activities?: TimeRange[];
-  routes?: true;
+  routes?: boolean;
 
   /** @deprecated maps are now sent with the request */
   maps?: string[];

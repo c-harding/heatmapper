@@ -2,9 +2,12 @@ import type Activity from './Activity';
 import type Gear from './Gear';
 import type Route from './Route';
 
-interface VersionMessage {
-  type: 'version';
+export type MapItemType = 'activities' | 'routes';
+
+interface HandshakeMessage {
+  type: 'handshake';
   version: number;
+  user: number;
 }
 interface ActivitiesMessage {
   type: 'activities';
@@ -35,6 +38,7 @@ export interface FindingStats {
 
 export interface StatsMessage {
   type: 'stats';
+  for: MapItemType;
   finding: FindingStats;
 }
 
@@ -45,7 +49,7 @@ export interface GearMessage {
 }
 
 type ResponseMessage =
-  | VersionMessage
+  | HandshakeMessage
   | ActivitiesMessage
   | MapsMessage
   | StatsMessage

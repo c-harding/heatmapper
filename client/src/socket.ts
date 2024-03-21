@@ -112,6 +112,7 @@ export default class Socket {
 
   async completion() {
     const connection = await this.connection;
+
     if (
       connection.readyState !== connection.CLOSING &&
       connection.readyState !== connection.CLOSED
