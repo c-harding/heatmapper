@@ -366,7 +366,9 @@ function makeActivityService({
     await sockets({ partial, routes: useRoutes.value, activities: !useRoutes.value, start, end });
   }
 
-  loadFromCache();
+  sockets({}).then(() => {
+    loadFromCache();
+  });
 
   return {
     continueLogin,
