@@ -36,6 +36,10 @@ const DAY = 24 * 60 * 60 * 1000;
 const MIN_TIMEZONE_ADJUSTMENT = 14 * 60 * 60 * 1000;
 const MAX_TIMEZONE_ADJUSTMENT = -12 * 60 * 60 * 1000;
 
+export function doesSportTypeMatch(sportTypeFilter: string, sportType: string) {
+  return sportTypeFilter.split(',').includes(sportType);
+}
+
 function makeActivityService(): ActivityService {
   const allRoutes = ref<Route[]>([]);
   const allActivities = ref<Activity[]>([]);
@@ -62,9 +66,9 @@ function makeActivityService(): ActivityService {
   const stats = computed(() => (useRoutes.value ? routeStats.value : activityStats.value));
 
   const visibleMapItems = computed<readonly MapItem[]>(() => {
+    const sportType = filterModel.sportType;
     const filters: ((value: MapItem) => boolean)[] = [
-      filterModel.sportType &&
-        ((item: MapItem) => filterModel.sportType?.split(',').includes(item.type) ?? true),
+      sportType && ((item: MapItem) => doesSportTypeMatch(sportType, item.type)),
 
       filterModel.starred && ((item: MapItem) => !item.route || item.starred),
     ]

@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { sportTypes } from '@/sportTypes';
+import { sportTypes } from '@strava-heatmapper/shared/interfaces';
+
 import { sportIconString } from '@/utils/icons';
 
 import type StravaSymbolProps from './StravaSymbolProps';

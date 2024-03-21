@@ -9,6 +9,5 @@ export default interface Route {
   distance: number;
   elevation: { gain: number };
   type: SportType;
-  subType: 'Road' | 'MountainBike' | 'Cross' | 'Trail' | 'Mixed';
   starred: boolean;
 }

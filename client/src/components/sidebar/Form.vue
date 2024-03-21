@@ -1,9 +1,9 @@
 <script setup lang="ts">
+import { routeTypeMap, sportGroups, sportTypes } from '@strava-heatmapper/shared/interfaces';
 import { computed, ref, watch } from 'vue';
 
-import { useActivityService } from '@/services/useActivityService';
+import { doesSportTypeMatch, useActivityService } from '@/services/useActivityService';
 import useUser from '@/services/useUser';
-import { sportGroups, sportTypes } from '@/sportTypes';
 import { combineCallbacks } from '@/utils/functions';
 
 import SegmentedControl from '../segmented-control/SegmentedControl.vue';
@@ -41,9 +41,17 @@ const continueLogin = computed(() =>
 
 const settingsOpen = ref(false);
 
-const sortedSportTypes = [...Object.entries(sportGroups), ...Object.entries(sportTypes)]
-  .map(([value, label]) => ({ value, label }))
-  .sort((a, b) => a.label.localeCompare(b.label));
+const sortedSportTypes = computed(() =>
+  [...Object.entries(sportGroups), ...Object.entries(sportTypes)]
+    .map(([value, label]) => ({
+      value,
+      label,
+      disabled:
+        useRoutes.value &&
+        !Object.values(routeTypeMap).some((sportType) => doesSportTypeMatch(value, sportType)),
+    }))
+    .sort((a, b) => a.label.localeCompare(b.label)),
+);
 
 function onLogout(): void {
   document.cookie = `token=;expires=${new Date(0).toUTCString()}`;

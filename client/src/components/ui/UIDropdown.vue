@@ -4,6 +4,7 @@ import UIIcon from './UIIcon.vue';
 export interface Option {
   value: string;
   label: string;
+  disabled?: boolean;
 }
 
 const {
@@ -28,7 +29,12 @@ const model = defineModel<string | null>({ default: null });
         {{ blankLabel }}
       </option>
       <option v-if="blankLabel" disabled />
-      <option v-for="option in options" :key="option.value" :value="option.value">
+      <option
+        v-for="option in options"
+        :key="option.value"
+        :value="option.value"
+        :disabled="option.disabled"
+      >
         {{ option.label }}
       </option>
       <slot />

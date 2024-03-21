@@ -5,7 +5,7 @@ import {
   type RequestMessage,
   type ResponseMessage,
   type Route,
-  type SportType,
+  routeTypeMap,
   type StatsMessage,
   TimeRange,
 } from '@strava-heatmapper/shared/interfaces';
@@ -68,25 +68,12 @@ function convertActivitySummary({
   };
 }
 
-const routeTypeMap = {
-  1: 'Ride',
-  2: 'Run',
-  3: 'Walk',
-  4: 'Hike',
-  5: 'TrailRun',
-  6: 'MountainBikeRide',
-  7: 'GravelRide',
-  8: 'Swim',
-} satisfies Record<number, SportType>;
-const routeSubTypeMap = { 1: 'Road', 2: 'MountainBike', 3: 'Cross', 4: 'Trail', 5: 'Mixed' } as const;
-
 function convertRouteSummary({
   id_str: id,
   name,
   created_at: date,
   map: { summary_polyline: map },
   type,
-  sub_type: subType,
   starred,
   distance,
   elevation_gain,
@@ -101,7 +88,6 @@ function convertRouteSummary({
     map,
     starred,
     type: routeTypeMap[type] ?? type,
-    subType: routeSubTypeMap[subType],
   };
 }
 
