@@ -2,6 +2,7 @@ import express from 'express';
 import { type Router } from 'express-ws';
 
 import { ActivitiesHandler } from './routes/activities';
+import { HookHandler } from './routes/hook';
 import { getToken } from './routes/token';
 import { UserHandler } from './routes/user';
 
@@ -18,6 +19,10 @@ export default function apiRouter(domain: string): express.Router {
   const userHandler = new UserHandler(domain);
   router.get('/user', userHandler.get);
   router.delete('/user', userHandler.delete);
+
+  const hookHandler = new HookHandler(domain);
+  router.get('/hook', hookHandler.get);
+  router.post('/hook', hookHandler.post);
 
   return router;
 }

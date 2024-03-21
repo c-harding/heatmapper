@@ -206,10 +206,10 @@ export default class RawStravaApi {
     }
   }
 
-  async logoutGlobal() {
+  async logoutGlobal(athlete?: number) {
     try {
-      const cache = await this.loadCache();
-      const user = await deleteFile<User>(userCacheFile(cache.stravaAthlete), true);
+      const atheleteId = athlete || (await this.loadCache()).stravaAthlete;
+      const user = await deleteFile<User>(userCacheFile(atheleteId), true);
       const sessions = new Set(user?.sessions).add(this.token);
 
       // Delete all sessions belonging to this user, including the current session

@@ -99,9 +99,11 @@ export class Strava {
     return await this.rawApi.get(`/activities/${id}`);
   }
 
-  async logout(global = false) {
+  async logout(global?: boolean);
+  async logout(global: true, athlete: number);
+  async logout(global = false, athlete?: number) {
     if (global) {
-      await this.rawApi.logoutGlobal();
+      await this.rawApi.logoutGlobal(athlete);
     } else {
       await this.rawApi.logout();
     }
