@@ -1,10 +1,24 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
+import { useRouter } from 'vue-router';
 
 import MapView from './components/map/MapView.vue';
 import CollapsibleSidebar from './components/sidebar/CollapsibleSidebar.vue';
 import SidebarContent from './components/sidebar/SidebarContent.vue';
-import { useActivityService } from './services/useActivityService';
+import { provideActivityService } from './services/useActivityService';
+
+const { routes = false } = defineProps<{ routes: boolean }>();
+
+const router = useRouter();
+
+const useRoutes = computed({
+  get() {
+    return routes;
+  },
+  set(value) {
+    return value ? router.replace({ path: '/routes' }) : router.push({ path: '/' });
+  },
+});
 
 const map = ref<typeof MapView>();
 
@@ -12,7 +26,7 @@ const location = ref({ lat: 51.45, lng: -2.6 });
 
 const zoom = ref(10);
 
-const { mapItems } = useActivityService();
+const { mapItems } = provideActivityService({ useRoutes });
 
 const selected = ref<string[]>([]);
 

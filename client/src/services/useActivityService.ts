@@ -6,7 +6,7 @@ import {
   type Route,
   TimeRange,
 } from '@strava-heatmapper/shared/interfaces';
-import { computed, inject, provide, reactive, readonly, type Ref, ref } from 'vue';
+import { computed, inject, provide, reactive, readonly, type Ref, ref, shallowRef } from 'vue';
 
 import Socket from '@/socket';
 import {
@@ -40,9 +40,13 @@ export function doesSportTypeMatch(sportTypeFilter: string, sportType: string) {
   return sportTypeFilter.split(',').includes(sportType);
 }
 
-function makeActivityService(): ActivityService {
-  const allRoutes = ref<Route[]>([]);
-  const allActivities = ref<Activity[]>([]);
+function makeActivityService({
+  useRoutes = ref(false),
+}: {
+  useRoutes?: Ref<boolean>;
+}): ActivityService {
+  const allRoutes = shallowRef<Route[]>([]);
+  const allActivities = shallowRef<Activity[]>([]);
 
   const { continueLogin, waitForLogin } = useContinueLogin();
 
@@ -53,7 +57,6 @@ function makeActivityService(): ActivityService {
     sportType: '',
     starred: false,
   });
-  const useRoutes = ref(false);
 
   const error = ref<string>();
 
@@ -355,8 +358,8 @@ function makeActivityService(): ActivityService {
   };
 }
 
-function provideActivityService() {
-  const service = makeActivityService();
+export function provideActivityService(options: { useRoutes?: Ref<boolean> } = {}) {
+  const service = makeActivityService(options);
   provide(activityServiceToken, service);
   return service;
 }

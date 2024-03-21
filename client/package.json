@@ -15,7 +15,8 @@
     "@strava-heatmapper/shared": "^0.1.0",
     "@unhead/vue": "^1.8.9",
     "mapbox-gl": "~3.1.2",
-    "vue": "^3.4.20"
+    "vue": "^3.4.20",
+    "vue-router": "^4.3.0"
   },
   "devDependencies": {
     "@types/mapbox-gl": "~3.1.0",
