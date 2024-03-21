@@ -50,12 +50,17 @@ const spinnerStyle = computed(() => ({
 <template>
   <div class="spinner-container">
     <div class="spinner" :style="spinnerStyle" />
+    <span><slot /></span>
   </div>
 </template>
 
 <style scoped>
 .spinner-container {
   display: flex;
+
+  &:has(> :is(.spinner, :not(:empty)) ~ :not(:empty)) {
+    gap: 0.5ch;
+  }
 }
 
 .spinner {

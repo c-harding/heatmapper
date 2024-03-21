@@ -15,12 +15,14 @@ export interface ButtonError {
 const {
   icon,
   loading: loadingProp = false,
+  loadingText,
   disabled = false,
   onClick,
   onRejection,
 } = defineProps<{
   icon?: string;
   loading?: boolean;
+  loadingText?: string;
   disabled?: boolean;
   onClick?: () => void | Promise<void>;
   onRejection?: (value: ButtonError) => string | void;
@@ -55,7 +57,7 @@ async function clickHandler() {
     <UILabelledIcon :icon="icon" class="button-contents">
       <slot />
     </UILabelledIcon>
-    <UISpinner v-if="loading" size="tiny" class="button-spinner" />
+    <UISpinner v-if="loading" size="tiny" class="button-spinner">{{ loadingText }}</UISpinner>
     <ErrorTooltip :error-message="errorMessage" @dismiss="dismissLast" />
   </button>
 </template>
