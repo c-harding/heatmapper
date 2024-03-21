@@ -1,36 +1,29 @@
 <script setup lang="ts" generic="T extends string | number">
 import { computed } from 'vue';
 
-import UILabelledIcon from './UILabelledIcon.vue';
-
-const {
-  texts,
-  icons: iconsProp = {},
-  selected: selectedProp,
-} = defineProps<{
-  texts: Record<T, string>;
-  icons?: Partial<Record<T, string>>;
+const { texts, selected } = defineProps<{
+  texts?: Record<T, string>;
   selected?: T;
 }>();
 
-// Needed for type inference
-const icons = computed<Partial<Record<T, string>>>(() => iconsProp);
+const slots = defineSlots<{ [x in T]: unknown }>();
 
-const textPairs = computed(() => Object.entries(texts) as [T, string][]);
-const selected = computed(() =>
-  selectedProp && selectedProp in texts ? selectedProp : textPairs.value[0][0],
-);
+const keys = computed(() => (texts ? Object.keys(texts) : Object.keys(slots)) as T[]);
+
+const allTexts = computed(() => texts as Record<string | number, string>);
 </script>
 
 <template>
   <div class="multi-text">
-    <UILabelledIcon
-      v-for="pair of textPairs"
-      :key="pair[0]"
-      :icon="icons[pair[0]]"
-      :class="{ selected: selected === pair[0] }"
-      >{{ pair[1] }}</UILabelledIcon
+    <div
+      v-for="key of keys"
+      :key="key"
+      class="multi-text-item"
+      :class="{ selected: selected === key }"
     >
+      <template v-if="allTexts">{{ allTexts?.[key] }}</template
+      ><slot :name="key" />
+    </div>
   </div>
 </template>
 
@@ -40,8 +33,15 @@ const selected = computed(() =>
   grid-template-areas: 'multi-text';
   align-items: center;
 
-  .ui-labelled-icon {
+  .multi-text-item {
     grid-area: multi-text;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+
+    > :only-child {
+      flex: 1;
+    }
 
     &:not(.selected) {
       visibility: hidden;

@@ -118,19 +118,20 @@ defineExpose({ gear });
         </SegmentedControl>
         <UIButton @click="loadButton">
           <UIMultiText
-            :texts="{ false: 'Load', true: 'Reload' }"
-            :selected="unchangedSinceLoad ? 'true' : 'false'"
+            :texts="{ load: 'Load', reload: 'Reload' }"
+            :selected="unchangedSinceLoad ? 'reload' : 'load'"
           />
         </UIButton>
       </div>
       <div class="buttons">
         <UIButton icon="settings" @click="settingsButton">User</UIButton>
         <UIButton @click="loading ? cancelLoading() : discardCache(true)">
-          <UIMultiText
-            :texts="{ discard: 'Discard cache', cancel: 'Cancel loading' }"
-            :icons="{ discard: 'delete' }"
-            :selected="loading ? 'cancel' : 'discard'"
-          />
+          <UIMultiText :selected="loading ? 'cancel' : 'discard'">
+            <template #cancel>Cancel</template>
+            <template #discard>
+              <UILabelledIcon icon="delete">Clear</UILabelledIcon>
+            </template>
+          </UIMultiText>
         </UIButton>
       </div>
     </div>
