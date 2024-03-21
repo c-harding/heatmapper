@@ -47,7 +47,7 @@ onUnmounted(() => {
 
 <template>
   <button ref="layerButton" class="layer-button" @click="clickedOpen = !clickedOpen">
-    <UIIcon>layers</UIIcon>
+    <UIIcon icon="layers" />
   </button>
   <div ref="layerPicker" class="layer-picker" :class="{ open: clickedOpen }">
     <menu>

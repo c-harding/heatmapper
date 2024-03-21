@@ -39,10 +39,13 @@ const model = defineModel<string | null>({ default: null });
       </option>
       <slot />
     </select>
-    <UIIcon v-if="clearButton && model !== blankValue" inline @click="model = blankValue">
-      close
-    </UIIcon>
-    <UIIcon v-else class="down-arrow" inline large> expand_more </UIIcon>
+    <UIIcon
+      v-if="clearButton && model !== blankValue"
+      inline
+      icon="close"
+      @click="model = blankValue"
+    />
+    <UIIcon v-else class="down-arrow" inline large icon="expand_more" />
   </div>
 </template>
 

@@ -1,23 +1,18 @@
 <script setup lang="ts">
 import { useHead } from '@unhead/vue';
-import { computed } from 'vue';
 
 const {
+  icon,
   inline = false,
   large = false,
-  placeholder = false,
   bottom = false,
 } = defineProps<{
+  icon: string | undefined;
   inline?: boolean;
   large?: boolean;
   placeholder?: boolean;
   bottom?: boolean;
 }>();
-
-const generated = computed(() => {
-  if (placeholder) return 'crop_square';
-  return '';
-});
 
 useHead({
   link: [
@@ -30,9 +25,13 @@ useHead({
 </script>
 
 <template>
-  <i v-bind="$attrs" class="icon material-icons" :class="{ inline, large, placeholder, bottom }"
-    >{{ generated }}<slot v-if="!generated"
-  /></i>
+  <i
+    v-if="icon"
+    v-bind="$attrs"
+    class="icon material-icons"
+    :class="{ inline, large, placeholder, bottom }"
+    >{{ icon }}</i
+  >
 </template>
 
 <style lang="scss">

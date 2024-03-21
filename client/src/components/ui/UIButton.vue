@@ -4,7 +4,7 @@ import { computed, ref } from 'vue';
 import ErrorTooltip from '../tooltip/ErrorTooltip.vue';
 import { TooltipError } from '../tooltip/TooltipError';
 import { type ShowError, useErrorTooltip } from '../tooltip/useErrorTooltip';
-import UIIcon from './UIIcon.vue';
+import UILabelledIcon from './UILabelledIcon.vue';
 import UISpinner from './UISpinner.vue';
 
 export interface ButtonError {
@@ -52,10 +52,9 @@ async function clickHandler() {
 
 <template>
   <button ref="buttonRef" :disabled="loading || disabled" :loading="loading" @click="clickHandler">
-    <div class="button-contents">
-      <UIIcon v-if="icon" inline>{{ icon }}</UIIcon>
+    <UILabelledIcon :icon="icon" class="button-contents">
       <slot />
-    </div>
+    </UILabelledIcon>
     <UISpinner v-if="loading" size="tiny" class="button-spinner" />
     <ErrorTooltip :error-message="errorMessage" @dismiss="dismissLast" />
   </button>
@@ -89,14 +88,7 @@ button {
 
   .button-contents {
     grid-area: button;
-    display: flex;
-    position: relative;
-    align-items: center;
-    height: 1.2em;
-  }
-
-  .icon:not(:last-child) {
-    margin-right: 0.5ex;
+    min-height: 1.2em;
   }
 
   &:has(.button-spinner) .button-contents {

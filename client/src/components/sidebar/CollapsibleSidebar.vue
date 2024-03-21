@@ -28,13 +28,13 @@ const appName = import.meta.env.VITE_APP_NAME as string;
       <div class="tab-curve top" />
       <div class="tab map">
         <p>
-          <UIIcon>map</UIIcon>
+          <UIIcon icon="map" />
         </p>
         <p>Map</p>
       </div>
       <div class="tab back">
         <p>
-          <UIIcon>{{ backArrow }}</UIIcon>
+          <UIIcon :icon="backArrow" />
         </p>
         <p>Back</p>
       </div>
@@ -52,7 +52,7 @@ const appName = import.meta.env.VITE_APP_NAME as string;
   </div>
 </template>
 
-<style lang="scss">
+<style lang="scss" scoped>
 $tab-width: 5rem;
 $tab-height: 5rem;
 $logo-height: 5rem;

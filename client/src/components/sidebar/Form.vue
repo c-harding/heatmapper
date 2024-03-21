@@ -125,13 +125,11 @@ defineExpose({ gear });
       </div>
       <div class="buttons">
         <UIButton icon="settings" @click="settingsButton">User</UIButton>
-        <UIButton
-          :icon="loading ? 'close' : 'delete'"
-          @click="loading ? cancelLoading() : discardCache(true)"
-        >
+        <UIButton @click="loading ? cancelLoading() : discardCache(true)">
           <UIMultiText
-            :texts="{ false: 'Discard cache', true: 'Cancel loading' }"
-            :selected="loading ? 'true' : 'false'"
+            :texts="{ discard: 'Discard cache', cancel: 'Cancel loading' }"
+            :icons="{ discard: 'delete' }"
+            :selected="loading ? 'cancel' : 'discard'"
           />
         </UIButton>
       </div>
@@ -148,7 +146,7 @@ defineExpose({ gear });
           blank-label="All sports"
         />
       </label>
-      <label :class="{ hidden: !useRoutes }">
+      <label :class="{ hidden: !useRoutes }" title="Only show starred routes">
         <span>Starred</span>
         <UIButton
           :icon="filterModel.starred ? 'star' : 'star_border'"

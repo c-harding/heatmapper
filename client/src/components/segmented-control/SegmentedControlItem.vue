@@ -32,7 +32,6 @@ li {
   border-radius: var(--border-radius);
   border: 1px solid transparent;
 
-  max-width: max-content;
   min-width: 2em;
   min-height: 1.75rem;
 
@@ -66,6 +65,7 @@ li {
       display: flex;
       justify-content: center;
       align-items: center;
+      align-self: stretch;
     }
 
     > .bold {

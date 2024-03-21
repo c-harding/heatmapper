@@ -28,7 +28,7 @@ function dateToYYYYMMDD(date: Date | null): string | null {
       :value="dateToYYYYMMDD(model)"
       @change="model = input!.valueAsDate"
     />
-    <UIIcon class="icon">expand_more</UIIcon>
+    <UIIcon class="icon" icon="expand_more" />
   </div>
 </template>
 

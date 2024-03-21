@@ -82,7 +82,7 @@ const cssVars = computed(() => ({
     <Transition>
       <div v-if="errorMessage" class="error-container" :style="cssVars">
         <div ref="tooltipRef" class="error-tooltip" :style="marginAdjustments">
-          <UIIcon inline>warning</UIIcon>
+          <UIIcon inline icon="warning" />
           {{ errorMessage.message }}
         </div>
         <div class="tail" />

@@ -25,7 +25,7 @@ watch(
 
 <template>
   <dialog ref="modal" @close="open = false" @click="open = false">
-    <a class="close-button" @click.stop.prevent="open = false"><UIIcon>close</UIIcon></a>
+    <a class="close-button" @click.stop.prevent="open = false"><UIIcon icon="close" /></a>
     <div class="dialog-contents" @click.stop>
       <slot v-if="open" />
     </div>
