@@ -81,7 +81,7 @@ a {
   --transition-speed: 0.5s;
   --bold-color: #fc4c02;
   --link-color: blue;
-  --border-radius: 6px;
+  --border-radius: 7px;
   font-family: -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;

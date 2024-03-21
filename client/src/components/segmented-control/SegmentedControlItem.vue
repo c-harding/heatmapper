@@ -32,8 +32,9 @@ li {
   border-radius: var(--border-radius);
   border: 1px solid transparent;
 
-  min-width: 2em;
   min-height: 1.75rem;
+  box-sizing: border-box;
+  flex: 1;
 
   &.selected {
     border-color: var(--color-strong);
@@ -57,6 +58,7 @@ li {
     display: grid;
     grid-template-areas: 'button';
     font-size: 0.9em;
+    min-width: 2em;
 
     > .button-contents {
       padding: 0 0.25em;

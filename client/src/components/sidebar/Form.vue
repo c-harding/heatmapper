@@ -10,8 +10,10 @@ import SegmentedControl from '../segmented-control/SegmentedControl.vue';
 import SegmentedControlItem from '../segmented-control/SegmentedControlItem.vue';
 import { TooltipError } from '../tooltip/TooltipError';
 import UIButton from '../ui/UIButton.vue';
+import UIButtonGroup from '../ui/UIButtonGroup.vue';
 import UIDateInput from '../ui/UIDateInput.vue';
 import UIDropdown from '../ui/UIDropdown.vue';
+import UILabelledIcon from '../ui/UILabelledIcon.vue';
 import UIModal from '../ui/UIModal.vue';
 import UIMultiText from '../ui/UIMultiText.vue';
 import LoadingStatus from './LoadingStatus.vue';
@@ -100,7 +102,7 @@ defineExpose({ gear });
 
 <template>
   <aside>
-    <div class="controls row">
+    <div class="controls-grid">
       <label>
         <span>Start date</span>
         <UIDateInput v-model="start" name="start" />
@@ -109,30 +111,35 @@ defineExpose({ gear });
         <span>End date</span>
         <UIDateInput v-model="end" name="end" />
       </label>
-    </div>
-    <div>
       <div class="buttons">
-        <SegmentedControl v-slot="{ option }" v-model="useRoutes" :disabled="loading">
+        <SegmentedControl
+          v-slot="{ option }"
+          v-model="useRoutes"
+          class="segmented-control"
+          :disabled="loading"
+        >
           <SegmentedControlItem :option="option(false)">Activities</SegmentedControlItem>
           <SegmentedControlItem :option="option(true)">Routes</SegmentedControlItem>
         </SegmentedControl>
-        <UIButton @click="loadButton">
-          <UIMultiText
-            :texts="{ load: 'Load', reload: 'Reload' }"
-            :selected="unchangedSinceLoad ? 'reload' : 'load'"
-          />
-        </UIButton>
       </div>
       <div class="buttons">
+        <UIButtonGroup>
+          <UIButton @click="loadButton">
+            <UIMultiText
+              :texts="{ load: 'Load', reload: 'Reload' }"
+              :selected="unchangedSinceLoad ? 'reload' : 'load'"
+            />
+          </UIButton>
+          <UIButton @click="loading ? cancelLoading() : discardCache(true)">
+            <UIMultiText :selected="loading ? 'cancel' : 'discard'">
+              <template #cancel>Cancel</template>
+              <template #discard>
+                <UILabelledIcon icon="delete">Clear</UILabelledIcon>
+              </template>
+            </UIMultiText>
+          </UIButton>
+        </UIButtonGroup>
         <UIButton icon="settings" @click="settingsButton">User</UIButton>
-        <UIButton @click="loading ? cancelLoading() : discardCache(true)">
-          <UIMultiText :selected="loading ? 'cancel' : 'discard'">
-            <template #cancel>Cancel</template>
-            <template #discard>
-              <UILabelledIcon icon="delete">Clear</UILabelledIcon>
-            </template>
-          </UIMultiText>
-        </UIButton>
       </div>
     </div>
     <UserLogin v-if="continueLogin" @login="continueLogin($event)" />
@@ -168,41 +175,72 @@ aside {
   display: flex;
   flex-direction: column;
   gap: 0.5em;
+
+  .buttons {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-evenly;
+    align-items: center;
+  }
+
+  .segmented-control:only-child {
+    flex: 1;
+  }
 }
 
 .hidden {
   visibility: hidden;
 }
 
-.controls {
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding-top: 1.2em;
-
-  &.row {
-    flex-direction: row;
-  }
-
-  label {
-    display: flex;
-    align-items: center;
-    min-width: 0;
-  }
-
-  &.row label {
-    margin-top: -1.2em;
-    flex-direction: column;
-    align-items: start;
-
-    span {
-      height: 1.2em;
+.controls,
+.controls-grid {
+  > label {
+    > span {
+      min-height: 1.2em;
       font-size: 0.9em;
-      font-weight: bold;
+      font-weight: 600;
       padding-inline: 0.5rem;
       display: block;
     }
+  }
+}
+
+.controls-grid {
+  display: grid;
+  grid-template-columns: max-content max-content;
+  justify-content: center;
+
+  > label {
+    grid-template-columns: subgrid;
+    display: grid;
+    grid-column: span 2;
+    align-items: center;
+
+    > span {
+      margin-left: auto;
+    }
+  }
+
+  > .buttons {
+    grid-column: span 2;
+    justify-content: space-between;
+  }
+}
+
+.controls {
+  min-width: 0;
+  display: flex;
+  padding-top: 1.2em;
+  row-gap: 1.2em;
+  justify-content: space-evenly;
+
+  > label {
+    display: flex;
+    align-items: center;
+    min-width: 0;
+    margin-top: -1.2em;
+    flex-direction: column;
+    align-items: start;
   }
 }
 

@@ -38,7 +38,6 @@ ul {
   border: 1px solid var(--color-weak);
   background-color: var(--background-mid);
 
-  max-width: min-content;
   min-width: 3em;
 
   &.disabled {
