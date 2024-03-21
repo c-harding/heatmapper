@@ -28,7 +28,7 @@ function dateToYYYYMMDD(date: Date | null): string | null {
       :value="dateToYYYYMMDD(model)"
       @change="model = input!.valueAsDate"
     />
-    <UIIcon class="icon" icon="expand_more" />
+    <UIIcon class="icon" inline icon="calendar_today" />
   </div>
 </template>
 
@@ -41,13 +41,13 @@ function dateToYYYYMMDD(date: Date | null): string | null {
   border: 1px solid var(--color-weak);
   background-color: var(--background-strong);
 
-  max-width: max-content;
   min-width: 3em;
   min-height: 1.75rem;
   box-sizing: border-box;
 }
 
 input {
+  flex: 1;
   background-color: inherit;
   border: none;
   margin: 0.15rem 0.4rem;
@@ -57,6 +57,10 @@ input {
   &:focus {
     outline: none;
   }
+}
+
+.icon {
+  margin-right: 4px;
 }
 
 @supports not (-webkit-touch-callout: none) {

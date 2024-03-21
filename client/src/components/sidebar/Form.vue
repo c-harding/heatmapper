@@ -215,10 +215,6 @@ aside {
     display: grid;
     grid-column: span 2;
     align-items: center;
-
-    > span {
-      margin-left: auto;
-    }
   }
 
   > .buttons {
