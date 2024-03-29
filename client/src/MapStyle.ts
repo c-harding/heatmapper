@@ -1,7 +1,6 @@
 import { computed, ref, watch } from 'vue';
 
 import { type DropdownChoice } from './components/map/PickerControl.vue';
-import { useHasBeenTrue } from './utils/useHasBeenTrue';
 
 // Set in vite.config.js
 declare const MAPBOX_STYLE: MapStyleSelection;
@@ -30,11 +29,8 @@ type MapStyleSelection = MapStyle | 'light-dark';
 
 const STYLE_NAME_KEY = 'mapbox-style-name';
 
-const stravaStyleChoice: DropdownChoice<MapStyle> = {
-  value: MapStyle.STRAVA,
-  label: 'Strava style',
-};
-const mapboxStyleChoices: readonly DropdownChoice<MapStyleSelection>[] = [
+const mapStyleChoices: readonly DropdownChoice<MapStyleSelection>[] = [
+  { value: MapStyle.STRAVA, label: 'Original style' },
   { value: MapStyle.STANDARD, label: 'Standard style' },
   { value: MapStyle.LIGHT, label: 'Light style' },
   { value: MapStyle.DARK, label: 'Dark style' },
@@ -43,10 +39,6 @@ const mapboxStyleChoices: readonly DropdownChoice<MapStyleSelection>[] = [
   { value: MapStyle.HYBRID, label: 'Hybrid' },
   { value: MapStyle.SATELLITE, label: 'Satellite' },
 ];
-
-function validateMapStyle(styleName: string): styleName is MapStyle {
-  return styleName in MapStyle;
-}
 
 function validateMapChoice(choice: string): choice is MapStyleSelection {
   return choice in MapStyle || choice === 'light-dark';
@@ -80,13 +72,6 @@ export function useMapStyle() {
   });
 
   const mapStyleUrl = computed(() => mapboxStyleUrls[mapStyle.value]);
-
-  const stravaStyleEnabled = useHasBeenTrue(() => mapChoice.value === MapStyle.STRAVA);
-
-  const mapStyleChoices = computed<readonly DropdownChoice<MapStyleSelection>[]>(() => [
-    ...(stravaStyleEnabled.value ? [stravaStyleChoice] : []),
-    ...mapboxStyleChoices,
-  ]);
 
   watch(mapChoice, (newChoice) => {
     localStorage.setItem(STYLE_NAME_KEY, newChoice);
