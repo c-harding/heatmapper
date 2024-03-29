@@ -1,7 +1,4 @@
 <script lang="ts">
-// Set in vite.config.js
-declare const USE_STRAVA_ICONS: boolean | undefined;
-
 const locales = [navigator.language, ...navigator.languages];
 
 const fullDateFormat = new Intl.DateTimeFormat(locales, {
@@ -48,12 +45,14 @@ const [ascentArrow, descentArrow] = document.dir === 'rtl' ? ['↖', '↙'] : ['
 import { type MapItem, SportType } from '@strava-heatmapper/shared/interfaces';
 import { computed } from 'vue';
 
+import config from '@/utils/config';
+
 import StravaEmoji from '../strava-symbol/StravaEmoji.vue';
 import StravaIcon from '../strava-symbol/StravaIcon.vue';
 import UISpinner from '../ui/UISpinner.vue';
 
 // This conditional must be in the component rather than the template, so that tree-shaking works
-const StravaActivitySymbol = USE_STRAVA_ICONS ? StravaIcon : StravaEmoji;
+const StravaActivitySymbol = config.USE_STRAVA_ICONS ? StravaIcon : StravaEmoji;
 
 const {
   item,
@@ -106,7 +105,7 @@ const hideElevationGain: SportType[] = [
   SportType.Yoga,
 ];
 
-const useTextLink = !USE_STRAVA_ICONS;
+const useTextLink = !config.USE_STRAVA_ICONS;
 
 const distanceString = computed(() => {
   const kilometers = item.distance / 1000;

@@ -1,13 +1,9 @@
-<script lang="ts">
-// Set in vite.config.js
-declare const GIT_HASH: string | undefined;
-</script>
-
 <script setup lang="ts">
 import { type MapItem } from '@strava-heatmapper/shared/interfaces';
 import { nextTick, ref, watch } from 'vue';
 
 import { useActivityService } from '@/services/useActivityService';
+import config from '@/utils/config';
 import { cancelTextSelection } from '@/utils/ui';
 
 import FormComponent from './Form.vue';
@@ -38,7 +34,7 @@ const localSelected = ref<string[]>();
 
 const selectionBase = ref<string[]>();
 
-const gitHash = GIT_HASH ?? null;
+const gitHash = config.GIT_HASH ?? null;
 
 const sidebarItemList = ref<HTMLUListElement>();
 

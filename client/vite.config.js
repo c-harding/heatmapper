@@ -48,6 +48,12 @@ export default defineConfig(({ mode }) => {
       outDir: '../dist/client',
       sourcemap: true,
       emptyOutDir: true,
+      rollupOptions: {
+        output: {
+          manualChunks: { config: ['@/utils/config'] },
+          chunkFileNames: ({ name }) => (name === 'config' ? '[name].js' : '[name]-[hash].js'),
+        },
+      },
     },
   };
 });

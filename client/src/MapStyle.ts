@@ -1,9 +1,8 @@
 import { computed, ref, watch } from 'vue';
 
-import { type DropdownChoice } from './components/map/PickerControl.vue';
+import config from '@/utils/config';
 
-// Set in vite.config.js
-declare const MAPBOX_STYLE: MapStyleSelection;
+import { type DropdownChoice } from './components/map/PickerControl.vue';
 
 export enum MapStyle {
   STANDARD = 'STANDARD',
@@ -50,7 +49,7 @@ function validateMapChoice(choice: string): choice is MapStyleSelection {
  * @returns a ref to the map style
  */
 export function useMapStyle() {
-  const initialStyleName = localStorage.getItem(STYLE_NAME_KEY) || MAPBOX_STYLE;
+  const initialStyleName = localStorage.getItem(STYLE_NAME_KEY) || config.MAPBOX_STYLE;
   const initialStyle: MapStyleSelection = validateMapChoice(initialStyleName)
     ? initialStyleName
     : 'light-dark';

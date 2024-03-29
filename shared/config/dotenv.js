@@ -6,6 +6,7 @@ require('dotenv').config({
 });
 
 const SERVER_PORT = process.env.SERVER_PORT || 8080;
+const ENV = process.env.ENV || '';
 const VITE_DEV_PORT = process.env.VITE_DEV_PORT || 8081;
 const VITE_APP_NAME = process.env.VITE_APP_NAME || 'Heatmapper';
 const MAPBOX_TOKEN = process.env.MAPBOX_TOKEN || '';
@@ -24,4 +25,5 @@ module.exports = {
   USE_STRAVA_ICONS,
   VALIDATE_USER_BEFORE_CACHE,
   MAPBOX_STYLE,
+  ENV,
 };

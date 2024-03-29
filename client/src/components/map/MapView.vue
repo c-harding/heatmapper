@@ -6,6 +6,8 @@ import {
   type MapMouseEvent,
 } from 'mapbox-gl';
 
+import config from '@/utils/config';
+
 import PickerControl from './PickerControl.vue';
 
 declare global {
@@ -13,9 +15,6 @@ declare global {
     cachedMapElement?: MapboxMap;
   }
 }
-
-// Set in vite.config.js
-declare const MAPBOX_TOKEN: string;
 </script>
 
 <script setup lang="tsx">
@@ -41,8 +40,6 @@ const mapboxgl = await import('mapbox-gl');
 
 const container = ref<HTMLElement>();
 
-const token = MAPBOX_TOKEN;
-
 const { mapStyleUrl, mapChoice, mapStyle, mapStyleChoices } = useMapStyle();
 
 const terrain = ref(false);
@@ -51,7 +48,7 @@ const topCorner = document.dir === 'rtl' ? 'top-left' : 'top-right';
 
 if (!window.cachedMapElement) {
   const newMap = new mapboxgl.Map({
-    accessToken: token,
+    accessToken: config.MAPBOX_TOKEN,
     container: document.createElement('div'),
     style: mapStyleUrl.value,
     center: center.value,
