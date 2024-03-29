@@ -31,6 +31,9 @@ import {
 } from './ActivityService';
 import { useContinueLogin } from './useContinueLogin';
 
+// Set in vite.config.js
+declare const VALIDATE_USER_BEFORE_CACHE: boolean;
+
 /** One day in milliseconds */
 const DAY = 24 * 60 * 60 * 1000;
 
@@ -48,6 +51,8 @@ function makeActivityService({
 }): ActivityService {
   const allRoutes = shallowRef<Route[]>([]);
   const allActivities = shallowRef<Activity[]>([]);
+
+  let needsUserValidation = VALIDATE_USER_BEFORE_CACHE;
 
   const { continueLogin, waitForLogin } = useContinueLogin();
 
@@ -177,7 +182,11 @@ function makeActivityService({
     }
   }
 
-  function loadFromCache() {
+  async function loadFromCache() {
+    if (needsUserValidation) {
+      await sockets({});
+      needsUserValidation = false;
+    }
     loadFromActivityCache(false);
     loadFromRouteCache();
   }
@@ -366,9 +375,7 @@ function makeActivityService({
     await sockets({ partial, routes: useRoutes.value, activities: !useRoutes.value, start, end });
   }
 
-  sockets({}).then(() => {
-    loadFromCache();
-  });
+  loadFromCache();
 
   return {
     continueLogin,

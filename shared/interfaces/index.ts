@@ -11,5 +11,5 @@ export type {
   FindingStats,
 } from './ResponseMessage';
 export type { default as Route } from './Route';
-export { type default as SportType, sportTypes, sportGroups, routeTypeMap } from './SportType';
+export { SportType, sportTypes, sportGroups, routeTypeMap } from './SportType';
 export { default as TimeRange } from './TimeRange';

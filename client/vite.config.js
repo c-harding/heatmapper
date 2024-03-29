@@ -2,7 +2,8 @@ import {
   MAPBOX_STYLE,
   MAPBOX_TOKEN,
   SERVER_PORT,
-  USE_EMOJI,
+  USE_STRAVA_ICONS,
+  VALIDATE_USER_BEFORE_CACHE,
   VITE_APP_NAME,
   VITE_DEV_PORT,
 } from '@strava-heatmapper/shared/config/dotenv';
@@ -26,7 +27,8 @@ export default defineConfig(({ mode }) => {
     define: {
       MAPBOX_TOKEN: JSON.stringify(MAPBOX_TOKEN),
       MAPBOX_STYLE: JSON.stringify(MAPBOX_STYLE),
-      USE_EMOJI: JSON.stringify(USE_EMOJI),
+      USE_STRAVA_ICONS: JSON.stringify(USE_STRAVA_ICONS),
+      VALIDATE_USER_BEFORE_CACHE: JSON.stringify(VALIDATE_USER_BEFORE_CACHE),
       GIT_HASH:
         mode === 'production' ? JSON.stringify(gitDescribe.gitDescribeSync().hash) : undefined,
     },

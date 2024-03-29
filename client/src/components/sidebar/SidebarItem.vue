@@ -1,6 +1,6 @@
 <script lang="ts">
 // Set in vite.config.js
-declare const USE_EMOJI: boolean | undefined;
+declare const USE_STRAVA_ICONS: boolean | undefined;
 
 const locales = [navigator.language, ...navigator.languages];
 
@@ -45,7 +45,7 @@ const [ascentArrow, descentArrow] = document.dir === 'rtl' ? ['↖', '↙'] : ['
 </script>
 
 <script setup lang="ts">
-import { type MapItem, type SportType } from '@strava-heatmapper/shared/interfaces';
+import { type MapItem, SportType } from '@strava-heatmapper/shared/interfaces';
 import { computed } from 'vue';
 
 import StravaEmoji from '../strava-symbol/StravaEmoji.vue';
@@ -53,7 +53,7 @@ import StravaIcon from '../strava-symbol/StravaIcon.vue';
 import UISpinner from '../ui/UISpinner.vue';
 
 // This conditional must be in the component rather than the template, so that tree-shaking works
-const StravaActivitySymbol = USE_EMOJI ? StravaEmoji : StravaIcon;
+const StravaActivitySymbol = USE_STRAVA_ICONS ? StravaIcon : StravaEmoji;
 
 const {
   item,
@@ -80,33 +80,33 @@ const url = computed<string>(() => {
 });
 
 const showElevationLoss: SportType[] = [
-  // 'AlpineSki',
-  // 'BackcountrySki',
-  // 'Canoeing',
-  // 'Kayaking'
+  // SportType.AlpineSki,
+  // SportType.BackcountrySki,
+  // SportType.Canoeing,
+  // SportType.Kayaking,
 ];
 
 const hideElevationGain: SportType[] = [
-  // 'AlpineSki',
-  'Crossfit',
-  'Elliptical',
-  'Handcycle',
-  'IceSkate',
-  'InlineSkate',
-  'Kitesurf',
-  'Rowing',
-  'Sail',
-  'Skateboard',
-  'Soccer',
-  'StandUpPaddling',
-  'Surfing',
-  'Swim',
-  'WeightTraining',
-  'Windsurf',
-  'Yoga',
+  // SportType.AlpineSki,
+  SportType.Crossfit,
+  SportType.Elliptical,
+  SportType.Handcycle,
+  SportType.IceSkate,
+  SportType.InlineSkate,
+  SportType.Kitesurf,
+  SportType.Rowing,
+  SportType.Sail,
+  SportType.Skateboard,
+  SportType.Soccer,
+  SportType.StandUpPaddling,
+  SportType.Surfing,
+  SportType.Swim,
+  SportType.WeightTraining,
+  SportType.Windsurf,
+  SportType.Yoga,
 ];
 
-const useTextLink = USE_EMOJI;
+const useTextLink = !USE_STRAVA_ICONS;
 
 const distanceString = computed(() => {
   const kilometers = item.distance / 1000;
