@@ -1,4 +1,4 @@
-import { type User } from '@strava-heatmapper/shared/interfaces';
+import { userCacheToUserInfo, type UserInfo } from '@strava-heatmapper/shared/interfaces';
 
 import { type DetailedGear, type SummaryActivity, type SummaryRoute } from './model';
 import RawStravaApi from './raw-api';
@@ -33,8 +33,8 @@ export class Strava {
     return await this.rawApi.get(`/gear/${id}`);
   }
 
-  async getUserInfo(): Promise<User> {
-    return this.rawApi.getUserInfo();
+  async getUserInfo(): Promise<UserInfo> {
+    return userCacheToUserInfo(await this.rawApi.getUserCache());
   }
 
   async getUserId(): Promise<number> {

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { type User } from '@strava-heatmapper/shared/interfaces';
+import { type UserInfo } from '@strava-heatmapper/shared/interfaces';
 import { computed } from 'vue';
 
 import { countOtherSessions } from '@/utils/strings';
@@ -8,7 +8,7 @@ import { TooltipError } from '../tooltip/TooltipError';
 import UIButton from '../ui/UIButton.vue';
 
 const props = defineProps<{
-  user: User;
+  user: UserInfo;
 }>();
 
 const emit = defineEmits<{
@@ -20,7 +20,7 @@ const imgSrcSet = computed<string | undefined>(() => {
   if (!props.user) return;
   return [
     { src: props.user.image62, width: 62 },
-    { src: props.user.image114, width: 114 },
+    { src: props.user.image124, width: 124 },
   ]
     .filter(({ src }) => src)
     .map(({ src, width }) => `${src} ${width}w`)
@@ -36,7 +36,7 @@ const profileLink = computed(
 );
 
 const otherSessions = computed<number>(() =>
-  props.user ? Math.max(props.user.sessions.length - 1, 0) : 0,
+  props.user ? Math.max(props.user.sessionCount - 1, 0) : 0,
 );
 
 const logout = async (global = false) => {

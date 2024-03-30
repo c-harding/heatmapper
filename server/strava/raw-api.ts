@@ -1,6 +1,6 @@
 import '@strava-heatmapper/shared/config/dotenv';
 
-import { type User } from '@strava-heatmapper/shared/interfaces';
+import { type UserCache } from '@strava-heatmapper/shared/interfaces';
 import { readFile } from 'fs/promises';
 import fetch, { type Response } from 'node-fetch';
 import { v4 as uuid, validate as validateUUID } from 'uuid';
@@ -21,6 +21,7 @@ interface Cache {
   stravaAthlete: number;
   stravaAccessToken?: string;
   stravaExpiry?: number;
+  stravaScope?: string[];
 }
 
 export default class RawStravaApi {
@@ -55,9 +56,12 @@ export default class RawStravaApi {
   /**
    * Updates cached strava authentication tokens if necessary
    */
-  private async getStravaToken(params?: { code: string; grant_type: string }): Promise<string> {
+  private async getStravaToken(): Promise<string>;
+  private async getStravaToken(scope: string, authCode: string): Promise<string>;
+  private async getStravaToken(scope?: string, authCode?: string): Promise<string> {
     let calculatedParams: { refresh_token: string } | { code: string; grant_type: string };
-    if (params) calculatedParams = params;
+
+    if (authCode) calculatedParams = { grant_type: 'authorization_code', code: authCode };
     else {
       const cache = await this.loadCache();
       if (cache.stravaAccessToken) return cache.stravaAccessToken;
@@ -79,8 +83,9 @@ export default class RawStravaApi {
       headers: { 'Content-Type': 'application/json' },
       signal: this.abortSignal,
     });
-    if (res.status >= 400 && params) {
+    if (res.status >= 400 && authCode) {
       console.error('/token:', res.status, 'body:', await res.json());
+      // TODO: why such a hard exit?
       process.exit(1);
     }
     const data = (await res.json()) as {
@@ -93,7 +98,7 @@ export default class RawStravaApi {
     const athlete = data.athlete;
 
     await Promise.all([
-      updateFile(
+      updateFile<Partial<Cache> & Pick<Cache, 'stravaAthlete'>>(
         sessionCacheFile(this.token),
         () => {
           if (!athlete) throw new Error('Did not receive Athlete ID on first login');
@@ -101,16 +106,15 @@ export default class RawStravaApi {
         },
         (oldCache): Cache => ({
           ...oldCache,
+          stravaScope: scope ? scope.split(',') : oldCache.stravaScope,
           stravaAccessToken: data.access_token,
           stravaRefreshToken: data.refresh_token,
           stravaExpiry: data.expires_at,
         }),
       ),
       athlete &&
-        updateFile(
-          userCacheFile(athlete.id),
-          {},
-          (oldUser: Partial<User>): User => this.athleteToUser(athlete, oldUser.sessions),
+        updateFile<Partial<UserCache>, UserCache>(userCacheFile(athlete.id), {}, (oldUser) =>
+          this.athleteToUser(athlete, oldUser.sessions),
         ),
     ]);
 
@@ -128,11 +132,11 @@ export default class RawStravaApi {
     return cache.stravaAthlete;
   }
 
-  async getUserInfo(): Promise<User> {
+  async getUserCache(): Promise<UserCache> {
     const userId = await this.getUserId();
     try {
       const jsonStr = await readFile(userCacheFile(userId), 'utf-8');
-      const user = JSON.parse(jsonStr) as User;
+      const user = JSON.parse(jsonStr) as UserCache;
       // if the ID is missing, we refetch the data,
       // because the existing cache file comes from a manual migration script
       // and it does not include the username
@@ -147,10 +151,8 @@ export default class RawStravaApi {
     }
 
     const athlete = await this.get<SummaryAthlete>('/athlete');
-    return await updateFile(
-      userCacheFile(athlete.id),
-      {},
-      (oldUser: Partial<User>): User => this.athleteToUser(athlete, oldUser.sessions),
+    return await updateFile<Partial<UserCache>, UserCache>(userCacheFile(athlete.id), {}, (oldUser) =>
+      this.athleteToUser(athlete, oldUser.sessions),
     );
   }
 
@@ -160,7 +162,7 @@ export default class RawStravaApi {
       firstName: athlete.firstname,
       lastName: athlete.lastname,
       image62: athlete.profile_medium,
-      image114: athlete.profile,
+      image124: athlete.profile,
       sessions: Array.from(new Set<string>(existingSessions).add(this.token)),
     };
   }
@@ -182,15 +184,14 @@ export default class RawStravaApi {
   private async getAccessTokenFromBrowser(): Promise<void> {
     if (!this.loginCallback) throw new CannotLogin('requestLogin is null');
     const athleteInfoPromise = addCallback(this.token, { signal: this.abortSignal }, (oauthResponse) => {
-      return this.getStravaToken({
-        code: oauthResponse.code,
-        grant_type: 'authorization_code',
-      });
+      return this.getStravaToken(oauthResponse.scope, oauthResponse.code);
     });
 
+    const redirectUrl = `${this.domain}/api/token`;
+    const scope = ['read_all', 'activity:read', 'activity:read_all'].join(',');
     const continueAfterLogin = await this.loginCallback(
       this.token,
-      `http://www.strava.com/oauth/authorize?client_id=${stravaClientId}&response_type=code&redirect_uri=${this.domain}/api/token&state=${this.token}&approval_prompt=auto&scope=read_all,activity:read_all`,
+      `http://www.strava.com/oauth/authorize?client_id=${stravaClientId}&response_type=code&redirect_uri=${redirectUrl}&state=${this.token}&approval_prompt=auto&scope=${scope}`,
     );
 
     try {
@@ -209,7 +210,7 @@ export default class RawStravaApi {
   async logoutGlobal(athlete?: number) {
     try {
       const atheleteId = athlete || (await this.loadCache()).stravaAthlete;
-      const user = await deleteFile<User>(userCacheFile(atheleteId), true);
+      const user = await deleteFile<UserCache>(userCacheFile(atheleteId), true);
       const sessions = new Set(user?.sessions).add(this.token);
 
       // Delete all sessions belonging to this user, including the current session
@@ -223,9 +224,9 @@ export default class RawStravaApi {
   async logout() {
     try {
       const cache = await this.loadCache();
-      await updateFile(userCacheFile(cache.stravaAthlete), undefined, (user: User) => {
+      await updateFile<Partial<UserCache>>(userCacheFile(cache.stravaAthlete), undefined, (user) => {
         // Remove the session from this file
-        user.sessions = user.sessions.filter((value) => value !== this.token);
+        user.sessions = user.sessions?.filter((value) => value !== this.token) ?? [];
 
         if (user.sessions.length > 0) {
           return user;

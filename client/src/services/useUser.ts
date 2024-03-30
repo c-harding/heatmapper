@@ -1,10 +1,10 @@
-import { type User } from '@strava-heatmapper/shared/interfaces';
+import { type UserInfo } from '@strava-heatmapper/shared/interfaces';
 import { type DeepReadonly, readonly, type Ref, ref, shallowReadonly } from 'vue';
 
 import { type ContinueLogin, useContinueLogin } from './useContinueLogin';
 
 export interface UseUser {
-  user: Ref<User | undefined>;
+  user: Ref<UserInfo | undefined>;
   continueLogin: DeepReadonly<Ref<ContinueLogin | undefined>>;
   getUser(): Promise<void>;
 }
@@ -12,7 +12,7 @@ export interface UseUser {
 export default function useUser(): UseUser {
   const { continueLogin, waitForLogin } = useContinueLogin();
 
-  const user = ref<User>();
+  const user = ref<UserInfo>();
 
   async function getUser(token?: string) {
     const userResponse = await fetch('/api/user', {

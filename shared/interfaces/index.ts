@@ -1,6 +1,6 @@
 export type { default as Activity, ActivityMap } from './Activity';
 export type { default as Gear } from './Gear';
-export type { default as User } from './User';
+export { type default as UserInfo, type UserCache, userCacheToUserInfo } from './User';
 export type { default as MapItem } from './MapItem';
 export type { default as RequestMessage } from './RequestMessage';
 export type {
