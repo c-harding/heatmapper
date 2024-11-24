@@ -11,10 +11,12 @@
     "develop": "../serve"
   },
   "dependencies": {
+    "@mapbox/mapbox-gl-rtl-text": "^0.3.0",
     "@mapbox/polyline": "^1.2.1",
     "@strava-heatmapper/shared": "^0.1.0",
     "@unhead/vue": "^1.8.9",
     "mapbox-gl": "~3.1.2",
+    "vite-plugin-static-copy": "^1.0.6",
     "vue": "^3.4.20",
     "vue-router": "^4.3.0"
   },

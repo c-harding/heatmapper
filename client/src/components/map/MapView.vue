@@ -38,6 +38,14 @@ defineExpose({ zoomToSelection });
 
 const mapboxgl = await import('mapbox-gl');
 
+if (mapboxgl.getRTLTextPluginStatus() === 'unavailable') {
+  mapboxgl.setRTLTextPlugin(
+    '/mapbox-gl-rtl-text.js',
+    () => undefined,
+    true, // Lazy load the plugin only when text is in arabic
+  );
+}
+
 const container = ref<HTMLElement>();
 
 const { mapStyleUrl, mapChoice, mapStyle, mapStyleChoices } = useMapStyle();

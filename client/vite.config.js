@@ -12,13 +12,26 @@ import vueJsx from '@vitejs/plugin-vue-jsx';
 import gitDescribe from 'git-describe';
 import { resolve } from 'path';
 import { defineConfig } from 'vite';
+import { viteStaticCopy } from 'vite-plugin-static-copy';
 
 process.env.VITE_APP_NAME ||= VITE_APP_NAME;
+
+const manualChunks = {
+  config: ['@/utils/config'],
+};
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
   return {
     plugins: [
+      viteStaticCopy({
+        targets: [
+          {
+            src: '../node_modules/@mapbox/mapbox-gl-rtl-text/dist/mapbox-gl-rtl-text.js',
+            dest: '.',
+          },
+        ],
+      }),
       vue({ script: { propsDestructure: true } }),
       vueJsx({
         // options are passed on to @vue/babel-plugin-jsx
@@ -50,8 +63,8 @@ export default defineConfig(({ mode }) => {
       emptyOutDir: true,
       rollupOptions: {
         output: {
-          manualChunks: { config: ['@/utils/config'] },
-          chunkFileNames: ({ name }) => (name === 'config' ? '[name].js' : '[name]-[hash].js'),
+          manualChunks,
+          chunkFileNames: ({ name }) => (name in manualChunks ? '[name].js' : '[name]-[hash].js'),
         },
       },
     },
