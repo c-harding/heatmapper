@@ -8,7 +8,7 @@ export const getToken: RequestHandler = async (req, res) => {
   try {
     const successful = validTokenCallback(req.query) && (await tokenExchange(req.query));
     [code, html] = successful ? [200, 'static/auth.html'] : [400, 'static/auth-error.html'];
-  } catch (e) {
+  } catch {
     [code, html] = [500, 'static/auth-error.html'];
   }
   res.writeHead(code, { 'Content-Type': 'text/html; charset=utf-8' });

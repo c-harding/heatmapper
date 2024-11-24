@@ -125,7 +125,7 @@ export default class RawStravaApi {
     let cache: Cache;
     try {
       cache = await this.loadCache();
-    } catch (err: unknown) {
+    } catch {
       await this.getAccessTokenFromBrowser();
       cache = await this.loadCache();
     }
@@ -201,7 +201,7 @@ export default class RawStravaApi {
       // If we do not continue after login, return a never-resolving promise.
       // This prevents the subsequent request from completing.
       if (!continueAfterLogin) await new Promise(() => undefined);
-    } catch (e) {
+    } catch {
       if (continueAfterLogin) {
         await this.getAccessTokenFromBrowser();
       }

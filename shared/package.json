@@ -6,14 +6,15 @@
     "dotenv": "^16.4.5"
   },
   "scripts": {
-    "lint": "eslint --fix . --ext .ts",
+    "lint": "eslint --fix .",
     "prettier": "prettier -w .",
     "clear-built": "[[ -d ../dist/shared ]] && rm -r ../dist/shared; true",
     "copy-for-deployment": "cp package.json ../dist/shared/",
     "build": "yarn clear-built; tsc --build && yarn copy-for-deployment"
   },
   "devDependencies": {
-    "eslint": "^8.57.1"
+    "@typescript-eslint/eslint-plugin":"^8.15.0",
+    "eslint": "^9.15.0"
   },
   "prettier": {
     "printWidth": 100,

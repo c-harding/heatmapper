@@ -6,7 +6,7 @@ import { useActivityService } from '@/services/useActivityService';
 import config from '@/utils/config';
 import { cancelTextSelection } from '@/utils/ui';
 
-import FormComponent from './Form.vue';
+import SidebarForm from './SidebarForm.vue';
 import SidebarItem from './SidebarItem.vue';
 
 function getRange(mapItems: readonly MapItem[], to: string, from?: string | string[]): string[] {
@@ -80,7 +80,7 @@ watch(selected, async (selected: string[]) => {
 
 <template>
   <div class="sidebar-content">
-    <FormComponent />
+    <SidebarForm />
     <ul ref="sidebarItemList">
       <SidebarItem
         v-for="item of mapItems"

@@ -34,7 +34,7 @@ export async function updateFile<T>(
     let fileContents: T;
     try {
       fileContents = JSON.parse(await readFile(file, 'utf-8'));
-    } catch (e) {
+    } catch {
       if (initial === undefined) {
         return undefined;
       } else if (initial === null) {
@@ -60,7 +60,7 @@ export async function deleteFile<T>(file: string, read?: boolean): Promise<T | u
     if (read) {
       try {
         fileContents = JSON.parse(await readFile(file, 'utf-8'));
-      } catch (e) {
+      } catch {
         // Ignore failure.
       }
     }
