@@ -29,5 +29,6 @@
     "shared",
     "client",
     "server"
-  ]
+  ],
+  "dependencies": {}
 }
