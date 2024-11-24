@@ -1,17 +1,13 @@
 {
   "compilerOptions": {
-    "lib": [
-      "es2023"
-    ],
-    "types": [
-      "node"
-    ],
+    "lib": ["es2023"],
+    "types": ["node"],
     "target": "es2020",
-    "module": "commonjs",
+    "module": "NodeNext",
     "allowJs": true,
     "esModuleInterop": true,
     "downlevelIteration": true,
-    "moduleResolution": "node",
+    "moduleResolution": "nodenext",
     "allowSyntheticDefaultImports": true,
     "outDir": "../dist/server",
     "strictNullChecks": true
