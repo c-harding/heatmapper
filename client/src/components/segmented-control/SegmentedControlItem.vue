@@ -3,11 +3,10 @@ import { computed } from 'vue';
 
 import { type SegmentedControlItemContext } from './SegmentedControl.vue';
 
-const {
-  option,
-  icon,
-  disabled: disabledProp = false,
-} = defineProps<{ option: SegmentedControlItemContext; icon?: string; disabled?: boolean }>();
+const { option, disabled: disabledProp = false } = defineProps<{
+  option: SegmentedControlItemContext;
+  disabled?: boolean;
+}>();
 
 const disabled = computed(() => option.disabled || disabledProp);
 </script>
@@ -15,8 +14,12 @@ const disabled = computed(() => option.disabled || disabledProp);
 <template>
   <li :class="{ selected: option.selected, disabled }">
     <button :disabled="disabled" @click.prevent="option.select()">
-      <div class="button-contents normal"><slot /></div>
-      <div class="button-contents bold"><slot /></div>
+      <div class="button-contents normal">
+        <slot />
+      </div>
+      <div class="button-contents bold">
+        <slot />
+      </div>
     </button>
   </li>
 </template>

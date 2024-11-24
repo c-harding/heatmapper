@@ -268,7 +268,10 @@ map.once('idle', () => mapLoaded(map));
 </script>
 
 <template>
-  <div ref="container" class="map-container" />
+  <div
+    ref="container"
+    class="map-container"
+  />
   <Teleport :to="buttonTarget">
     <div class="mapboxgl-ctrl mapboxgl-ctrl-group">
       <button @click="terrain = !terrain">
@@ -277,7 +280,10 @@ map.once('idle', () => mapLoaded(map));
     </div>
 
     <div class="mapboxgl-ctrl mapboxgl-ctrl-group">
-      <PickerControl v-model="mapChoice" :choices="mapStyleChoices" />
+      <PickerControl
+        v-model="mapChoice"
+        :choices="mapStyleChoices"
+      />
     </div>
   </Teleport>
 </template>

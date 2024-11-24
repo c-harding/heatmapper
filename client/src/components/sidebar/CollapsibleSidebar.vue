@@ -13,14 +13,27 @@ const appName = import.meta.env.VITE_APP_NAME as string;
 </script>
 
 <template>
-  <div class="sidebar" :class="{ minimised }">
+  <div
+    class="sidebar"
+    :class="{ minimised }"
+  >
     <div class="top-box">
       <div class="header">
         <svg viewBox="0 0 110 36">
-          <text x="55" y="13" text-anchor="middle" font-weight="bold">
+          <text
+            x="55"
+            y="13"
+            text-anchor="middle"
+            font-weight="bold"
+          >
             {{ appName }}
           </text>
-          <image x="10" y="20" width="90" href="@/assets/powered-by-strava.svg" />
+          <image
+            x="10"
+            y="20"
+            width="90"
+            href="@/assets/powered-by-strava.svg"
+          />
         </svg>
       </div>
     </div>
@@ -45,9 +58,16 @@ const appName = import.meta.env.VITE_APP_NAME as string;
       <slot />
     </section>
 
-    <div class="overlays" @click="minimised = !minimised" @wheel="minimised = true">
+    <div
+      class="overlays"
+      @click="minimised = !minimised"
+      @wheel="minimised = true"
+    >
       <div class="expanded overlay" />
-      <div ref="minimisedOverlay" class="minimised overlay" />
+      <div
+        ref="minimisedOverlay"
+        class="minimised overlay"
+      />
     </div>
   </div>
 </template>

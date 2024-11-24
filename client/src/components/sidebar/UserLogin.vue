@@ -19,7 +19,10 @@ const useCookie = ref(true);
       />
 
       <label>
-        <input v-model="useCookie" type="checkbox" />
+        <input
+          v-model="useCookie"
+          type="checkbox"
+        />
         <div>
           <p>Keep me logged in</p>
           <p class="small">

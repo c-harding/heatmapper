@@ -21,8 +21,9 @@ const allTexts = computed(() => texts as Record<string | number, string>);
       class="multi-text-item"
       :class="{ selected: selected === key }"
     >
-      <template v-if="allTexts">{{ allTexts?.[key] }}</template
-      ><slot :name="key" />
+      <template v-if="allTexts">
+        {{ allTexts?.[key] }}
+      </template><slot :name="key" />
     </div>
   </div>
 </template>

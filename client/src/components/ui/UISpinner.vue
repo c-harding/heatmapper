@@ -49,7 +49,10 @@ const spinnerStyle = computed(() => ({
 
 <template>
   <div class="spinner-container">
-    <div class="spinner" :style="spinnerStyle" />
+    <div
+      class="spinner"
+      :style="spinnerStyle"
+    />
     <span><slot /></span>
   </div>
 </template>

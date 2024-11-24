@@ -25,10 +25,16 @@ const model = defineModel<string | null>({ default: null });
 <template>
   <div class="dropdown">
     <select v-model="model">
-      <option v-if="blankLabel" :value="blankValue">
+      <option
+        v-if="blankLabel"
+        :value="blankValue"
+      >
         {{ blankLabel }}
       </option>
-      <option v-if="blankLabel" disabled />
+      <option
+        v-if="blankLabel"
+        disabled
+      />
       <option
         v-for="option in options"
         :key="option.value"
@@ -45,7 +51,13 @@ const model = defineModel<string | null>({ default: null });
       icon="close"
       @click="model = blankValue"
     />
-    <UIIcon v-else class="down-arrow" inline large icon="expand_more" />
+    <UIIcon
+      v-else
+      class="down-arrow"
+      inline
+      large
+      icon="expand_more"
+    />
   </div>
 </template>
 

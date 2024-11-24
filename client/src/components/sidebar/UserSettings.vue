@@ -58,14 +58,33 @@ const logout = async (global = false) => {
   <h2>User settings</h2>
 
   <div class="flex-line">
-    <img class="profile-pic" :srcset="imgSrcSet" :src="imgSrc" />
-    <a :href="profileLink" class="user-name" target="_blank">{{ fullName }}</a>
-    <UIButton @click="logout(false)"> Sign out </UIButton>
+    <img
+      class="profile-pic"
+      :srcset="imgSrcSet"
+      :src="imgSrc"
+    />
+    <a
+      :href="profileLink"
+      class="user-name"
+      target="_blank"
+    >{{ fullName }}</a>
+    <UIButton @click="logout(false)">
+      Sign out
+    </UIButton>
   </div>
   <div class="flex-line">
-    <p v-if="otherSessions">You are signed in in {{ countOtherSessions(otherSessions) }}.</p>
-    <p v-else>You are not signed in anywhere else.</p>
-    <UIButton :disabled="!otherSessions" @click="logout(true)">Sign out everywhere</UIButton>
+    <p v-if="otherSessions">
+      You are signed in in {{ countOtherSessions(otherSessions) }}.
+    </p>
+    <p v-else>
+      You are not signed in anywhere else.
+    </p>
+    <UIButton
+      :disabled="!otherSessions"
+      @click="logout(true)"
+    >
+      Sign out everywhere
+    </UIButton>
   </div>
 </template>
 

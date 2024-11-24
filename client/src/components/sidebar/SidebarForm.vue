@@ -25,7 +25,6 @@ const end = ref<Date>();
 
 const {
   error,
-  stats,
   filterModel,
   gear,
   useRoutes,
@@ -123,8 +122,8 @@ defineExpose({ gear });
           class="segmented-control"
           :disabled="loading"
         >
-          <SegmentedControlItem :option="option(false)">Activities</SegmentedControlItem>
-          <SegmentedControlItem :option="option(true)">Routes</SegmentedControlItem>
+          <SegmentedControlItem :option="option(false)"> Activities </SegmentedControlItem>
+          <SegmentedControlItem :option="option(true)"> Routes </SegmentedControlItem>
         </SegmentedControl>
       </div>
       <div class="buttons">
@@ -137,14 +136,14 @@ defineExpose({ gear });
           </UIButton>
           <UIButton @click="loading ? cancelButton() : discardCache(true, true)">
             <UIMultiText :selected="loading ? 'cancel' : 'discard'">
-              <template #cancel>Cancel</template>
+              <template #cancel> Cancel </template>
               <template #discard>
-                <UILabelledIcon icon="delete">Clear</UILabelledIcon>
+                <UILabelledIcon icon="delete"> Clear </UILabelledIcon>
               </template>
             </UIMultiText>
           </UIButton>
         </UIButtonGroup>
-        <UIButton icon="settings" @click="settingsButton">User</UIButton>
+        <UIButton icon="settings" @click="settingsButton"> User </UIButton>
       </div>
     </div>
     <UserLogin v-if="continueLogin" @login="continueLogin($event)" />

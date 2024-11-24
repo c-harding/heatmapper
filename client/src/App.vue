@@ -22,7 +22,7 @@ const useRoutes = computed({
 
 const map = ref<typeof MapView>();
 
-const location = ref({ lat: 51.45, lng: -2.6 });
+const geolocation = ref({ lat: 51.45, lng: -2.6 });
 
 const zoom = ref(10);
 
@@ -52,7 +52,7 @@ defineExpose({ mapItems });
     <Suspense>
       <MapView
         ref="map"
-        v-model:center="location"
+        v-model:center="geolocation"
         v-model:zoom="zoom"
         v-model:selected="selected"
         :map-items="mapItems"

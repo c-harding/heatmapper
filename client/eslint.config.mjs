@@ -2,21 +2,17 @@ import globals from 'globals';
 import parser from 'vue-eslint-parser';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import js from '@eslint/js';
 import { FlatCompat } from '@eslint/eslintrc';
 import eslintConfigPrettier from 'eslint-config-prettier';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const compat = new FlatCompat({
-  baseDirectory: __dirname,
-  recommendedConfig: js.configs.recommended,
-  allConfig: js.configs.all,
-});
+import pluginVue from 'eslint-plugin-vue';
+import eslint from '@eslint/js';
+import tseslint from 'typescript-eslint';
 
 export default [
-  ...compat.extends('plugin:vue/vue3-recommended'),
+  eslint.configs.recommended,
+  ...tseslint.configs.recommended,
   eslintConfigPrettier,
+  ...pluginVue.configs['flat/recommended'],
   {
     files: ['**/*.ts', '**/*.vue', '**/*.html'],
     languageOptions: {
@@ -38,6 +34,8 @@ export default [
     },
 
     rules: {
+      'no-redeclare': 'off',
+
       'vue/html-self-closing': [
         'error',
         {
@@ -46,6 +44,23 @@ export default [
           },
         },
       ],
+
+      // START disabled because of prettier
+      'vue/multi-word-component-names': 'off',
+      'vue/html-indent': 'off',
+      'vue/html-closing-bracket-newline': 'off',
+      'vue/max-attributes-per-line': 'off',
+      'vue/custom-event-name-casing': 'off',
+      'comma-dangle': 'off',
+      'vue/html-closing-bracket-spacing': 'off',
+      'vue/html-end-tags': 'off',
+      'vue/html-quotes': 'off',
+      'vue/multiline-html-element-content-newline': 'off',
+      'vue/mustache-interpolation-spacing': 'off',
+      'vue/no-multi-spaces': 'off',
+      'vue/no-spaces-around-equal-signs-in-attribute': 'off',
+      'vue/singleline-html-element-content-newline': 'off',
+      // END disabled because of prettier
     },
   },
 ];

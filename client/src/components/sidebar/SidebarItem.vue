@@ -184,15 +184,33 @@ const fullDate = computed(() => fullDateFormat.format(startDate.value));
     @touchstart="emit('touchstart')"
     @dblclick="emit('dblclick', $event)"
   >
-    <StravaActivitySymbol v-if="expanded" class="strava-icon" :sport-type="item.type" />
+    <StravaActivitySymbol
+      v-if="expanded"
+      class="strava-icon"
+      :sport-type="item.type"
+    />
     <div class="sidebar-item-info">
-      <div class="sidebar-item-name" v-text="item.name" />
-      <div v-if="expanded" class="sidebar-item-stats" v-text="stats" />
+      <div
+        class="sidebar-item-name"
+        v-text="item.name"
+      />
+      <div
+        v-if="expanded"
+        class="sidebar-item-stats"
+        v-text="stats"
+      />
     </div>
-    <div v-if="!item.map" class="spinner">
+    <div
+      v-if="!item.map"
+      class="spinner"
+    >
       <UISpinner size="tiny" />
     </div>
-    <div class="date" :title="fullDate" v-text="dateString.join('\n')" />
+    <div
+      class="date"
+      :title="fullDate"
+      v-text="dateString.join('\n')"
+    />
     <a
       :href="url"
       target="_blank"
@@ -203,9 +221,11 @@ const fullDate = computed(() => fullDateFormat.format(startDate.value));
     >
       <template v-if="useTextLink">
         <div>View on</div>
-        <div>Strava</div></template
-      >
-      <img v-else src="@/assets/strava.png" />
+        <div>Strava</div></template>
+      <img
+        v-else
+        src="@/assets/strava.png"
+      />
     </a>
   </li>
 </template>

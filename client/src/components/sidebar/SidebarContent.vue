@@ -43,7 +43,7 @@ function toggleInArray<T>(array: T[], item: T): T[] {
   else return [...array, item];
 }
 
-function getSelection(id: string, e: MouseEvent): string[] {
+function getSelectedItems(id: string, e: MouseEvent): string[] {
   if (e.metaKey || e.ctrlKey) return toggleInArray(selected.value, id);
   if (e.shiftKey) return getRange(mapItems.value, id, selectionBase.value);
   return [id];
@@ -55,7 +55,7 @@ function click(id: string, e: MouseEvent): void {
 
 function select(id: string, e: MouseEvent): void {
   if (e.shiftKey) cancelTextSelection();
-  const newSelected = getSelection(id, e);
+  const newSelected = getSelectedItems(id, e);
   if (newSelected.length === 1) selectionBase.value = newSelected;
   localSelected.value = newSelected;
   selected.value = newSelected;

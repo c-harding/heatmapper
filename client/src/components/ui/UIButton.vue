@@ -53,12 +53,29 @@ async function clickHandler() {
 </script>
 
 <template>
-  <button ref="buttonRef" :disabled="loading || disabled" :loading="loading" @click="clickHandler">
-    <UILabelledIcon :icon="icon" class="button-contents">
+  <button
+    ref="buttonRef"
+    :disabled="loading || disabled"
+    :loading="loading"
+    @click="clickHandler"
+  >
+    <UILabelledIcon
+      :icon="icon"
+      class="button-contents"
+    >
       <slot />
     </UILabelledIcon>
-    <UISpinner v-if="loading" size="tiny" class="button-spinner">{{ loadingText }}</UISpinner>
-    <ErrorTooltip :error-message="errorMessage" @dismiss="dismissLast" />
+    <UISpinner
+      v-if="loading"
+      size="tiny"
+      class="button-spinner"
+    >
+      {{ loadingText }}
+    </UISpinner>
+    <ErrorTooltip
+      :error-message="errorMessage"
+      @dismiss="dismissLast"
+    />
   </button>
 </template>
 
