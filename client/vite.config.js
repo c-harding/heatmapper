@@ -23,6 +23,13 @@ const manualChunks = {
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
   return {
+    css: {
+      preprocessorOptions: {
+        scss: {
+          api: 'modern-compiler',
+        },
+      },
+    },
     plugins: [
       viteStaticCopy({
         targets: [

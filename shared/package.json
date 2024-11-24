@@ -7,12 +7,13 @@
   },
   "scripts": {
     "lint": "eslint --fix . --ext .ts",
+    "prettier": "prettier -w .",
     "clear-built": "[[ -d ../dist/shared ]] && rm -r ../dist/shared; true",
     "copy-for-deployment": "cp package.json ../dist/shared/",
     "build": "yarn clear-built; tsc --build && yarn copy-for-deployment"
   },
   "devDependencies": {
-    "eslint": "^8.14.0"
+    "eslint": "^8.57.1"
   },
   "prettier": {
     "printWidth": 100,
