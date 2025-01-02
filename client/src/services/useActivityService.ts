@@ -15,6 +15,7 @@ import { computed, inject, provide, reactive, readonly, type Ref, ref, shallowRe
 
 import Socket from '@/socket';
 import config from '@/utils/config';
+import { groupMapItems } from '@/utils/groupMapItems';
 import {
   appendCachedActivities,
   appendCachedRoutes,
@@ -32,7 +33,9 @@ import {
   type ActivityService,
   activityServiceToken,
   type FilterModel,
+  GroupLevel,
   type LoadingStats,
+  type MapItemGroup,
   type MapItemTypes,
 } from './ActivityService';
 import { useContinueLogin } from './useContinueLogin';
@@ -54,6 +57,7 @@ function makeActivityService({
 }): ActivityService {
   const allRoutes = shallowRef<Route[]>([]);
   const allActivities = shallowRef<Activity[]>([]);
+  const groupLevel = ref<GroupLevel>(GroupLevel.OFF);
 
   let needsUserValidation = config.VALIDATE_USER_BEFORE_CACHE;
 
@@ -103,6 +107,10 @@ function makeActivityService({
       ? allMapItems.value.filter((item) => filters.every((filter) => filter(item)))
       : allMapItems.value;
   });
+
+  const groupedMapItems = computed<readonly MapItemGroup[]>(() =>
+    groupMapItems(visibleMapItems.value, groupLevel.value),
+  );
 
   /** A map of all gear, where null represents gear that is not yet fetched */
   const gear = reactive(new Map<string, Gear | null>());
@@ -393,10 +401,12 @@ function makeActivityService({
     stats,
     filterModel,
     useRoutes,
+    groupLevel,
     error,
     gear: readonly(gear),
 
     mapItems: visibleMapItems,
+    groupedMapItems,
     availableSports,
 
     cancelLoading,

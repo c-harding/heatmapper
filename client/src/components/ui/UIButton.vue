@@ -60,7 +60,7 @@ async function clickHandler() {
     :loading
     @click="clickHandler"
   >
-    <UILabelledIcon :icon="icon" :class="$style.buttonContents">
+    <UILabelledIcon :icon :class="$style.buttonContents">
       <slot />
     </UILabelledIcon>
     <UISpinner v-if="loading" size="tiny" :class="$style.buttonSpinner">

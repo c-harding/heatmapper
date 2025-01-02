@@ -1,4 +1,5 @@
 import {
+  type CombinedMapItemStats,
   type FindingStats,
   type Gear,
   type MapItem,
@@ -20,6 +21,21 @@ export interface FilterModel {
 
 export type MapItemTypes = Partial<Record<MapItemType, boolean>>;
 
+export enum GroupLevel {
+  OFF = '',
+  WEEKLY_MO = 'WEEKLY_MO',
+  WEEKLY_SA = 'WEEKLY_SA',
+  WEEKLY_SU = 'WEEKLY_SU',
+  MONTHLY = 'MONTHLY',
+  YEARLY = 'YEARLY',
+}
+
+export interface MapItemGroup {
+  items: MapItem[];
+  stats: CombinedMapItemStats;
+  date: string;
+}
+
 export interface ActivityService {
   readonly continueLogin: Readonly<Ref<((withCookies: boolean) => void) | undefined>>;
   readonly stats: Readonly<Ref<LoadingStats>>;
@@ -27,8 +43,10 @@ export interface ActivityService {
   readonly error: Readonly<Ref<string | undefined>>;
   readonly gear: ReadonlyMap<string, Gear | null>;
   readonly useRoutes: Ref<boolean>;
+  readonly groupLevel: Ref<GroupLevel>;
 
   readonly mapItems: Readonly<Ref<readonly MapItem[]>>;
+  readonly groupedMapItems: Readonly<Ref<readonly MapItemGroup[]>>;
   readonly availableSports: Readonly<Ref<SportTypesAndGroups | undefined>>;
 
   cancelLoading(): void;
