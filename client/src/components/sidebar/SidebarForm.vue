@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
 
+import { GroupLevel } from '@/services/ActivityService';
 import { useActivityService } from '@/services/useActivityService';
 import useSportsTypes from '@/services/useSportsTypes';
 import useUser from '@/services/useUser';
@@ -12,7 +13,7 @@ import { TooltipError } from '../tooltip/TooltipError';
 import UIButton from '../ui/UIButton.vue';
 import UIButtonGroup from '../ui/UIButtonGroup.vue';
 import UIDateInput from '../ui/UIDateInput.vue';
-import UIDropdown from '../ui/UIDropdown.vue';
+import UIDropdown, { type DropdownOption } from '../ui/UIDropdown.vue';
 import UILabelledIcon from '../ui/UILabelledIcon.vue';
 import UIModal from '../ui/UIModal.vue';
 import UIMultiText from '../ui/UIMultiText.vue';
@@ -27,6 +28,7 @@ const {
   filterModel,
   gear,
   useRoutes,
+  groupLevel,
   cancelLoading,
   discardCache,
   load,
@@ -42,6 +44,15 @@ const continueLogin = computed(() =>
 const settingsOpen = ref(false);
 
 const { sportsDropdownOptions, sportsFilter } = useSportsTypes();
+
+const groupLevels: DropdownOption[] = [
+  { value: GroupLevel.OFF, label: 'None' },
+  { value: GroupLevel.WEEKLY_MO, label: 'Week (Mon–Sun)' },
+  { value: GroupLevel.WEEKLY_SA, label: 'Week (Sat–Fri)' },
+  { value: GroupLevel.WEEKLY_SU, label: 'Week (Sun–Sat)' },
+  { value: GroupLevel.MONTHLY, label: 'Month' },
+  { value: GroupLevel.YEARLY, label: 'Year' },
+];
 
 function onLogout(): void {
   document.cookie = `token=;expires=${new Date(0).toUTCString()}`;
@@ -153,6 +164,12 @@ defineExpose({ gear });
           :icon="filterModel.starred ? 'star' : 'star_border'"
           @click="filterModel.starred = !filterModel.starred"
         />
+      </label>
+    </div>
+    <div class="controls row">
+      <label>
+        <span>Group by</span>
+        <UIDropdown v-model="groupLevel" :options="groupLevels" />
       </label>
     </div>
   </aside>
