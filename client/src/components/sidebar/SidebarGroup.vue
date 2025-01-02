@@ -14,11 +14,14 @@ const { group } = defineProps<{ group: MapItemGroup }>();
 const selected = defineModel<readonly string[]>('selected', { required: true });
 
 const emit = defineEmits<{
-  select: [item: string, e: MouseEvent];
+  select: [item: string | string[], e: MouseEvent];
   'force-select': [];
 }>();
 
 const isExpanded = useExpandableGroup();
+
+const allSelected = computed(() => group.items.every((item) => selected.value.includes(item.id)));
+const someSelected = computed(() => group.items.some((item) => selected.value.includes(item.id)));
 
 const arrow = computed(() => (isExpanded.value ? 'keyboard_arrow_down' : 'keyboard_arrow_right'));
 
@@ -34,12 +37,31 @@ function toggleExpanded() {
   }
   isExpanded.value = !isExpanded.value;
 }
+
+function clickGroup(e: MouseEvent) {
+  if (e.detail === 1) {
+    const ids = group.items.map((item) => item.id);
+    emit('select', ids, e);
+  }
+}
 </script>
 
 <template>
-  <div ref="groupRef" :class="$style.sidebarGroup">
-    <div ref="headerRef" :class="$style.sidebarGroupHeader">
-      <a @click.stop.prevent="toggleExpanded"><UIIcon :icon="arrow" /></a>
+  <div
+    ref="groupRef"
+    :class="[
+      $style.sidebarGroup,
+      allSelected && $style.allSelected,
+      !allSelected && someSelected && $style.someSelected,
+    ]"
+  >
+    <div
+      ref="headerRef"
+      :class="$style.sidebarGroupHeader"
+      @click="clickGroup($event)"
+      @dblclick="emit('force-select')"
+    >
+      <a @click.stop.prevent="toggleExpanded" @dblclick.stop><UIIcon :icon="arrow" /></a>
       <div :class="$style.sideBarGroupInfo">
         <div :class="$style.sidebarGroupHeaderName" v-text="group.date" />
         <SidebarItemCount :counts="group.stats" />
@@ -60,12 +82,30 @@ function toggleExpanded() {
 </template>
 
 <style module lang="scss">
+.sidebarGroup {
+  &:has(> :where(.sidebarGroupHeader:hover)) {
+    &,
+    & > .sidebarGroupHeader {
+      background-color: var(--background-strong);
+    }
+  }
+
+  &.someSelected > .sidebarGroupHeader {
+    background-color: var(--background-strong);
+  }
+
+  &.allSelected > .sidebarGroupHeader {
+    background-color: var(--background-weak);
+  }
+}
+
 .sidebarGroupHeader {
   position: sticky;
+  cursor: pointer;
   top: 0;
   bottom: 36px;
-  backdrop-filter: blur(1em);
-  background-color: color-mix(in srgb, var(--background-pure) 20%, transparent);
+  background-color: var(--background-full);
+  z-index: 1;
 
   display: flex;
   min-height: 36px;
