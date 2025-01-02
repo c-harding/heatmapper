@@ -20,6 +20,8 @@ import LoadingStatus from './LoadingStatus.vue';
 import UserLogin from './UserLogin.vue';
 import UserSettings from './UserSettings.vue';
 import { GroupLevel } from '@/services/ActivityService';
+import { useExpandableGroups } from '@/services/useExpandableGroups';
+import UIIcon from '../ui/UIIcon.vue';
 
 const start = ref<Date>();
 const end = ref<Date>();
@@ -83,6 +85,12 @@ async function settingsButton() {
 const loading = ref(false);
 
 const unchangedSinceLoad = ref(false);
+
+const expandableGroups = useExpandableGroups();
+const areSomeExpanded = expandableGroups.areSomeExpanded;
+const groupingArrow = computed(() =>
+  areSomeExpanded.value ? 'keyboard_double_arrow_down' : 'keyboard_double_arrow_right',
+);
 
 async function loadButton() {
   loading.value = true;
@@ -178,6 +186,14 @@ defineExpose({ gear });
       </label>
     </div>
     <div class="controls row">
+      <label :class="{ hidden: !expandableGroups.hasGroups.value }">
+        <span />
+        <a
+          class="control-icon-button"
+          @click.stop.prevent="expandableGroups.setAllExpanded(!areSomeExpanded)"
+          ><UIIcon :icon="groupingArrow"
+        /></a>
+      </label>
       <label>
         <span>Group by</span>
         <UIDropdown v-model="groupLevel" :options="groupLevels" />
@@ -258,6 +274,10 @@ aside {
     margin-top: -1.2em;
     flex-direction: column;
     align-items: start;
+  }
+
+  .control-icon-button {
+    margin: 8px;
   }
 }
 
