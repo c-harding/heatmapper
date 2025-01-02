@@ -3,11 +3,13 @@ import { type MapItem } from '@strava-heatmapper/shared/interfaces';
 import { computed, nextTick, reactive, ref, watch } from 'vue';
 
 import { useActivityService } from '@/services/useActivityService';
+import { provideExpandableGroups } from '@/services/useExpandableGroups';
 import { combineStats } from '@/utils/stats';
 import { cancelTextSelection } from '@/utils/ui';
 
 import SidebarCredits from './SidebarCredits.vue';
 import SidebarForm from './SidebarForm.vue';
+import SidebarGroup from './SidebarGroup.vue';
 import SidebarItemCount from './SidebarItemCount.vue';
 import SidebarItemList from './SidebarItemList.vue';
 import SidebarItemStats from './SidebarItemStats.vue';
@@ -36,7 +38,9 @@ const emit = defineEmits<{
   scrollToSelected: [];
 }>();
 
-const { mapItems } = useActivityService();
+const { mapItems, groupedMapItems, groupLevel } = useActivityService();
+
+provideExpandableGroups();
 
 const totals = computed(() => combineStats(mapItems.value, selected.value));
 
@@ -91,7 +95,18 @@ watch(selected, async (selected) => {
       <SidebarItemStats :item="totals" />
     </div>
     <div ref="sidebarItemListRef">
+      <template v-if="groupLevel">
+        <SidebarGroup
+          v-for="group of groupedMapItems"
+          :key="group.date"
+          v-model:selected="selected"
+          :group
+          @select="select"
+          @force-select="forceSelect"
+        />
+      </template>
       <SidebarItemList
+        v-else
         v-model:selected="selected"
         :items="mapItems"
         @select="select"
