@@ -179,15 +179,11 @@ export const useMapSelection = ({ flyToSelection }: UseMapSelectionConfig): UseM
         layers: [MapSourceLayer.LINES, MapSourceLayer.SELECTED],
       });
       if (neighbours.length > 0) {
-        selectionStore.selectItem(
-          (neighbours[0].properties as MapProperties).id,
-          'map',
-          keepExisting,
-        );
+        selectionStore.select((neighbours[0].properties as MapProperties).id, 'map', keepExisting);
         return;
       }
     }
-    selectionStore.selectItem(undefined, 'map', keepExisting);
+    selectionStore.select([], 'map', keepExisting);
   };
 
   return { click };
