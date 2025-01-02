@@ -44,7 +44,6 @@ defineExpose({ mapItems });
     <CollapsibleSidebar v-model:minimised="minimised">
       <SidebarContent
         v-model:selected="selected"
-        :map-items="mapItems"
         @focus-sidebar="minimised = false"
         @zoom-to-selected="zoomToSelected"
       />
