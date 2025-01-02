@@ -11,6 +11,8 @@ import SidebarCredits from './SIdebarCredits.vue';
 import SidebarItemStats from './SidebarItemStats.vue';
 import { combineStats } from '@/utils/stats';
 import SidebarItemCount from './SidebarItemCount.vue';
+import SidebarGroup from './SidebarGroup.vue';
+import { provideExpandableGroups } from '@/services/useExpandableGroups';
 
 function getRange(
   mapItems: readonly MapItem[],
@@ -36,7 +38,9 @@ const emit = defineEmits<{
   scrollToSelected: [];
 }>();
 
-const { mapItems } = useActivityService();
+const { mapItems, groupedMapItems, groupLevel } = useActivityService();
+
+provideExpandableGroups();
 
 const totals = computed(() => combineStats(mapItems.value, selected.value.length));
 
@@ -88,7 +92,18 @@ watch(selected, async (selected) => {
       <SidebarItemStats :item="totals" />
     </div>
     <div ref="sidebarItemListRef">
+      <template v-if="groupLevel">
+        <SidebarGroup
+          v-for="group of groupedMapItems"
+          :key="group.date"
+          v-model:selected="selected"
+          :group
+          @select="select"
+          @force-select="forceSelect"
+        />
+      </template>
       <SidebarItemList
+        v-else
         v-model:selected="selected"
         :items="mapItems"
         @select="select"

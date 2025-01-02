@@ -27,10 +27,13 @@ import {
   type ActivityService,
   activityServiceToken,
   type FilterModel,
+  GroupLevel,
   type LoadingStats,
+  MapItemGroup,
   type MapItemTypes,
 } from './ActivityService';
 import { useContinueLogin } from './useContinueLogin';
+import { groupMapItems } from '@/utils/groupMapItems';
 
 /** One day in milliseconds */
 const DAY = 24 * 60 * 60 * 1000;
@@ -49,6 +52,7 @@ function makeActivityService({
 }): ActivityService {
   const allRoutes = shallowRef<Route[]>([]);
   const allActivities = shallowRef<Activity[]>([]);
+  const groupLevel = ref<GroupLevel>(GroupLevel.OFF);
 
   let needsUserValidation = config.VALIDATE_USER_BEFORE_CACHE;
 
@@ -86,6 +90,10 @@ function makeActivityService({
       ? allMapItems.value.filter((item) => filters.every((filter) => filter(item)))
       : allMapItems.value;
   });
+
+  const groupedMapItems = computed<readonly MapItemGroup[]>(() =>
+    groupMapItems(visibleMapItems.value, groupLevel.value),
+  );
 
   /** A map of all gear, where null represents gear that is not yet fetched */
   const gear = reactive(new Map<string, Gear | null>());
@@ -380,10 +388,12 @@ function makeActivityService({
     stats,
     filterModel,
     useRoutes,
+    groupLevel,
     error,
     gear: readonly(gear),
 
     mapItems: visibleMapItems,
+    groupedMapItems,
 
     cancelLoading,
     discardCache,
