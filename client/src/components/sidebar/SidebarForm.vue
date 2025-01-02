@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
 
+import { useExpandableGroups } from '@/services/useExpandableGroups';
 import { GroupLevel, useActivityStore } from '@/stores/ActivityStore';
 import { useSportTypeStore } from '@/stores/SportTypeStore';
 import { useUserStore } from '@/stores/UserStore';
@@ -14,12 +15,14 @@ import UIButton from '../ui/UIButton.vue';
 import UIButtonGroup from '../ui/UIButtonGroup.vue';
 import UIDateInput from '../ui/UIDateInput.vue';
 import UIDropdown, { type DropdownOption } from '../ui/UIDropdown.vue';
+import UIIcon from '../ui/UIIcon.vue';
 import UILabelledIcon from '../ui/UILabelledIcon.vue';
 import UIModal from '../ui/UIModal.vue';
 import UIMultiText from '../ui/UIMultiText.vue';
 import LoadingStatus from './LoadingStatus.vue';
 import UserLogin from './UserLogin.vue';
 import UserSettings from './UserSettings.vue';
+
 const start = ref<Date>();
 const end = ref<Date>();
 
@@ -62,6 +65,12 @@ async function settingsButton() {
 const loading = ref(false);
 
 const unchangedSinceLoad = useResettingRef(false, 60 * 60 * 1000);
+
+const expandableGroups = useExpandableGroups();
+const areSomeExpanded = expandableGroups.areSomeExpanded;
+const groupingArrow = computed(() =>
+  areSomeExpanded.value ? 'keyboard_double_arrow_down' : 'keyboard_double_arrow_right',
+);
 
 async function loadButton() {
   loading.value = true;
@@ -168,7 +177,15 @@ watch([start, end, () => activityStore.useRoutes], () => {
         />
       </label>
     </div>
-    <div class="controls row">
+    <div :class="[$style.controls, $style.row]">
+      <label :class="!expandableGroups.hasGroups.value && $style.hidden">
+        <span />
+        <a
+          :class="$style.controlIconButton"
+          @click.stop.prevent="expandableGroups.setAllExpanded(!areSomeExpanded)"
+          ><UIIcon :icon="groupingArrow"
+        /></a>
+      </label>
       <label>
         <span>Group by</span>
         <UIDropdown v-model="activityStore.groupLevel" :options="groupLevels" />
@@ -252,6 +269,10 @@ watch([start, end, () => activityStore.useRoutes], () => {
     margin-top: -1.2em;
     flex-direction: column;
     align-items: start;
+  }
+
+  .controlIconButton {
+    margin: 8px;
   }
 }
 
