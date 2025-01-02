@@ -76,6 +76,11 @@ const dayMonthFormat = new Intl.DateTimeFormat(locales, {
   month: 'short',
   day: 'numeric',
 });
+const monthFormat = new Intl.DateTimeFormat(locales, {
+  timeZone: 'UTC',
+  year: 'numeric',
+  month: 'short',
+});
 const dateFormat = new Intl.DateTimeFormat(locales, {
   timeZone: 'UTC',
   year: 'numeric',
@@ -96,4 +101,16 @@ export function formatSplitDate(date: number) {
 
 export function formatFullDateTime(date: number) {
   return fullDateTimeFormat.format(date);
+}
+
+export function formatDateRange(start: number, end: number) {
+  return dateFormat.formatRange(start, end);
+}
+
+export function formatMonth(date: number) {
+  return monthFormat.format(date);
+}
+
+export function formatYear(date: number) {
+  return yearFormat.format(date);
 }

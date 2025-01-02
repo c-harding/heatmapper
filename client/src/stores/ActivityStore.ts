@@ -1,5 +1,6 @@
 import {
   type Activity,
+  type CombinedMapItemStats,
   type FindingStats,
   type Gear,
   type MapItem,
@@ -16,6 +17,7 @@ import { computed, reactive, type Ref, ref, shallowRef, toRef } from 'vue';
 
 import Socket from '@/socket';
 import config from '@/utils/config';
+import { groupMapItems } from '@/utils/groupMapItems';
 import {
   appendCachedActivities,
   appendCachedRoutes,
@@ -46,6 +48,20 @@ export interface FilterModel {
 }
 
 export type MapItemTypes = Partial<Record<MapItemType, boolean>>;
+export enum GroupLevel {
+  OFF = '',
+  WEEKLY_MO = 'WEEKLY_MO',
+  WEEKLY_SA = 'WEEKLY_SA',
+  WEEKLY_SU = 'WEEKLY_SU',
+  MONTHLY = 'MONTHLY',
+  YEARLY = 'YEARLY',
+}
+
+export interface MapItemGroup {
+  items: MapItem[];
+  stats: CombinedMapItemStats;
+  date: string;
+}
 
 /** One day in milliseconds */
 const DAY = 24 * 60 * 60 * 1000;
@@ -62,6 +78,7 @@ export const useActivityStore = defineStore('activity', () => {
 
   const allRoutes = shallowRef<Route[]>([]);
   const allActivities = shallowRef<Activity[]>([]);
+  const groupLevel = ref<GroupLevel>(GroupLevel.OFF);
 
   let needsUserValidation = config.VALIDATE_USER_BEFORE_CACHE;
 
@@ -112,6 +129,10 @@ export const useActivityStore = defineStore('activity', () => {
       ? allMapItems.value.filter((item) => filters.every((filter) => filter(item)))
       : allMapItems.value;
   });
+
+  const groupedMapItems = computed<readonly MapItemGroup[]>(() =>
+    groupMapItems(visibleMapItems.value, groupLevel.value),
+  );
 
   /** A map of all gear, where null represents gear that is not yet fetched */
   const gear = reactive(new Map<string, Gear | null>());
@@ -408,10 +429,12 @@ export const useActivityStore = defineStore('activity', () => {
     activityStats,
     filterModel,
     useRoutes,
+    groupLevel,
     error,
     gear,
 
     mapItems: visibleMapItems,
+    groupedMapItems,
     availableSports,
 
     cancelLoading,
