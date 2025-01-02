@@ -38,7 +38,7 @@ const fullDate = computed(() => formatFullDateTime(startDate.value));
 </script>
 
 <template>
-  <li
+  <div
     :class="['sidebar-item', { selected }]"
     @click="emit('click', $event)"
     @touchstart="emit('touchstart')"
@@ -54,13 +54,12 @@ const fullDate = computed(() => formatFullDateTime(startDate.value));
     </div>
     <div class="date" :title="fullDate" v-text="dateString.join('\n')" />
     <SidebarItemLink class="strava-link" :item="item" />
-  </li>
+  </div>
 </template>
 
 <style lang="scss">
 .sidebar-item {
   cursor: pointer;
-  list-style: none;
   font-size: 14px;
   padding-left: 8px;
   display: flex;
@@ -74,6 +73,10 @@ const fullDate = computed(() => formatFullDateTime(startDate.value));
 
   &.selected {
     background: var(--background-weak);
+  }
+
+  &.selected:hover {
+    background: var(--background-mid);
   }
 
   .strava-icon {

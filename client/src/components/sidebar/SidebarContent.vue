@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { type MapItem } from '@strava-heatmapper/shared/interfaces';
-import { nextTick, ref, watch } from 'vue';
+import { nextTick, reactive, ref, watch } from 'vue';
 
 import { useActivityService } from '@/services/useActivityService';
 import { cancelTextSelection } from '@/utils/ui';
@@ -9,7 +9,11 @@ import SidebarForm from './SidebarForm.vue';
 import SidebarItemList from './SidebarItemList.vue';
 import SidebarCredits from './SIdebarCredits.vue';
 
-function getRange(mapItems: readonly MapItem[], to: string, from?: string | string[]): string[] {
+function getRange(
+  mapItems: readonly MapItem[],
+  to: string,
+  from?: string | readonly string[],
+): string[] {
   if (to === undefined) return [];
   if (from === undefined) return [to];
   const fromArray: string[] = [from].flat();
@@ -21,7 +25,7 @@ function getRange(mapItems: readonly MapItem[], to: string, from?: string | stri
   return mapItems.slice(start, end + 1).map(({ id }) => id);
 }
 
-const selected = defineModel<string[]>('selected', { required: true });
+const selected = defineModel<readonly string[]>('selected', { required: true });
 
 const emit = defineEmits<{
   'zoom-to-selected': [];
@@ -30,29 +34,28 @@ const emit = defineEmits<{
 
 const { mapItems } = useActivityService();
 
-const localSelected = ref<string[]>();
-
-const selectionBase = ref<string[]>();
+let localSelected: readonly string[] | undefined;
+let selectionBase: readonly string[] | undefined;
 
 const sidebarItemListRef = ref<HTMLElement>();
 
-function toggleInArray<T>(array: T[], item: T): T[] {
+function toggleInArray<T>(array: readonly T[], item: T): T[] {
   if (array.includes(item)) return array.filter((x) => x !== item);
   else return [...array, item];
 }
 
 function getSelectedItems(id: string, e: MouseEvent): string[] {
   if (e.metaKey || e.ctrlKey) return toggleInArray(selected.value, id);
-  if (e.shiftKey) return getRange(mapItems.value, id, selectionBase.value);
+  if (e.shiftKey) return getRange(mapItems.value, id, selectionBase);
   return [id];
 }
 
 function select(id: string, e: MouseEvent): void {
   if (e.shiftKey) cancelTextSelection();
   const newSelected = getSelectedItems(id, e);
-  if (newSelected.length === 1) selectionBase.value = newSelected;
-  localSelected.value = newSelected;
-  selected.value = newSelected;
+  if (newSelected.length === 1) selectionBase = newSelected;
+  localSelected = reactive(newSelected);
+  selected.value = localSelected;
 }
 
 function forceSelect(): void {
@@ -60,10 +63,10 @@ function forceSelect(): void {
   emit('zoom-to-selected');
 }
 
-watch(selected, async (selected: string[]) => {
-  if (selected !== localSelected.value) {
-    localSelected.value = selected;
-    selectionBase.value = selected;
+watch(selected, async (selected) => {
+  if (selected !== localSelected) {
+    localSelected = selected;
+    selectionBase = selected;
     if (selected.length !== 0) emit('focus-sidebar');
     await nextTick();
     const el = sidebarItemListRef.value?.querySelector('.selected');

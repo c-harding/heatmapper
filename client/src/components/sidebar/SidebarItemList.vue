@@ -5,7 +5,7 @@ import SidebarItem from './SidebarItem.vue';
 
 defineProps<{ items: readonly MapItem[] }>();
 
-const selected = defineModel<string[]>('selected', { required: true });
+const selected = defineModel<readonly string[]>('selected', { required: true });
 
 const emit = defineEmits<{
   select: [item: string, e: MouseEvent];
@@ -18,7 +18,7 @@ function click(id: string, e: MouseEvent): void {
 </script>
 
 <template>
-  <ul>
+  <div class="sidebar-item-list">
     <SidebarItem
       v-for="item of items"
       :key="item.id"
@@ -27,12 +27,5 @@ function click(id: string, e: MouseEvent): void {
       @click="click(item.id, $event)"
       @dblclick="emit('force-select')"
     />
-  </ul>
+  </div>
 </template>
-
-<style lang="scss" scoped>
-ul {
-  padding: 0;
-  margin: 0;
-}
-</style>

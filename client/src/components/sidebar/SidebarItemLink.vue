@@ -26,7 +26,7 @@ const useTextLink = !config.USE_STRAVA_ICONS;
     title="View in Strava"
     class="sidebar-item-link"
     :class="{ 'text-link': useTextLink }"
-    @click="$event.stopPropagation()"
+    @click.stop
   >
     <template v-if="useTextLink">
       <div>View on</div>
