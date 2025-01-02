@@ -3,6 +3,8 @@ import { computed, ref } from 'vue';
 
 import { useExpandableGroup } from '@/services/useExpandableGroups';
 import { type MapItemGroup } from '@/stores/ActivityStore';
+import { useSelectionStore } from '@/stores/SelectionStore';
+import { cancelTextSelection } from '@/utils/ui';
 
 import UIIcon from '../ui/UIIcon.vue';
 import SidebarItemCount from './SidebarItemCount.vue';
@@ -11,11 +13,20 @@ import SidebarItemStats from './SidebarItemStats.vue';
 
 const { group } = defineProps<{ group: MapItemGroup }>();
 
+const selectionStore = useSelectionStore();
+
 const emit = defineEmits<{
   zoomToSelected: [];
 }>();
 
 const isExpanded = useExpandableGroup();
+
+const allSelected = computed(() =>
+  group.items.every((item) => selectionStore.selected.has(item.id)),
+);
+const someSelected = computed(() =>
+  group.items.some((item) => selectionStore.selected.has(item.id)),
+);
 
 const arrow = computed(() => (isExpanded.value ? 'keyboard_arrow_down' : 'keyboard_arrow_right'));
 
@@ -31,12 +42,39 @@ function toggleExpanded() {
   }
   isExpanded.value = !isExpanded.value;
 }
+
+function forceSelect(): void {
+  cancelTextSelection();
+  emit('zoomToSelected');
+}
+
+function clickGroup(e: MouseEvent) {
+  if (e.detail !== 1) return;
+
+  if (e.shiftKey) cancelTextSelection();
+
+  const ids = group.items.map((item) => item.id);
+
+  selectionStore.select(ids, 'list', e.ctrlKey || e.metaKey, e.shiftKey);
+}
 </script>
 
 <template>
-  <div ref="groupRef" :class="$style.sidebarGroup">
-    <div ref="headerRef" :class="$style.sidebarGroupHeader">
-      <a @click.stop.prevent="toggleExpanded"><UIIcon :icon="arrow" /></a>
+  <div
+    ref="groupRef"
+    :class="[
+      $style.sidebarGroup,
+      allSelected && $style.allSelected,
+      !allSelected && someSelected && $style.someSelected,
+    ]"
+  >
+    <div
+      ref="headerRef"
+      :class="$style.sidebarGroupHeader"
+      @click="clickGroup($event)"
+      @dblclick="forceSelect()"
+    >
+      <a @click.stop.prevent="toggleExpanded" @dblclick.stop><UIIcon :icon="arrow" /></a>
       <div :class="$style.sideBarGroupInfo">
         <div :class="$style.sidebarGroupHeaderName" v-text="group.date" />
         <SidebarItemCount :counts="group.stats" />
@@ -52,12 +90,30 @@ function toggleExpanded() {
 </template>
 
 <style module lang="scss">
+.sidebarGroup {
+  &:has(> :where(.sidebarGroupHeader:hover)) {
+    &,
+    & > .sidebarGroupHeader {
+      background-color: var(--background-strong);
+    }
+  }
+
+  &.someSelected > .sidebarGroupHeader {
+    background-color: var(--background-strong);
+  }
+
+  &.allSelected > .sidebarGroupHeader {
+    background-color: var(--background-weak);
+  }
+}
+
 .sidebarGroupHeader {
   position: sticky;
+  cursor: pointer;
   top: 0;
   bottom: 36px;
-  backdrop-filter: blur(1em);
-  background-color: color-mix(in srgb, var(--background-pure) 20%, transparent);
+  background-color: var(--background-full);
+  z-index: 1;
 
   display: flex;
   min-height: 36px;

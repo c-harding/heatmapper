@@ -26,7 +26,7 @@ function click(id: string, e: MouseEvent): void {
 
   if (e.shiftKey) cancelTextSelection();
 
-  selectionStore.selectItem(id, 'list', e.ctrlKey || e.metaKey, e.shiftKey);
+  selectionStore.select(id, 'list', e.ctrlKey || e.metaKey, e.shiftKey);
 }
 </script>
 
