@@ -1,9 +1,18 @@
-import { inject, type InjectionKey, onBeforeUnmount, provide, reactive, type Ref, ref } from 'vue';
+import {
+  computed,
+  inject,
+  type InjectionKey,
+  onBeforeUnmount,
+  provide,
+  reactive,
+  type Ref,
+  ref,
+} from 'vue';
 
 export interface UseExpandableGroups {
   /** Are there one or more groups? */
-  hasGroups(): boolean;
-  areSomeExpanded(): boolean;
+  hasGroups: Readonly<Ref<boolean>>;
+  areSomeExpanded: Readonly<Ref<boolean>>;
   setAllExpanded(value: boolean): void;
 }
 
@@ -28,8 +37,10 @@ function makeExpandableGroups(): ExpandableGroupsService {
    */
   let lastState = true;
 
-  const hasGroups = () => groups.size > 0;
-  const areSomeExpanded = () => Array.from(groups.values()).some((expanded) => expanded.value);
+  const hasGroups = computed(() => groups.size > 0);
+  const areSomeExpanded = computed(() =>
+    Array.from(groups.values()).some((expanded) => expanded.value),
+  );
 
   return {
     hasGroups,
@@ -39,7 +50,7 @@ function makeExpandableGroups(): ExpandableGroupsService {
         group.value = value;
       }),
     addGroup: () => {
-      const expanded = ref(hasGroups() ? areSomeExpanded() : lastState);
+      const expanded = ref(hasGroups.value ? areSomeExpanded.value : lastState);
       groups.add(expanded);
       return expanded;
     },
