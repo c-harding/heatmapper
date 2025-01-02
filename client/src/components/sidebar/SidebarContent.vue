@@ -16,17 +16,18 @@ import SidebarItemStats from './SidebarItemStats.vue';
 
 function getRange(
   mapItems: readonly MapItem[],
-  to: string,
+  to: string | readonly string[],
   from?: string | readonly string[],
 ): string[] {
   if (to === undefined) return [];
-  if (from === undefined) return [to];
+  const toArray: string[] = [to].flat();
+  if (from === undefined) return toArray;
   const fromArray: string[] = [from].flat();
-  if (fromArray.includes(to)) return fromArray;
+  if (toArray.every((to) => fromArray.includes(to))) return fromArray;
 
-  const start = mapItems.findIndex(({ id }) => to === id || fromArray.includes(id));
-  if (start === -1) return [to, ...fromArray];
-  const end = mapItems.findLastIndex(({ id }) => to === id || fromArray.includes(id));
+  const start = mapItems.findIndex(({ id }) => toArray.includes(id) || fromArray.includes(id));
+  if (start === -1) return [...toArray, ...fromArray];
+  const end = mapItems.findLastIndex(({ id }) => toArray.includes(id) || fromArray.includes(id));
   return mapItems.slice(start, end + 1).map(({ id }) => id);
 }
 
@@ -49,21 +50,22 @@ let selectionBase: readonly string[] | undefined;
 
 const sidebarItemListRef = ref<HTMLElement>();
 
-function toggleInArray<T>(array: readonly T[], item: T): T[] {
-  if (array.includes(item)) return array.filter((x) => x !== item);
-  else return [...array, item];
+function toggleInArray<T>(array: readonly T[], items: T[]): T[] {
+  if (items.every((item) => array.includes(item))) return array.filter((x) => !items.includes(x));
+  else return [...array, ...items];
 }
 
-function getSelectedItems(id: string, e: MouseEvent): string[] {
-  if (e.metaKey || e.ctrlKey) return toggleInArray(selected.value, id);
-  if (e.shiftKey) return getRange(mapItems.value, id, selectionBase);
-  return [id];
+function getSelectedItems(ids: string[], e: MouseEvent): string[] {
+  if (e.metaKey || e.ctrlKey) return toggleInArray(selected.value, ids);
+  if (e.shiftKey) return getRange(mapItems.value, ids, selectionBase);
+  return ids;
 }
 
-function select(id: string, e: MouseEvent): void {
+function select(ids: string | string[], e: MouseEvent): void {
+  const flatIds = [ids].flat();
   if (e.shiftKey) cancelTextSelection();
-  const newSelected = getSelectedItems(id, e);
-  if (newSelected.length === 1) selectionBase = newSelected;
+  const newSelected = getSelectedItems(flatIds, e);
+  if (newSelected.length === flatIds.length) selectionBase = newSelected;
   localSelected = reactive(newSelected);
   selected.value = localSelected;
 }
