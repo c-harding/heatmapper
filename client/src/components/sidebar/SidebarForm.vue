@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
 
-import { useActivityStore } from '@/stores/ActivityStore';
+import { GroupLevel, useActivityStore } from '@/stores/ActivityStore';
 import { useSportTypeStore } from '@/stores/SportTypeStore';
 import { useUserStore } from '@/stores/UserStore';
 import { combineCallbacks } from '@/utils/functions';
@@ -13,7 +13,7 @@ import { TooltipError } from '../tooltip/TooltipError';
 import UIButton from '../ui/UIButton.vue';
 import UIButtonGroup from '../ui/UIButtonGroup.vue';
 import UIDateInput from '../ui/UIDateInput.vue';
-import UIDropdown from '../ui/UIDropdown.vue';
+import UIDropdown, { type DropdownOption } from '../ui/UIDropdown.vue';
 import UILabelledIcon from '../ui/UILabelledIcon.vue';
 import UIModal from '../ui/UIModal.vue';
 import UIMultiText from '../ui/UIMultiText.vue';
@@ -34,6 +34,15 @@ const continueLogin = computed(() =>
 const settingsOpen = ref(false);
 
 const sportTypeStore = useSportTypeStore();
+
+const groupLevels: DropdownOption[] = [
+  { value: GroupLevel.OFF, label: 'None' },
+  { value: GroupLevel.WEEKLY_MO, label: 'Week (Mon–Sun)' },
+  { value: GroupLevel.WEEKLY_SA, label: 'Week (Sat–Fri)' },
+  { value: GroupLevel.WEEKLY_SU, label: 'Week (Sun–Sat)' },
+  { value: GroupLevel.MONTHLY, label: 'Month' },
+  { value: GroupLevel.YEARLY, label: 'Year' },
+];
 
 function onLogout(): void {
   document.cookie = `token=;expires=${new Date(0).toUTCString()}`;
@@ -157,6 +166,12 @@ watch([start, end, () => activityStore.useRoutes], () => {
           "
           @dbl-click="activityStore.filterModel.starred = false"
         />
+      </label>
+    </div>
+    <div class="controls row">
+      <label>
+        <span>Group by</span>
+        <UIDropdown v-model="activityStore.groupLevel" :options="groupLevels" />
       </label>
     </div>
   </aside>

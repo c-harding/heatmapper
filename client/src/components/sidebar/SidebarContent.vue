@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { computed, nextTick, ref, watch } from 'vue';
 
+import { provideExpandableGroups } from '@/services/useExpandableGroups';
 import { useActivityStore } from '@/stores/ActivityStore';
 import { useSelectionStore } from '@/stores/SelectionStore';
 import { combineStats } from '@/utils/stats';
 
 import SidebarCredits from './SidebarCredits.vue';
 import SidebarForm from './SidebarForm.vue';
+import SidebarGroup from './SidebarGroup.vue';
 import SidebarItemCount from './SidebarItemCount.vue';
 import SidebarItemList from './SidebarItemList.vue';
 import SidebarItemStats from './SidebarItemStats.vue';
@@ -19,6 +21,8 @@ const emit = defineEmits<{
 
 const activityStore = useActivityStore();
 const selectionStore = useSelectionStore();
+
+provideExpandableGroups();
 
 const totals = computed(() => combineStats(activityStore.mapItems, selectionStore.selectedItems));
 
@@ -47,7 +51,16 @@ watch(
       <SidebarItemStats :item="totals" />
     </div>
     <div ref="sidebarItemListRef">
+      <template v-if="activityStore.groupLevel">
+        <SidebarGroup
+          v-for="group of activityStore.groupedMapItems"
+          :key="group.date"
+          :group
+          @zoom-to-selected="emit('zoomToSelected')"
+        />
+      </template>
       <SidebarItemList
+        v-else
         :items="activityStore.mapItems"
         @zoom-to-selected="emit('zoomToSelected')"
         @scroll-to-selected="emit('scrollToSelected')"
