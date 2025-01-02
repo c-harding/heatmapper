@@ -19,7 +19,7 @@ const disabled = computed(() => option.disabled || disabledProp);
       disabled && $style.disabled,
     ]"
   >
-    <button :disabled="disabled" @click.prevent="option.select()">
+    <button :disabled @click.prevent="option.select()">
       <div :class="[$style.buttonContents, $style.normal]">
         <slot />
       </div>
