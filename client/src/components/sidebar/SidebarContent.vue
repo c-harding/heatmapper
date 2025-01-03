@@ -82,7 +82,7 @@ watch(selected, async (selected) => {
 <template>
   <div class="sidebar-content">
     <SidebarForm />
-    <div v-if="mapItems" class="sidebar-totals">
+    <div v-if="mapItems?.length" class="sidebar-totals">
       <span class="label">Total:</span>
       <SidebarItemStats :item="totals" />
     </div>
