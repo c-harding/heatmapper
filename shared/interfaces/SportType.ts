@@ -57,7 +57,7 @@ export const sportGroups: Record<string, string> = {
   'Hike,Snowshoe,Run,TrailRun,Walk': 'All on foot',
   'Run,TrailRun': 'All running',
   'Hike,Walk': 'All walking',
-  'EBikeRide,GravelRide,Handcycle,MountainBikeRide,Velomobile,VirtualRide': 'All biking',
+  'EBikeRide,GravelRide,Handcycle,MountainBikeRide,Ride,Velomobile,VirtualRide': 'All biking',
   'AlpineSki,BackcountrySki,IceSkate,Snowboard,Snowshoe,NordicSki': 'All winter sports',
 };
 
