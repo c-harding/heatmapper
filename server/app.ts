@@ -6,6 +6,7 @@ import express, { type RequestHandler } from 'express';
 import expressWs from 'express-ws';
 
 import apiRouter from './api';
+import calendarRouter from './calendar';
 
 const app = express();
 expressWs(app);
@@ -24,6 +25,8 @@ const corsConfig: RequestHandler = (req, res, next) => {
 app.use(corsConfig);
 
 app.use('/api', apiRouter(SERVER_DOMAIN));
+
+app.use('/calendar', calendarRouter(SERVER_DOMAIN));
 
 // Support history api
 app.use(
