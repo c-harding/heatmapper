@@ -1,5 +1,9 @@
-import { type FindingStats, type Gear, type MapItem } from '@strava-heatmapper/shared/interfaces';
-import { type MapItemType } from '@strava-heatmapper/shared/interfaces/ResponseMessage';
+import type {
+  FindingStats,
+  Gear,
+  MapItem,
+  MapItemType,
+} from '@strava-heatmapper/shared/interfaces';
 import { type InjectionKey, type Ref } from 'vue';
 export interface LoadingStats {
   closed?: boolean;
@@ -9,7 +13,7 @@ export interface LoadingStats {
 }
 
 export interface FilterModel {
-  sportType: string;
+  sportType?: string;
   starred: boolean;
 }
 

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import UIIcon from './UIIcon.vue';
 
-export interface Option {
+export interface DropdownOption {
   value: string;
   label: string;
   disabled?: boolean;
@@ -9,17 +9,17 @@ export interface Option {
 
 const {
   options,
-  blankValue = null,
-  blankLabel = null,
+  blankValue,
+  blankLabel,
   clearButton = false,
 } = defineProps<{
-  options: Option[];
-  blankValue: string | null;
-  blankLabel: string | null;
+  options: DropdownOption[];
+  blankValue?: string;
+  blankLabel?: string;
   clearButton?: boolean;
 }>();
 
-const model = defineModel<string | null>({ default: null });
+const model = defineModel<string | undefined>({ default: undefined });
 </script>
 
 <template>
