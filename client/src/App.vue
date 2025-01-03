@@ -11,7 +11,7 @@ const { routes = false } = defineProps<{ routes: boolean }>();
 
 const router = useRouter();
 
-const useRoutes = computed({
+const useRoutes = computed<boolean>({
   get() {
     return routes;
   },
@@ -76,7 +76,7 @@ body {
   isolation: isolate;
 }
 
-a {
+a[href] {
   color: var(--link-color);
 }
 

@@ -9,6 +9,7 @@ export type {
   ResponseMessageOfType,
   StatsMessage,
   FindingStats,
+  MapItemType,
 } from './ResponseMessage';
 export type { default as Route } from './Route';
 export { SportType, sportTypes, sportGroups, routeTypeMap } from './SportType';

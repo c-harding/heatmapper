@@ -7,7 +7,7 @@ import config from '@/utils/config';
 import { cancelTextSelection } from '@/utils/ui';
 
 import SidebarForm from './SidebarForm.vue';
-import SidebarItem from './SidebarItem.vue';
+import SidebarItemList from './SidebarItemList.vue';
 
 function getRange(mapItems: readonly MapItem[], to: string, from?: string | string[]): string[] {
   if (to === undefined) return [];
@@ -36,7 +36,7 @@ const selectionBase = ref<string[]>();
 
 const gitHash = config.GIT_HASH ?? null;
 
-const sidebarItemList = ref<HTMLUListElement>();
+const sidebarItemListRef = ref<HTMLElement>();
 
 function toggleInArray<T>(array: T[], item: T): T[] {
   if (array.includes(item)) return array.filter((x) => x !== item);
@@ -47,10 +47,6 @@ function getSelectedItems(id: string, e: MouseEvent): string[] {
   if (e.metaKey || e.ctrlKey) return toggleInArray(selected.value, id);
   if (e.shiftKey) return getRange(mapItems.value, id, selectionBase.value);
   return [id];
-}
-
-function click(id: string, e: MouseEvent): void {
-  if (e.detail === 1) select(id, e);
 }
 
 function select(id: string, e: MouseEvent): void {
@@ -72,7 +68,7 @@ watch(selected, async (selected: string[]) => {
     selectionBase.value = selected;
     if (selected.length !== 0) emit('focus-sidebar');
     await nextTick();
-    const el = sidebarItemList.value?.querySelector('.selected');
+    const el = sidebarItemListRef.value?.querySelector('.selected');
     el?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
   }
 });
@@ -81,16 +77,15 @@ watch(selected, async (selected: string[]) => {
 <template>
   <div class="sidebar-content">
     <SidebarForm />
-    <ul ref="sidebarItemList">
-      <SidebarItem
-        v-for="item of mapItems"
-        :key="item.id"
-        :item="item"
-        :selected="selected.includes(item.id)"
-        @click="click(item.id, $event)"
-        @dblclick="forceSelect"
+    <div ref="sidebarItemListRef">
+      <SidebarItemList
+        v-model:selected="selected"
+        :items="mapItems"
+        @select="select"
+        @force-select="forceSelect"
       />
-    </ul>
+    </div>
+
     <div class="credits">
       <p>
         Made by
@@ -117,11 +112,6 @@ watch(selected, async (selected: string[]) => {
   padding: 0 0 1em;
   display: flex;
   flex-direction: column;
-
-  > ul {
-    padding: 0;
-    margin: 0;
-  }
 
   .credits {
     font-size: 14px;
