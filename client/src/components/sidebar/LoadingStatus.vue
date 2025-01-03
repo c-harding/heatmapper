@@ -18,10 +18,7 @@ const findingString = computed(() => stats && loadingStatus(stats, useRoutes));
 </script>
 
 <template>
-  <p
-    class="small"
-    :class="{ error }"
-  >
+  <p class="small" :class="{ error }">
     {{ error || findingString }}
   </p>
 </template>

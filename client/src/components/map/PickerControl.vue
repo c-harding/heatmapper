@@ -46,24 +46,12 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <button
-    ref="layerButton"
-    class="layer-button"
-    @click="clickedOpen = !clickedOpen"
-  >
+  <button ref="layerButton" class="layer-button" @click="clickedOpen = !clickedOpen">
     <UIIcon icon="layers" />
   </button>
-  <div
-    ref="layerPicker"
-    class="layer-picker"
-    :class="{ open: clickedOpen }"
-  >
+  <div ref="layerPicker" class="layer-picker" :class="{ open: clickedOpen }">
     <menu>
-      <li
-        v-for="choice of choices"
-        :key="choice.value"
-        :aria-selected="value === choice.value"
-      >
+      <li v-for="choice of choices" :key="choice.value" :aria-selected="value === choice.value">
         <a
           @click.prevent="
             value = choice.value;

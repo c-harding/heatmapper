@@ -190,12 +190,12 @@ function flyTo(mapItems: readonly MapItem[], zoom = false): void {
   const viewport = optimiseViewport(map, bounds);
 
   const screenNorthEast = map.unproject([
-    viewport.width - viewport.offsets.right,
-    viewport.offsets.top,
+    viewport.width - (viewport.offsets.right ?? 0),
+    viewport.offsets.top ?? 0,
   ]);
   const screenSouthWest = map.unproject([
-    viewport.offsets.left,
-    viewport.height - viewport.offsets.bottom,
+    viewport.offsets.left ?? 0,
+    viewport.height - (viewport.offsets.bottom ?? 0),
   ]);
   const screenBounds = new mapboxgl.LngLatBounds(screenSouthWest, screenNorthEast);
 
@@ -268,10 +268,7 @@ map.once('idle', () => mapLoaded(map));
 </script>
 
 <template>
-  <div
-    ref="container"
-    class="map-container"
-  />
+  <div ref="container" class="map-container" />
   <Teleport :to="buttonTarget">
     <div class="mapboxgl-ctrl mapboxgl-ctrl-group">
       <button @click="terrain = !terrain">
@@ -280,10 +277,7 @@ map.once('idle', () => mapLoaded(map));
     </div>
 
     <div class="mapboxgl-ctrl mapboxgl-ctrl-group">
-      <PickerControl
-        v-model="mapChoice"
-        :choices="mapStyleChoices"
-      />
+      <PickerControl v-model="mapChoice" :choices="mapStyleChoices" />
     </div>
   </Teleport>
 </template>

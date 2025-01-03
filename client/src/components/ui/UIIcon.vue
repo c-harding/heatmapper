@@ -30,7 +30,8 @@ useHead({
     v-bind="$attrs"
     class="icon material-icons"
     :class="{ inline, large, placeholder, bottom }"
-  >{{ icon }}</i>
+    >{{ icon }}</i
+  >
 </template>
 
 <style lang="scss">
