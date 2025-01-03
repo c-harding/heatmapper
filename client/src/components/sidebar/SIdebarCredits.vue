@@ -52,6 +52,12 @@ const gitHash = config.GIT_HASH ?? null;
     &.github:not(:hover) {
       opacity: 0.6;
     }
+
+    @media (prefers-color-scheme: dark) {
+      &.github {
+        filter: invert(1);
+      }
+    }
   }
 
   code {

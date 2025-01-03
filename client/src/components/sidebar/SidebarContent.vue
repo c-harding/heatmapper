@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { type MapItem } from '@strava-heatmapper/shared/interfaces';
-import { nextTick, reactive, ref, watch } from 'vue';
+import { computed, nextTick, reactive, ref, watch } from 'vue';
 
 import { useActivityService } from '@/services/useActivityService';
 import { cancelTextSelection } from '@/utils/ui';
@@ -8,6 +8,8 @@ import { cancelTextSelection } from '@/utils/ui';
 import SidebarForm from './SidebarForm.vue';
 import SidebarItemList from './SidebarItemList.vue';
 import SidebarCredits from './SIdebarCredits.vue';
+import SidebarItemStats from './SidebarItemStats.vue';
+import { combineStats } from '@/utils/stats';
 
 function getRange(
   mapItems: readonly MapItem[],
@@ -33,6 +35,8 @@ const emit = defineEmits<{
 }>();
 
 const { mapItems } = useActivityService();
+
+const totals = computed(() => combineStats(mapItems.value));
 
 let localSelected: readonly string[] | undefined;
 let selectionBase: readonly string[] | undefined;
@@ -78,6 +82,10 @@ watch(selected, async (selected) => {
 <template>
   <div class="sidebar-content">
     <SidebarForm />
+    <div v-if="mapItems" class="sidebar-totals">
+      <span class="label">Total:</span>
+      <SidebarItemStats :item="totals" />
+    </div>
     <div ref="sidebarItemListRef">
       <SidebarItemList
         v-model:selected="selected"
@@ -97,5 +105,17 @@ watch(selected, async (selected) => {
   padding: 0 0 1em;
   display: flex;
   flex-direction: column;
+}
+
+.sidebar-totals {
+  display: flex;
+  flex-direction: row;
+  gap: 0.25em;
+  padding-inline: 1em;
+  padding-bottom: 1em;
+
+  > .label {
+    font-size: 0.75em;
+  }
 }
 </style>
