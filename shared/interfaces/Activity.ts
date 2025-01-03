@@ -12,16 +12,20 @@ export interface Elevation {
   loss: number;
 }
 
-export default interface Activity extends ActivityMap {
+export interface ActivityStats {
   route: false;
+  distance: number;
+  elevation?: Elevation;
+  movingTime: number;
+  type?: SportType;
+}
+
+export default interface Activity extends ActivityMap, ActivityStats {
   name: string;
   date: number;
   localDate: number;
   localEnd: number;
   end: number;
   type: SportType;
-  movingTime: number;
-  distance: number;
   gear?: string;
-  elevation?: Elevation;
 }

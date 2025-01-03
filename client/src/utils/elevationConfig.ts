@@ -1,4 +1,4 @@
-import { MapItem, SportType } from '@strava-heatmapper/shared/interfaces';
+import { MapItemStats, SportType } from '@strava-heatmapper/shared/interfaces';
 
 const elevationLossSports: readonly SportType[] = [
   // SportType.AlpineSki,
@@ -7,7 +7,7 @@ const elevationLossSports: readonly SportType[] = [
   // SportType.Kayaking,
 ];
 
-export function getElevationLoss(item: MapItem): number | undefined {
+export function getElevationLoss(item: MapItemStats): number | undefined {
   return !item.route && item.type && elevationLossSports.includes(item.type)
     ? item.elevation?.loss
     : undefined;
@@ -33,7 +33,7 @@ const noElevationGainSports: readonly SportType[] = [
   SportType.Yoga,
 ];
 
-export function getElevationGain(item: MapItem): number | undefined {
+export function getElevationGain(item: MapItemStats): number | undefined {
   return item.route || !item.type || !noElevationGainSports.includes(item.type)
     ? item.elevation?.gain
     : undefined;

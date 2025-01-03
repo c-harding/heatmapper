@@ -3,14 +3,14 @@ const [ascentArrow, descentArrow] = document.dir === 'rtl' ? ['↖', '↙'] : ['
 </script>
 
 <script setup lang="ts">
-import type { MapItem } from '@strava-heatmapper/shared/interfaces';
+import { type MapItemStats } from '@strava-heatmapper/shared/interfaces';
 import { computed } from 'vue';
 
 import { formatKilometers, formatDuration, formatMeters } from '@/utils/numberFormat';
 import { getElevationGain, getElevationLoss } from '@/utils/elevationConfig';
 
 const { item } = defineProps<{
-  item: MapItem;
+  item: MapItemStats;
 }>();
 
 const distanceString = computed(() => {
