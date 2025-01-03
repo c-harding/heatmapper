@@ -9,6 +9,7 @@ import StravaIcon from '../strava-symbol/StravaIcon.vue';
 import UISpinner from '../ui/UISpinner.vue';
 import SidebarItemStats from './SidebarItemStats.vue';
 import { formatFullDateTime, formatSplitDate } from '@/utils/numberFormat';
+import SidebarItemLink from './SidebarItemLink.vue';
 
 // This conditional must be in the component rather than the template, so that tree-shaking works
 const StravaActivitySymbol = config.USE_STRAVA_ICONS ? StravaIcon : StravaEmoji;
@@ -28,16 +29,6 @@ const emit = defineEmits<{
   touchstart: [];
   dblclick: [value: MouseEvent];
 }>();
-
-const url = computed<string>(() => {
-  if (item.route) {
-    return `https://www.strava.com/routes/${item.id}`;
-  } else {
-    return `https://www.strava.com/activities/${item.id}`;
-  }
-});
-
-const useTextLink = !config.USE_STRAVA_ICONS;
 
 const startDate = computed(() => (!item.route && item.localDate) || item.date);
 
@@ -62,20 +53,7 @@ const fullDate = computed(() => formatFullDateTime(startDate.value));
       <UISpinner size="tiny" />
     </div>
     <div class="date" :title="fullDate" v-text="dateString.join('\n')" />
-    <a
-      :href="url"
-      target="_blank"
-      title="View in Strava"
-      class="strava-link"
-      :class="{ 'text-link': useTextLink }"
-      @click="$event.stopPropagation()"
-    >
-      <template v-if="useTextLink">
-        <div>View on</div>
-        <div>Strava</div>
-      </template>
-      <img v-else src="@/assets/strava.png" />
-    </a>
+    <SidebarItemLink class="strava-link" :item="item" />
   </li>
 </template>
 
@@ -110,34 +88,6 @@ const fullDate = computed(() => formatFullDateTime(startDate.value));
 
   .spinner {
     margin: 0.5em;
-  }
-
-  .strava-link {
-    $size: 1.5em;
-    align-self: stretch;
-    width: $size;
-    display: flex;
-    overflow: hidden;
-    flex-direction: column;
-    align-items: stretch;
-    justify-content: center;
-    padding-right: 8px;
-
-    > img {
-      flex: 0 0 $size;
-      height: $size;
-    }
-
-    &:not(:hover) {
-      filter: grayscale(100%);
-    }
-
-    &.text-link {
-      text-align: center;
-      width: auto;
-      font-size: 0.6rem;
-      color: var(--bold-color);
-    }
   }
 
   .date {

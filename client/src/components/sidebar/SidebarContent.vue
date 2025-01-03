@@ -3,11 +3,11 @@ import { type MapItem } from '@strava-heatmapper/shared/interfaces';
 import { nextTick, ref, watch } from 'vue';
 
 import { useActivityService } from '@/services/useActivityService';
-import config from '@/utils/config';
 import { cancelTextSelection } from '@/utils/ui';
 
 import SidebarForm from './SidebarForm.vue';
 import SidebarItemList from './SidebarItemList.vue';
+import SidebarCredits from './SIdebarCredits.vue';
 
 function getRange(mapItems: readonly MapItem[], to: string, from?: string | string[]): string[] {
   if (to === undefined) return [];
@@ -33,8 +33,6 @@ const { mapItems } = useActivityService();
 const localSelected = ref<string[]>();
 
 const selectionBase = ref<string[]>();
-
-const gitHash = config.GIT_HASH ?? null;
 
 const sidebarItemListRef = ref<HTMLElement>();
 
@@ -86,23 +84,7 @@ watch(selected, async (selected: string[]) => {
       />
     </div>
 
-    <div class="credits">
-      <p>
-        Made by
-        <span class="keep-together">Charlie Harding</span>
-        <span class="keep-together">
-          <a class="icon strava" href="https://www.strava.com/athletes/13013632"
-            ><img src="@/assets/strava.png"
-          /></a>
-          <a class="icon github" href="https://github.com/c-harding/heatmapper"
-            ><img src="@/assets/github.png"
-          /></a>
-        </span>
-      </p>
-      <p v-if="gitHash">
-        Build <code>{{ gitHash }}</code>
-      </p>
-    </div>
+    <SidebarCredits />
   </div>
 </template>
 
@@ -112,44 +94,5 @@ watch(selected, async (selected: string[]) => {
   padding: 0 0 1em;
   display: flex;
   flex-direction: column;
-
-  .credits {
-    font-size: 14px;
-    padding: 1em;
-    text-align: center;
-    margin-top: auto;
-
-    p {
-      margin: 0;
-    }
-
-    .icon {
-      img {
-        height: 1.5em;
-        vertical-align: middle;
-      }
-
-      &.github {
-        font-size: 0.8em;
-      }
-
-      &.strava:not(:hover) {
-        filter: grayscale(1);
-      }
-
-      &.github:not(:hover) {
-        opacity: 0.6;
-      }
-    }
-
-    code {
-      font-family: 'SF Mono', SFMono-Regular, ui-monospace, 'DejaVu Sans Mono', Menlo, Consolas,
-        monospace;
-    }
-  }
-
-  .keep-together {
-    display: inline-block;
-  }
 }
 </style>
