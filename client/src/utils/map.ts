@@ -11,7 +11,7 @@ import {
   type Point,
   type PointLike,
 } from 'mapbox-gl';
-import { nextTick, ref, watch } from 'vue';
+import { nextTick, watch } from 'vue';
 
 import { MapStyle } from '../MapStyle';
 
@@ -144,7 +144,7 @@ const surround = (point: Point, offset: number): [PointLike, PointLike] => [
 interface UseMapSelectionConfig {
   getExternalSelection: () => string[];
   flyToSelection: () => void;
-  emitUpdate: (newSelection: string[]) => void;
+  emitUpdate: (newSelection: readonly string[]) => void;
 }
 
 interface UseMapSelection {
@@ -156,12 +156,12 @@ export const useMapSelection = ({
   flyToSelection,
   emitUpdate,
 }: UseMapSelectionConfig): UseMapSelection => {
-  const localSelected = ref<string[]>([]);
+  let localSelection: readonly string[] = [];
 
   watch(getExternalSelection, () => {
     nextTick(() => {
-      if (getExternalSelection() !== localSelected.value) {
-        localSelected.value = getExternalSelection();
+      if (getExternalSelection() !== localSelection) {
+        localSelection = getExternalSelection();
         flyToSelection();
       }
     });
@@ -170,14 +170,14 @@ export const useMapSelection = ({
   function toggleSelect(id: string | undefined): void {
     if (!id) return;
 
-    const index = localSelected.value.indexOf(id);
+    const index = localSelection.indexOf(id);
     if (index !== -1) {
-      localSelected.value = localSelected.value.slice().toSpliced(index, 1);
+      localSelection = localSelection.slice().toSpliced(index, 1);
     } else {
-      localSelected.value = localSelected.value.concat(id);
+      localSelection = localSelection.concat(id);
     }
 
-    emitUpdate(localSelected.value);
+    emitUpdate(localSelection);
   }
 
   function select(id: string | undefined, toggle: boolean): void {
@@ -185,9 +185,9 @@ export const useMapSelection = ({
       toggleSelect(id);
       return;
     }
-    localSelected.value = id ? [id] : [];
+    localSelection = id ? [id] : [];
 
-    emitUpdate(localSelected.value);
+    emitUpdate(localSelection);
   }
 
   const click = (e: MapMouseEvent): void => {
