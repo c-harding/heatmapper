@@ -57,7 +57,7 @@ async function clickHandler() {
     ref="buttonRef"
     :class="$style.button"
     :disabled="loading || disabled"
-    :loading="loading"
+    :loading
     @click="clickHandler"
   >
     <UILabelledIcon :icon="icon" :class="$style.buttonContents">
@@ -66,7 +66,7 @@ async function clickHandler() {
     <UISpinner v-if="loading" size="tiny" :class="$style.buttonSpinner">
       {{ loadingText }}
     </UISpinner>
-    <ErrorTooltip :errorMessage="errorMessage" @dismiss="dismissLast" />
+    <ErrorTooltip :errorMessage @dismiss="dismissLast" />
   </button>
 </template>
 

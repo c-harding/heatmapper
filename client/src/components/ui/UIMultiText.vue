@@ -17,7 +17,7 @@ const allTexts = computed(() => texts as Record<string | number, string>);
   <div :class="$style.multiText">
     <div
       v-for="key of keys"
-      :key="key"
+      :key
       :class="[$style.multiTextItem, selected === key && $style.selected]"
     >
       <template v-if="allTexts"> {{ allTexts?.[key] }} </template><slot :name="key" />

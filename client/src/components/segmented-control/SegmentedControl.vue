@@ -23,7 +23,7 @@ function option(value: T): SegmentedControlItemContext {
 </script>
 <template>
   <ul :class="[$style.segmentedControl, disabled && $style.disabled]">
-    <slot :option="option" />
+    <slot :option />
   </ul>
 </template>
 

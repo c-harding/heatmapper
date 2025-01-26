@@ -3,7 +3,7 @@ import { ref } from 'vue';
 
 import UIIcon from '../ui/UIIcon.vue';
 
-const minimised = defineModel<boolean>();
+const minimised = defineModel<boolean>('minimised');
 
 const minimisedOverlay = ref<HTMLElement>();
 

@@ -47,13 +47,13 @@ const fullDate = computed(() => formatFullDateTime(startDate.value));
     <StravaActivitySymbol v-if="expanded" :class="$style.stravaIcon" :sportType="item.type" />
     <div :class="$style.sidebarItemInfo">
       <div :class="$style.sidebarItemName" v-text="item.name" />
-      <SidebarItemStats v-if="expanded" :item="item" />
+      <SidebarItemStats v-if="expanded" :item />
     </div>
     <div v-if="!item.map" :class="$style.spinner">
       <UISpinner size="tiny" />
     </div>
     <div :class="$style.date" :title="fullDate" v-text="dateString.join('\n')" />
-    <SidebarItemLink :class="$style.stravaLink" :item="item" />
+    <SidebarItemLink :class="$style.stravaLink" :item />
   </div>
 </template>
 

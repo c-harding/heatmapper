@@ -22,7 +22,7 @@ function click(id: string, e: MouseEvent): void {
     <SidebarItem
       v-for="item of items"
       :key="item.id"
-      :item="item"
+      :item
       :selected="selected.includes(item.id)"
       @click="click(item.id, $event)"
       @dblclick="emit('forceSelect')"

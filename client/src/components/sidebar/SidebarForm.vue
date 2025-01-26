@@ -147,7 +147,7 @@ defineExpose({ gear });
       </div>
     </div>
     <UserLogin v-if="continueLogin" @login="continueLogin($event)" />
-    <LoadingStatus v-else :useRoutes="useRoutes" :error="error" />
+    <LoadingStatus v-else :useRoutes :error />
     <div :class="[$style.controls, $style.row]">
       <label>
         <span>Sport type</span>
@@ -169,7 +169,7 @@ defineExpose({ gear });
   </aside>
 
   <UIModal v-if="user" v-model="settingsOpen" :class="$style.modal">
-    <UserSettings :user="user" @logout="onLogout" />
+    <UserSettings :user @logout="onLogout" />
   </UIModal>
 </template>
 

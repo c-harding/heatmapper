@@ -24,7 +24,7 @@ function dateToYYYYMMDD(date: Date | null): string | null {
       ref="input"
       type="date"
       autocomplete="off"
-      :name="name"
+      :name
       :value="dateToYYYYMMDD(model)"
       @change="model = input!.valueAsDate"
     />
