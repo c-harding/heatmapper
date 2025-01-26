@@ -9,7 +9,7 @@ const selected = defineModel<readonly string[]>('selected', { required: true });
 
 const emit = defineEmits<{
   select: [item: string, e: MouseEvent];
-  'force-select': [];
+  forceSelect: [];
 }>();
 
 function click(id: string, e: MouseEvent): void {
@@ -25,7 +25,7 @@ function click(id: string, e: MouseEvent): void {
       :item="item"
       :selected="selected.includes(item.id)"
       @click="click(item.id, $event)"
-      @dblclick="emit('force-select')"
+      @dblclick="emit('forceSelect')"
     />
   </div>
 </template>

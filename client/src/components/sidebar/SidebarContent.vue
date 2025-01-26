@@ -30,8 +30,8 @@ function getRange(
 const selected = defineModel<readonly string[]>('selected', { required: true });
 
 const emit = defineEmits<{
-  'zoom-to-selected': [];
-  'focus-sidebar': [];
+  zoomToSelected: [];
+  focusSidebar: [];
 }>();
 
 const { mapItems } = useActivityService();
@@ -64,14 +64,14 @@ function select(id: string, e: MouseEvent): void {
 
 function forceSelect(): void {
   cancelTextSelection();
-  emit('zoom-to-selected');
+  emit('zoomToSelected');
 }
 
 watch(selected, async (selected) => {
   if (selected !== localSelected) {
     localSelected = selected;
     selectionBase = selected;
-    if (selected.length !== 0) emit('focus-sidebar');
+    if (selected.length !== 0) emit('focusSidebar');
     await nextTick();
     const el = sidebarItemListRef.value?.querySelector('.selected');
     el?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
