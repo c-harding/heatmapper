@@ -6,6 +6,7 @@ import MapView from './components/map/MapView.vue';
 import CollapsibleSidebar from './components/sidebar/CollapsibleSidebar.vue';
 import SidebarContent from './components/sidebar/SidebarContent.vue';
 import { provideActivityService } from './services/useActivityService';
+import { SELECTED_SIDEBAR_ITEM_SELECTOR } from './components/sidebar/SidebarItem.vue';
 
 const { routes = false } = defineProps<{ routes: boolean }>();
 
@@ -37,7 +38,7 @@ function zoomToSelected(): void {
 }
 
 function scrollToSelected() {
-  const el = document.querySelector('.selected');
+  const el = document.querySelector(`.${SELECTED_SIDEBAR_ITEM_SELECTOR}`);
   el?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
 }
 

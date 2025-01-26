@@ -1,3 +1,7 @@
+<script lang="ts">
+export const SELECTED_SIDEBAR_ITEM_SELECTOR = 'sidebar-item-selected';
+</script>
+
 <script setup lang="ts">
 import { type MapItem } from '@strava-heatmapper/shared/interfaces';
 import { computed } from 'vue';
@@ -39,7 +43,11 @@ const fullDate = computed(() => formatFullDateTime(startDate.value));
 
 <template>
   <div
-    :class="[$style.sidebarItem, selected && 'selected', selected && $style.selected]"
+    :class="[
+      $style.sidebarItem,
+      selected && SELECTED_SIDEBAR_ITEM_SELECTOR,
+      selected && $style.selected,
+    ]"
     @click="emit('click', $event)"
     @touchstart="emit('touchstart')"
     @dblclick="emit('dblclick', $event)"
