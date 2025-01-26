@@ -10,13 +10,31 @@ const minimisedOverlay = ref<HTMLElement>();
 const backArrow = document.dir === 'rtl' ? 'arrow_forward' : 'arrow_back';
 
 const appName = import.meta.env.VITE_APP_NAME as string;
+
+const emit = defineEmits<{
+  scrollDown: [];
+}>();
+
+const scrollable = ref<HTMLElement>();
+
+const SCROLL_ALLOWANCE_PX = 10;
+
+function clickHeader() {
+  if (!scrollable.value) {
+    return;
+  } else if (scrollable.value.scrollTop <= SCROLL_ALLOWANCE_PX) {
+    emit('scrollDown');
+  } else {
+    scrollable.value.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+}
 </script>
 
 <template>
   <div :class="[$style.sidebar, minimised && $style.minimised]">
     <div :class="$style.topBox">
       <div :class="$style.header">
-        <svg viewBox="0 0 110 36">
+        <svg viewBox="0 0 110 36" @click="clickHeader()">
           <text x="55" y="13" text-anchor="middle" font-weight="bold">
             {{ appName }}
           </text>
@@ -41,7 +59,7 @@ const appName = import.meta.env.VITE_APP_NAME as string;
       <div :class="[$style.tabCurve, $style.bottom]" />
     </div>
 
-    <section :class="$style.scrollable">
+    <section ref="scrollable" :class="$style.scrollable">
       <slot />
     </section>
 

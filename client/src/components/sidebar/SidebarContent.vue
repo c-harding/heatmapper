@@ -10,6 +10,7 @@ import SidebarItemList from './SidebarItemList.vue';
 import SidebarCredits from './SIdebarCredits.vue';
 import SidebarItemStats from './SidebarItemStats.vue';
 import { combineStats } from '@/utils/stats';
+import SidebarItemCount from './SidebarItemCount.vue';
 
 function getRange(
   mapItems: readonly MapItem[],
@@ -32,11 +33,12 @@ const selected = defineModel<readonly string[]>('selected', { required: true });
 const emit = defineEmits<{
   zoomToSelected: [];
   focusSidebar: [];
+  scrollToSelected: [];
 }>();
 
 const { mapItems } = useActivityService();
 
-const totals = computed(() => combineStats(mapItems.value));
+const totals = computed(() => combineStats(mapItems.value, selected.value.length));
 
 let localSelected: readonly string[] | undefined;
 let selectionBase: readonly string[] | undefined;
@@ -73,8 +75,7 @@ watch(selected, async (selected) => {
     selectionBase = selected;
     if (selected.length !== 0) emit('focusSidebar');
     await nextTick();
-    const el = sidebarItemListRef.value?.querySelector('.selected');
-    el?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    emit('scrollToSelected');
   }
 });
 </script>
@@ -83,7 +84,7 @@ watch(selected, async (selected) => {
   <div :class="$style.sidebarContent">
     <SidebarForm />
     <div v-if="mapItems?.length" :class="$style.sidebarTotals">
-      <span :class="$style.label">Total:</span>
+      <SidebarItemCount :counts="totals" />
       <SidebarItemStats :item="totals" />
     </div>
     <div ref="sidebarItemListRef">
@@ -102,20 +103,16 @@ watch(selected, async (selected) => {
 <style module lang="scss">
 .sidebarContent {
   flex: 1;
-  padding: 0 0 1em;
+  padding-block: 1em;
   display: flex;
   flex-direction: column;
+  gap: 1em;
 }
 
 .sidebarTotals {
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   gap: 0.25em;
   padding-inline: 1em;
-  padding-bottom: 1em;
-
-  > .label {
-    font-size: 0.75em;
-  }
 }
 </style>

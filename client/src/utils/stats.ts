@@ -1,11 +1,13 @@
-import { MapItem, MapItemStats, SportType } from '@strava-heatmapper/shared/interfaces';
+import { CombinedMapItemStats, MapItem, SportType } from '@strava-heatmapper/shared/interfaces';
 import { getElevationGain, getElevationLoss } from './elevationConfig';
 
 const isDefined = (val: number | false | undefined): val is number => !!val || val === 0;
 const add = (a: number | undefined, b: number) => (a ?? 0) + b;
 const uniqueValueOrUndefined = <T>(acc: T | undefined, val: T) => (acc === val ? acc : undefined);
 
-export function combineStats(items: readonly MapItem[]): MapItemStats {
+export function combineStats(items: readonly MapItem[], selectedCount = 0): CombinedMapItemStats {
+  const routeCount = items.filter((item) => item.route).length;
+  const activityCount = items.length - routeCount;
   const distance = items
     .map((item) => item.distance)
     .filter(isDefined)
@@ -20,12 +22,15 @@ export function combineStats(items: readonly MapItem[]): MapItemStats {
     .map((item) => item.type)
     .reduce<SportType | undefined>(uniqueValueOrUndefined, undefined);
 
-  if (items.every((item) => item.route)) {
+  if (activityCount === 0) {
     return {
       route: true,
       distance,
       elevation: { gain: elevationGain ?? 0 },
       type,
+      routeCount,
+      activityCount,
+      selectedCount,
     };
   }
 
@@ -40,6 +45,9 @@ export function combineStats(items: readonly MapItem[]): MapItemStats {
     .reduce<number | undefined>((a, b) => Math.min(a ?? 0, b), undefined);
 
   return {
+    activityCount,
+    routeCount,
+    selectedCount,
     route: false,
     distance,
     movingTime: movingTime ?? 0,

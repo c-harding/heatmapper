@@ -8,14 +8,13 @@ import { computed } from 'vue';
 
 import { formatKilometers, formatDuration, formatMeters } from '@/utils/numberFormat';
 import { getElevationGain, getElevationLoss } from '@/utils/elevationConfig';
+import StatsList from './StatsList.vue';
 
 const { item } = defineProps<{
   item: MapItemStats;
 }>();
 
-const distanceString = computed(() => {
-  return formatKilometers(item.distance);
-});
+const distanceString = computed(() => formatKilometers(item.distance));
 
 const movingTime = computed(() => {
   const time = !item.route && item.movingTime;
@@ -27,10 +26,14 @@ const movingTime = computed(() => {
 const elevationString = computed(() => {
   if (!item.elevation) return;
   const elevationGain = getElevationGain(item);
-  const elevationGainString = elevationGain && `${ascentArrow} ${formatMeters(elevationGain)}`;
+  const elevationGainString = elevationGain
+    ? `${ascentArrow} ${formatMeters(elevationGain)}`
+    : undefined;
 
   const elevationLoss = getElevationLoss(item);
-  const elevationLossString = elevationLoss && `${descentArrow} ${formatMeters(elevationLoss)}`;
+  const elevationLossString = elevationLoss
+    ? `${descentArrow} ${formatMeters(elevationLoss)}`
+    : undefined;
 
   if (elevationGain !== undefined && elevationLoss !== undefined) {
     return `${elevationGainString} ${elevationLossString}`;
@@ -38,18 +41,8 @@ const elevationString = computed(() => {
     return elevationGainString ?? elevationLossString;
   }
 });
-
-const stats = computed(() =>
-  [distanceString.value, elevationString.value, movingTime.value].filter(Boolean).join(' • '),
-);
 </script>
 
 <template>
-  <div :class="$style.sidebarItemStats" v-text="stats" />
+  <StatsList :stats="[distanceString, elevationString, movingTime]" />
 </template>
-
-<style module lang="scss">
-.sidebarItemStats {
-  font-size: 0.75em;
-}
-</style>

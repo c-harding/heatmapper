@@ -18,7 +18,7 @@ export function formatKilometers(meters: number) {
   return format.format(kilometers);
 }
 
-export const meterFormat = new Intl.NumberFormat(locales, {
+const meterFormat = new Intl.NumberFormat(locales, {
   style: 'unit',
   unit: 'meter',
   maximumFractionDigits: 0,
@@ -26,6 +26,14 @@ export const meterFormat = new Intl.NumberFormat(locales, {
 
 export function formatMeters(meters: number) {
   return meterFormat.format(meters);
+}
+
+const integerFormat = new Intl.NumberFormat(locales, {
+  maximumFractionDigits: 0,
+});
+
+export function formatInt(n: number) {
+  return integerFormat.format(n);
 }
 
 export function formatDuration(duration: number) {

@@ -36,16 +36,22 @@ function zoomToSelected(): void {
   map.value?.zoomToSelection();
 }
 
+function scrollToSelected() {
+  const el = document.querySelector('.selected');
+  el?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+}
+
 defineExpose({ mapItems });
 </script>
 
 <template>
   <div id="app">
-    <CollapsibleSidebar v-model:minimised="minimised">
+    <CollapsibleSidebar v-model:minimised="minimised" @scroll-down="scrollToSelected()">
       <SidebarContent
         v-model:selected="selected"
         @focus-sidebar="minimised = false"
         @zoom-to-selected="zoomToSelected"
+        @scroll-to-selected="scrollToSelected"
       />
     </CollapsibleSidebar>
     <Suspense>

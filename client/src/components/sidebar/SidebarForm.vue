@@ -147,7 +147,7 @@ defineExpose({ gear });
       </div>
     </div>
     <UserLogin v-if="continueLogin" @login="continueLogin($event)" />
-    <LoadingStatus v-else :stats="undefined" :use-routes="useRoutes" :error="error" />
+    <LoadingStatus v-else :use-routes="useRoutes" :error="error" />
     <div :class="[$style.controls, $style.row]">
       <label>
         <span>Sport type</span>
@@ -175,7 +175,7 @@ defineExpose({ gear });
 
 <style module lang="scss">
 .sidebarForm {
-  padding: 1em;
+  padding-inline: 1em;
   display: flex;
   flex-direction: column;
   gap: 0.5em;
