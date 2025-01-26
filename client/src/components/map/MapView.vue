@@ -97,7 +97,7 @@ watch(selectedMapItems, (selectedMapItems) => {
 });
 
 watch(mapStyleUrl, (style) => {
-  map.setStyle(style);
+  map.setStyle(style + '?optimize=true');
   map.once('styledata', () => {
     mapLoaded(map);
   });
