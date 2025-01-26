@@ -114,5 +114,11 @@ watch(selected, async (selected) => {
   flex-direction: column;
   gap: 0.25em;
   padding-inline: 1em;
+  margin-block: -0.5em;
+  padding-block: 0.5em;
+  position: sticky;
+  top: 0;
+  background-color: var(--background-full);
+  z-index: 1;
 }
 </style>
