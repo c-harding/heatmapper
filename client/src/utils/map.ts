@@ -1,15 +1,15 @@
 import { toGeoJSON } from '@mapbox/polyline';
 import { type MapItem } from '@strava-heatmapper/shared/interfaces';
 import { type Feature, type FeatureCollection, type LineString } from 'geojson';
-import {
-  type AnyLayer,
-  type Expression,
-  type GeoJSONSource,
-  type GeoJSONSourceRaw,
-  type Map as MapboxMap,
-  type MapMouseEvent,
-  type Point,
-  type PointLike,
+import type {
+  ExpressionSpecification,
+  GeoJSONSourceSpecification,
+  GeoJSONSource,
+  Map as MapboxMap,
+  MapMouseEvent,
+  Point,
+  PointLike,
+  LineLayerSpecification,
 } from 'mapbox-gl';
 import { nextTick, watch } from 'vue';
 
@@ -29,9 +29,12 @@ export enum MapSourceLayer {
 const colorOpacityFromZoom = (
   [r, g, b]: RGB,
   ...pairs: [zoom: number, opacity: number][]
-): Expression => fromZoom(...pairs.map(([zoom, a]) => [zoom, ['rgba', r, g, b, a]] as const));
+): ExpressionSpecification =>
+  fromZoom(...pairs.map(([zoom, a]) => [zoom, ['rgba', r, g, b, a]] as const));
 
-const fromZoom = (...pairs: (readonly [zoom: number, value: unknown])[]): Expression => [
+const fromZoom = (
+  ...pairs: (readonly [zoom: number, value: unknown])[]
+): ExpressionSpecification => [
   'interpolate',
   ['linear'],
   ['zoom'],
@@ -53,15 +56,15 @@ const makeGeoJsonData = (
     })),
 });
 
-const makeGeoJson = (mapItems: readonly MapItem[] = []): GeoJSONSourceRaw => ({
+const makeGeoJson = (mapItems: readonly MapItem[] = []): GeoJSONSourceSpecification => ({
   type: 'geojson',
   data: makeGeoJsonData(mapItems),
 });
 
 interface LayerDef {
   source: string;
-  color: Expression | string;
-  width: Expression | number;
+  color: ExpressionSpecification | string;
+  width: ExpressionSpecification | number;
 }
 
 const lineWidth = fromZoom([5, 1], [14, 4], [22, 8]);
@@ -105,7 +108,7 @@ export const getLayersForStyle = (
   },
 });
 
-const buildLineLayer = (id: string, layer: LayerDef): AnyLayer => ({
+const buildLineLayer = (id: string, layer: LayerDef): LineLayerSpecification => ({
   id,
   type: 'line',
   source: layer.source,
@@ -142,7 +145,7 @@ const surround = (point: Point, offset: number): [PointLike, PointLike] => [
 ];
 
 interface UseMapSelectionConfig {
-  getExternalSelection: () => string[];
+  getExternalSelection: () => readonly string[];
   flyToSelection: () => void;
   emitUpdate: (newSelection: readonly string[]) => void;
 }

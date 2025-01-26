@@ -28,7 +28,7 @@ const zoom = ref(10);
 
 const { mapItems } = provideActivityService({ useRoutes });
 
-const selected = ref<string[]>([]);
+const selected = ref<readonly string[]>([]);
 
 const minimised = ref(false);
 

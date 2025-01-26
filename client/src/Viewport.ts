@@ -1,4 +1,9 @@
-import { type PaddingOptions } from 'mapbox-gl';
+type PaddingOptions = {
+  top: number;
+  bottom: number;
+  left: number;
+  right: number;
+};
 
 export default class Viewport {
   constructor(

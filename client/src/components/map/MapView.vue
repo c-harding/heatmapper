@@ -32,11 +32,11 @@ const { mapItems } = defineProps<{
 
 const center = defineModel<LngLatLike>('center', { required: true });
 const zoom = defineModel<number>('zoom', { required: true });
-const selected = defineModel<string[]>('selected', { required: true });
+const selected = defineModel<readonly string[]>('selected', { required: true });
 
 defineExpose({ zoomToSelection });
 
-const mapboxgl = await import('mapbox-gl');
+const { default: mapboxgl } = await import('mapbox-gl');
 
 if (mapboxgl.getRTLTextPluginStatus() === 'unavailable') {
   mapboxgl.setRTLTextPlugin(
@@ -367,7 +367,7 @@ map.once('idle', () => mapLoaded(map));
   background-color: color-mix(in srgb, var(--background-pure) 50%, transparent);
 }
 
-.mapboxgl-ctrl-attrib a {
+.mapboxgl-ctrl-attrib a[href] {
   color: inherit;
 }
 
