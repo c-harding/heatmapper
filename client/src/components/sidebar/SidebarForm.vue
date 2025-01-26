@@ -147,15 +147,15 @@ defineExpose({ gear });
       </div>
     </div>
     <UserLogin v-if="continueLogin" @login="continueLogin($event)" />
-    <LoadingStatus v-else :use-routes="useRoutes" :error="error" />
+    <LoadingStatus v-else :useRoutes="useRoutes" :error="error" />
     <div :class="[$style.controls, $style.row]">
       <label>
         <span>Sport type</span>
         <UIDropdown
           v-model="filterModel.sportType"
           :options="sortedSportTypes"
-          blank-value=""
-          blank-label="All sports"
+          blankValue=""
+          blankLabel="All sports"
         />
       </label>
       <label :class="{ hidden: !useRoutes }" title="Only show starred routes">

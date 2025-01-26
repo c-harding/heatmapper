@@ -60,7 +60,7 @@ defineExpose({ mapItems });
         v-model:center="geolocation"
         v-model:zoom="zoom"
         v-model:selected="selected"
-        :map-items="mapItems"
+        :mapItems="mapItems"
       />
     </Suspense>
   </div>

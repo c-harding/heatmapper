@@ -44,7 +44,7 @@ const fullDate = computed(() => formatFullDateTime(startDate.value));
     @touchstart="emit('touchstart')"
     @dblclick="emit('dblclick', $event)"
   >
-    <StravaActivitySymbol v-if="expanded" :class="$style.stravaIcon" :sport-type="item.type" />
+    <StravaActivitySymbol v-if="expanded" :class="$style.stravaIcon" :sportType="item.type" />
     <div :class="$style.sidebarItemInfo">
       <div :class="$style.sidebarItemName" v-text="item.name" />
       <SidebarItemStats v-if="expanded" :item="item" />

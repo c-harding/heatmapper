@@ -66,7 +66,7 @@ async function clickHandler() {
     <UISpinner v-if="loading" size="tiny" :class="$style.buttonSpinner">
       {{ loadingText }}
     </UISpinner>
-    <ErrorTooltip :error-message="errorMessage" @dismiss="dismissLast" />
+    <ErrorTooltip :errorMessage="errorMessage" @dismiss="dismissLast" />
   </button>
 </template>
 

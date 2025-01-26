@@ -1,8 +1,5 @@
 import globals from 'globals';
 import parser from 'vue-eslint-parser';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { FlatCompat } from '@eslint/eslintrc';
 import eslintConfigPrettier from 'eslint-config-prettier';
 import pluginVue from 'eslint-plugin-vue';
 import eslint from '@eslint/js';
@@ -44,6 +41,8 @@ export default [
           },
         },
       ],
+
+      'vue/attribute-hyphenation': ['error', 'never'],
 
       // START disabled because of prettier
       'vue/multi-word-component-names': 'off',
