@@ -24,8 +24,7 @@ const useTextLink = !config.USE_STRAVA_ICONS;
     :href="url"
     target="_blank"
     title="View in Strava"
-    class="sidebar-item-link"
-    :class="{ 'text-link': useTextLink }"
+    :class="[$style.sidebarItemLink, useTextLink && $style.textLink]"
     @click.stop
   >
     <template v-if="useTextLink">
@@ -36,8 +35,8 @@ const useTextLink = !config.USE_STRAVA_ICONS;
   </a>
 </template>
 
-<style lang="scss" scoped>
-.sidebar-item-link {
+<style module lang="scss">
+.sidebarItemLink {
   $size: 1.5em;
   align-self: stretch;
   width: $size;
@@ -57,7 +56,7 @@ const useTextLink = !config.USE_STRAVA_ICONS;
     filter: grayscale(100%);
   }
 
-  &.text-link {
+  &.textLink {
     text-align: center;
     width: auto;
     font-size: 0.6rem;

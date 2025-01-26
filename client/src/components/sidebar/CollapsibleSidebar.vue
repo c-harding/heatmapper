@@ -13,9 +13,9 @@ const appName = import.meta.env.VITE_APP_NAME as string;
 </script>
 
 <template>
-  <div class="sidebar" :class="{ minimised }">
-    <div class="top-box">
-      <div class="header">
+  <div :class="[$style.sidebar, minimised && $style.minimised]">
+    <div :class="$style.topBox">
+      <div :class="$style.header">
         <svg viewBox="0 0 110 36">
           <text x="55" y="13" text-anchor="middle" font-weight="bold">
             {{ appName }}
@@ -24,35 +24,35 @@ const appName = import.meta.env.VITE_APP_NAME as string;
         </svg>
       </div>
     </div>
-    <div class="tabs">
-      <div class="tab-curve top" />
-      <div class="tab map">
+    <div :class="$style.tabs">
+      <div :class="[$style.tabCurve, $style.top]" />
+      <div :class="[$style.tab, $style.map]">
         <p>
           <UIIcon icon="map" />
         </p>
         <p>Map</p>
       </div>
-      <div class="tab back">
+      <div :class="[$style.tab, $style.back]">
         <p>
           <UIIcon :icon="backArrow" />
         </p>
         <p>Back</p>
       </div>
-      <div class="tab-curve bottom" />
+      <div :class="[$style.tabCurve, $style.bottom]" />
     </div>
 
-    <section class="scrollable">
+    <section :class="$style.scrollable">
       <slot />
     </section>
 
-    <div class="overlays" @click="minimised = !minimised" @wheel="minimised = true">
-      <div class="expanded overlay" />
-      <div ref="minimisedOverlay" class="minimised overlay" />
+    <div :class="$style.overlays" @click="minimised = !minimised" @wheel="minimised = true">
+      <div :class="[$style.expanded, $style.overlay]" />
+      <div ref="minimisedOverlay" :class="[$style.minimised, $style.overlay]" />
     </div>
   </div>
 </template>
 
-<style lang="scss" scoped>
+<style module lang="scss">
 $tab-width: 5rem;
 $tab-height: 5rem;
 $logo-height: 5rem;
@@ -114,7 +114,7 @@ $padding-top: calc(0.5rem + var(--top-safe-area));
     padding-bottom: var(--bottom-safe-area);
   }
 
-  .top-box {
+  .topBox {
     transition: margin var(--transition-speed);
   }
 }
@@ -148,42 +148,42 @@ $padding-top: calc(0.5rem + var(--top-safe-area));
   }
 }
 
-.tab-curve {
+.tabCurve {
   width: 0;
   position: relative;
   margin-inline-start: auto;
   transition: width var(--transition-speed);
-}
 
-.tab-curve.top {
-  width: calc($tab-width * var(--top-curve, 0));
-}
+  &::before {
+    @include pseudo-element;
+    inset-inline-start: 0;
+    height: 2em;
+    background-color: transparent;
+    width: $scaled-corner-radius;
+  }
 
-.tab-curve.bottom {
-  margin-top: $tab-height;
-  width: calc($tab-width * var(--bottom-curve, 0));
-}
+  &.top {
+    width: calc($tab-width * var(--top-curve, 0));
 
-.tab-curve::before {
-  @include pseudo-element;
-  inset-inline-start: 0;
-  height: 2em;
-  background-color: transparent;
-  width: $scaled-corner-radius;
-}
+    &::before {
+      bottom: 100%;
+      box-shadow: 0 $corner-radius 0 0 var(--background-full);
+      border-end-start-radius: $pseudo-scaled-corner-radius;
+      transition: inset var(--transition-speed);
+    }
+  }
 
-.tab-curve.top::before {
-  bottom: 100%;
-  box-shadow: 0 $corner-radius 0 0 var(--background-full);
-  border-end-start-radius: $pseudo-scaled-corner-radius;
-  transition: inset var(--transition-speed);
-}
+  &.bottom {
+    margin-top: $tab-height;
+    width: calc($tab-width * var(--bottom-curve, 0));
 
-.tab-curve.bottom::before {
-  top: 100%;
-  box-shadow: 0 (-$corner-radius) 0 0 var(--background-full);
-  border-start-start-radius: $pseudo-scaled-corner-radius;
-  transition: inset var(--transition-speed);
+    &::before {
+      top: 100%;
+      box-shadow: 0 (-$corner-radius) 0 0 var(--background-full);
+      border-start-start-radius: $pseudo-scaled-corner-radius;
+      transition: inset var(--transition-speed);
+    }
+  }
 }
 
 .tab {
@@ -297,7 +297,7 @@ $padding-top: calc(0.5rem + var(--top-safe-area));
       margin-inline-start: $sidebar-overlap;
       margin-inline-end: 0;
 
-      > .top-box,
+      > .topBox,
       > .scrollable {
         margin-inline-start: -$minimised-width;
         margin-inline-end: $minimised-width;

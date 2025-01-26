@@ -80,21 +80,21 @@ const cssVars = computed(() => ({
 <template>
   <Teleport :to="errorMessage?.frame ?? 'body'">
     <Transition>
-      <div v-if="errorMessage" class="error-container" :style="cssVars">
-        <div ref="tooltipRef" class="error-tooltip" :style="marginAdjustments">
+      <div v-if="errorMessage" :class="$style.errorContainer" :style="cssVars">
+        <div ref="tooltipRef" :class="$style.errorTooltip" :style="marginAdjustments">
           <UIIcon inline icon="warning" />
           {{ errorMessage.message }}
         </div>
-        <div class="tail" />
+        <div :class="$style.tail" />
       </div>
     </Transition>
   </Teleport>
 </template>
 
-<style lang="scss" scoped>
+<style module lang="scss">
 $arrow-height: 8px;
 
-.error-container {
+.errorContainer {
   position: fixed;
   display: flex;
   flex-direction: column;
@@ -107,22 +107,22 @@ $arrow-height: 8px;
   left: calc(var(--left) * 1px);
   z-index: 10;
 
-  &.v-enter-active {
+  &:global(.v-enter-active) {
     transition: opacity 0.2s ease;
   }
 
-  &.v-leave-active {
+  &:global(.v-leave-active) {
     transition: opacity 0.5s ease;
     pointer-events: none;
   }
 
-  &.v-enter-from,
-  &.v-leave-to {
+  &:global(.v-enter-from),
+  &:global(.v-leave-to) {
     opacity: 0;
   }
 }
 
-.error-tooltip {
+.errorTooltip {
   background: var(--background-error);
   border-radius: 0.5em;
   padding: 0.5em;

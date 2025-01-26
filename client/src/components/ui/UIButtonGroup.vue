@@ -1,18 +1,18 @@
 <script setup lang="ts"></script>
 
 <template>
-  <div class="button-group">
+  <div :class="$style.buttonGroup">
     <slot />
   </div>
 </template>
 
-<style lang="scss" scoped>
-.button-group {
+<style module lang="scss">
+.buttonGroup {
   display: flex;
   margin: 0.5rem;
   display: relative;
 
-  :slotted(button) {
+  > button {
     margin: 0;
 
     display: relative;

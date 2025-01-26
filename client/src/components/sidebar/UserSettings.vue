@@ -1,4 +1,4 @@
-<script lang="ts" setup>
+<script setup lang="ts">
 import { type UserInfo } from '@strava-heatmapper/shared/interfaces';
 import { computed } from 'vue';
 
@@ -57,25 +57,25 @@ const logout = async (global = false) => {
 <template>
   <h2>User settings</h2>
 
-  <div class="flex-line">
-    <img class="profile-pic" :srcset="imgSrcSet" :src="imgSrc" />
-    <a :href="profileLink" class="user-name" target="_blank">{{ fullName }}</a>
+  <div :class="$style.flexLine">
+    <img :class="$style.profilePic" :srcset="imgSrcSet" :src="imgSrc" />
+    <a :href="profileLink" :class="$style.userName" target="_blank">{{ fullName }}</a>
     <UIButton @click="logout(false)"> Sign out </UIButton>
   </div>
-  <div class="flex-line">
+  <div :class="$style.flexLine">
     <p v-if="otherSessions">You are signed in in {{ countOtherSessions(otherSessions) }}.</p>
     <p v-else>You are not signed in anywhere else.</p>
     <UIButton :disabled="!otherSessions" @click="logout(true)"> Sign out everywhere </UIButton>
   </div>
 </template>
 
-<style scoped lang="scss">
-.profile-pic {
+<style module lang="scss">
+.profilePic {
   width: 31px;
   border-radius: 50%;
 }
 
-.flex-line {
+.flexLine {
   display: flex;
   align-items: center;
   gap: 0.5em;
@@ -86,7 +86,7 @@ const logout = async (global = false) => {
   }
 }
 
-a.user-name {
+a.userName {
   color: var(--bold-color);
   font-weight: 600;
 

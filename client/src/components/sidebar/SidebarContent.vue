@@ -80,10 +80,10 @@ watch(selected, async (selected) => {
 </script>
 
 <template>
-  <div class="sidebar-content">
+  <div :class="$style.sidebarContent">
     <SidebarForm />
-    <div v-if="mapItems?.length" class="sidebar-totals">
-      <span class="label">Total:</span>
+    <div v-if="mapItems?.length" :class="$style.sidebarTotals">
+      <span :class="$style.label">Total:</span>
       <SidebarItemStats :item="totals" />
     </div>
     <div ref="sidebarItemListRef">
@@ -99,15 +99,15 @@ watch(selected, async (selected) => {
   </div>
 </template>
 
-<style lang="scss" scoped>
-.sidebar-content {
+<style module lang="scss">
+.sidebarContent {
   flex: 1;
   padding: 0 0 1em;
   display: flex;
   flex-direction: column;
 }
 
-.sidebar-totals {
+.sidebarTotals {
   display: flex;
   flex-direction: row;
   gap: 0.25em;

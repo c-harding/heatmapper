@@ -23,7 +23,7 @@ const model = defineModel<string | undefined>({ default: undefined });
 </script>
 
 <template>
-  <div class="dropdown">
+  <div :class="$style.dropdown">
     <select v-model="model">
       <option v-if="blankLabel" :value="blankValue">
         {{ blankLabel }}
@@ -45,11 +45,11 @@ const model = defineModel<string | undefined>({ default: undefined });
       icon="close"
       @click="model = blankValue"
     />
-    <UIIcon v-else class="down-arrow" inline large icon="expand_more" />
+    <UIIcon v-else :class="$style.downArrow" inline large icon="expand_more" />
   </div>
 </template>
 
-<style lang="scss">
+<style module lang="scss">
 .dropdown {
   display: flex;
   margin: 0.5rem;
@@ -98,7 +98,7 @@ const model = defineModel<string | undefined>({ default: undefined });
     }
   }
 
-  .down-arrow {
+  .downArrow {
     pointer-events: none;
   }
 }

@@ -18,12 +18,12 @@ const findingString = computed(() => stats && loadingStatus(stats, useRoutes));
 </script>
 
 <template>
-  <p class="small" :class="{ error }">
+  <p :class="[$style.small, error && $style.error]">
     {{ error || findingString }}
   </p>
 </template>
 
-<style lang="scss" scoped>
+<style module lang="scss">
 .error {
   color: red;
 }

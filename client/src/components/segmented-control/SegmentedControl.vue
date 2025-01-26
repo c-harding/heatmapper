@@ -22,13 +22,13 @@ function option(value: T): SegmentedControlItemContext {
 }
 </script>
 <template>
-  <ul :class="{ disabled }">
+  <ul :class="[$style.segmentedControl, disabled && $style.disabled]">
     <slot :option="option" />
   </ul>
 </template>
 
-<style scoped lang="scss">
-ul {
+<style module lang="scss">
+ul.segmentedControl {
   display: flex;
   gap: 1px;
   margin: 0.5rem;

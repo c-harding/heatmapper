@@ -105,8 +105,8 @@ defineExpose({ gear });
 </script>
 
 <template>
-  <aside>
-    <div class="controls-grid">
+  <aside :class="$style.sidebarForm">
+    <div :class="$style.controlsGrid">
       <label>
         <span>Start date</span>
         <UIDateInput v-model="start" name="start" />
@@ -115,18 +115,18 @@ defineExpose({ gear });
         <span>End date</span>
         <UIDateInput v-model="end" name="end" />
       </label>
-      <div class="buttons">
+      <div :class="$style.buttons">
         <SegmentedControl
           v-slot="{ option }"
           v-model="useRoutes"
-          class="segmented-control"
+          :class="$style.segmentedControl"
           :disabled="loading"
         >
           <SegmentedControlItem :option="option(false)"> Activities </SegmentedControlItem>
           <SegmentedControlItem :option="option(true)"> Routes </SegmentedControlItem>
         </SegmentedControl>
       </div>
-      <div class="buttons">
+      <div :class="$style.buttons">
         <UIButtonGroup>
           <UIButton @click="loadButton">
             <UIMultiText
@@ -148,7 +148,7 @@ defineExpose({ gear });
     </div>
     <UserLogin v-if="continueLogin" @login="continueLogin($event)" />
     <LoadingStatus v-else :stats="undefined" :use-routes="useRoutes" :error="error" />
-    <div class="controls row">
+    <div :class="[$style.controls, $style.row]">
       <label>
         <span>Sport type</span>
         <UIDropdown
@@ -168,13 +168,13 @@ defineExpose({ gear });
     </div>
   </aside>
 
-  <UIModal v-if="user" v-model="settingsOpen" class="modal">
+  <UIModal v-if="user" v-model="settingsOpen" :class="$style.modal">
     <UserSettings :user="user" @logout="onLogout" />
   </UIModal>
 </template>
 
-<style scoped lang="scss">
-aside {
+<style module lang="scss">
+.sidebarForm {
   padding: 1em;
   display: flex;
   flex-direction: column;
@@ -187,7 +187,7 @@ aside {
     align-items: center;
   }
 
-  .segmented-control:only-child {
+  .segmentedControl:only-child {
     flex: 1;
   }
 }
@@ -197,7 +197,7 @@ aside {
 }
 
 .controls,
-.controls-grid {
+.controlsGrid {
   > label {
     > span {
       min-height: 1.2em;
@@ -209,7 +209,7 @@ aside {
   }
 }
 
-.controls-grid {
+.controlsGrid {
   display: grid;
   grid-template-columns: max-content max-content;
   justify-content: center;
@@ -242,12 +242,6 @@ aside {
     flex-direction: column;
     align-items: start;
   }
-}
-
-aside .buttons {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-evenly;
 }
 
 .modal {

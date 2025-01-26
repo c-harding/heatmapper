@@ -53,19 +53,25 @@ async function clickHandler() {
 </script>
 
 <template>
-  <button ref="buttonRef" :disabled="loading || disabled" :loading="loading" @click="clickHandler">
-    <UILabelledIcon :icon="icon" class="button-contents">
+  <button
+    ref="buttonRef"
+    :class="$style.button"
+    :disabled="loading || disabled"
+    :loading="loading"
+    @click="clickHandler"
+  >
+    <UILabelledIcon :icon="icon" :class="$style.buttonContents">
       <slot />
     </UILabelledIcon>
-    <UISpinner v-if="loading" size="tiny" class="button-spinner">
+    <UISpinner v-if="loading" size="tiny" :class="$style.buttonSpinner">
       {{ loadingText }}
     </UISpinner>
     <ErrorTooltip :error-message="errorMessage" @dismiss="dismissLast" />
   </button>
 </template>
 
-<style lang="scss" scoped>
-button {
+<style module lang="scss">
+button.button {
   display: grid;
   grid-template-areas: 'button';
   align-items: center;
@@ -90,16 +96,16 @@ button {
     border-color: var(--background-weak);
   }
 
-  .button-contents {
+  .buttonContents {
     grid-area: button;
     min-height: 1.2em;
   }
 
-  &:has(.button-spinner) .button-contents {
+  &:has(.buttonSpinner) .buttonContents {
     visibility: hidden;
   }
 
-  .button-spinner {
+  .buttonSpinner {
     grid-area: button;
   }
 }

@@ -9,11 +9,11 @@ const useCookie = ref(true);
 </script>
 
 <template>
-  <div class="not-logged-in-container">
-    <div class="not-logged-in">
+  <div :class="$style.notLoggedInContainer">
+    <div :class="$style.notLoggedIn">
       <p>You are not logged in. Click to continue to log in with Strava.</p>
       <img
-        class="connect-to-strava"
+        :class="$style.connectToStrava"
         src="@/assets/connect-to-strava.svg"
         @click="emit('login', useCookie)"
       />
@@ -22,7 +22,7 @@ const useCookie = ref(true);
         <input v-model="useCookie" type="checkbox" />
         <div>
           <p>Keep me logged in</p>
-          <p class="small">
+          <p :class="$style.small">
             This will use a cookie to remember who you are logged in as, which you can clear at any
             time by clicking "Clear Cache".
           </p>
@@ -32,14 +32,14 @@ const useCookie = ref(true);
   </div>
 </template>
 
-<style lang="scss">
-.not-logged-in-container {
+<style module lang="scss">
+.notLoggedInContainer {
   background-color: var(--background-full);
   padding: 1em;
   position: sticky;
   bottom: 1em;
 
-  .not-logged-in {
+  .notLoggedIn {
     background-color: var(--background-weak);
     border-radius: 1em;
     padding: 1em;
@@ -59,7 +59,7 @@ const useCookie = ref(true);
     gap: 0.25em;
   }
 
-  .connect-to-strava {
+  .connectToStrava {
     display: block;
     margin-inline: auto;
   }

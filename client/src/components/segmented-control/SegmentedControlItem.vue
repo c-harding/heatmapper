@@ -12,20 +12,26 @@ const disabled = computed(() => option.disabled || disabledProp);
 </script>
 
 <template>
-  <li :class="{ selected: option.selected, disabled }">
+  <li
+    :class="[
+      $style.segmentedControlItem,
+      option.selected && $style.selected,
+      disabled && $style.disabled,
+    ]"
+  >
     <button :disabled="disabled" @click.prevent="option.select()">
-      <div class="button-contents normal">
+      <div :class="[$style.buttonContents, $style.normal]">
         <slot />
       </div>
-      <div class="button-contents bold">
+      <div :class="[$style.buttonContents, $style.bold]">
         <slot />
       </div>
     </button>
   </li>
 </template>
 
-<style scoped lang="scss">
-li {
+<style module lang="scss">
+li.segmentedControlItem {
   list-style: none;
   position: relative;
 
@@ -48,7 +54,7 @@ li {
     border-color: var(--color-weak);
   }
 
-  button {
+  > button {
     $button-padding: 0.15rem;
 
     flex: 1;
@@ -63,7 +69,7 @@ li {
     font-size: 0.9em;
     min-width: 2em;
 
-    > .button-contents {
+    > .buttonContents {
       padding: 0 0.25em;
       border-radius: calc(var(--border-radius) - $button-padding);
       grid-area: button;
@@ -82,12 +88,12 @@ li {
     }
   }
 
-  &.selected button > .button-contents.normal,
-  &:not(.selected) button > .button-contents.bold {
+  &.selected button > .buttonContents.normal,
+  &:not(.selected) button > .buttonContents.bold {
     visibility: hidden;
   }
 
-  &:not(.selected) button:hover:not(:disabled) > .button-contents {
+  &:not(.selected) button:hover:not(:disabled) > .buttonContents {
     background-color: var(--background-strong);
   }
 }

@@ -14,25 +14,24 @@ const allTexts = computed(() => texts as Record<string | number, string>);
 </script>
 
 <template>
-  <div class="multi-text">
+  <div :class="$style.multiText">
     <div
       v-for="key of keys"
       :key="key"
-      class="multi-text-item"
-      :class="{ selected: selected === key }"
+      :class="[$style.multiTextItem, selected === key && $style.selected]"
     >
       <template v-if="allTexts"> {{ allTexts?.[key] }} </template><slot :name="key" />
     </div>
   </div>
 </template>
 
-<style lang="scss" scoped>
-.multi-text {
+<style module lang="scss">
+.multiText {
   display: inline-grid;
   grid-template-areas: 'multi-text';
   align-items: center;
 
-  .multi-text-item {
+  .multiTextItem {
     grid-area: multi-text;
     display: flex;
     flex-direction: row;

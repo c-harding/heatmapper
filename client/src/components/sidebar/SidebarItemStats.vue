@@ -45,11 +45,11 @@ const stats = computed(() =>
 </script>
 
 <template>
-  <div class="sidebar-item-stats" v-text="stats" />
+  <div :class="$style.sidebarItemStats" v-text="stats" />
 </template>
 
-<style lang="scss">
-.sidebar-item-stats {
+<style module lang="scss">
+.sidebarItemStats {
   font-size: 0.75em;
 }
 </style>

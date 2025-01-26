@@ -7,16 +7,16 @@ const { icon } = defineProps<{
 </script>
 
 <template>
-  <div class="ui-labelled-icon">
+  <div :class="$style.uiLabelledIcon">
     <UIIcon :icon="icon" inline />
-    <div class="label">
+    <div :class="$style.label">
       <slot />
     </div>
   </div>
 </template>
 
-<style lang="scss" scoped>
-.ui-labelled-icon {
+<style module lang="scss">
+.uiLabelledIcon {
   display: flex;
   justify-content: center;
 

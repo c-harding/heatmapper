@@ -46,10 +46,10 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <button ref="layerButton" class="layer-button" @click="clickedOpen = !clickedOpen">
+  <button ref="layerButton" :class="$style.layerButton" @click="clickedOpen = !clickedOpen">
     <UIIcon icon="layers" />
   </button>
-  <div ref="layerPicker" class="layer-picker" :class="{ open: clickedOpen }">
+  <div ref="layerPicker" :class="[$style.layerPicker, clickedOpen && $style.open]">
     <menu>
       <li v-for="choice of choices" :key="choice.value" :aria-selected="value === choice.value">
         <a
@@ -65,24 +65,24 @@ onUnmounted(() => {
   </div>
 </template>
 
-<style lang="scss">
-.mapboxgl-ctrl:has(.layer-picker) {
+<style module lang="scss">
+:global(.mapboxgl-ctrl):has(.layer-picker) {
   position: relative;
 }
 
-.layer-button {
+.layerButton {
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.layer-picker {
+.layerPicker {
   position: absolute;
   right: 100%;
   top: 0;
   width: max-content;
 
-  .mapboxgl-ctrl:not(:hover) &:not(.open) {
+  :global(.mapboxgl-ctrl):not(:hover) &:not(.open) {
     display: none;
   }
 

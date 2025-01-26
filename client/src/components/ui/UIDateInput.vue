@@ -19,7 +19,7 @@ function dateToYYYYMMDD(date: Date | null): string | null {
 
 <!-- From https://acdcjunior.github.io/how-bind-date-object-to-input-date-vue.js-v-model.html -->
 <template>
-  <div class="date-input">
+  <div :class="$style.dateInput">
     <input
       ref="input"
       type="date"
@@ -28,12 +28,12 @@ function dateToYYYYMMDD(date: Date | null): string | null {
       :value="dateToYYYYMMDD(model)"
       @change="model = input!.valueAsDate"
     />
-    <UIIcon class="icon" inline icon="calendar_today" />
+    <UIIcon :class="$style.icon" inline icon="calendar_today" />
   </div>
 </template>
 
-<style lang="scss" scoped>
-.date-input {
+<style module lang="scss">
+.dateInput {
   display: flex;
   margin: 0.5rem;
 
@@ -44,28 +44,28 @@ function dateToYYYYMMDD(date: Date | null): string | null {
   min-width: 3em;
   min-height: 1.75rem;
   box-sizing: border-box;
-}
 
-input {
-  flex: 1;
-  background-color: inherit;
-  border: none;
-  margin: 0.15rem 0.4rem;
-  color: var(--color-full);
-  appearance: none;
+  input {
+    flex: 1;
+    background-color: inherit;
+    border: none;
+    margin: 0.15rem 0.4rem;
+    color: var(--color-full);
+    appearance: none;
 
-  &:focus {
-    outline: none;
+    &:focus {
+      outline: none;
+    }
   }
-}
 
-.icon {
-  margin-right: 4px;
-}
-
-@supports not (-webkit-touch-callout: none) {
   .icon {
-    display: none;
+    margin-right: 4px;
+  }
+
+  @supports not (-webkit-touch-callout: none) {
+    .icon {
+      display: none;
+    }
   }
 }
 </style>

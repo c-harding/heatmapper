@@ -25,15 +25,15 @@ watch(
 
 <template>
   <dialog ref="modal" @close="open = false" @click="open = false">
-    <a class="close-button" @click.stop.prevent="open = false"><UIIcon icon="close" /></a>
-    <div class="dialog-contents" @click.stop>
+    <a :class="$style.closeButton" @click.stop.prevent="open = false"><UIIcon icon="close" /></a>
+    <div :class="$style.dialogContents" @click.stop>
       <slot v-if="open" />
     </div>
   </dialog>
 </template>
 
-<style lang="scss">
-dialog {
+<style module lang="scss">
+dialog.uiModal {
   border: none;
   padding: 0;
   border-radius: 1rem;
@@ -49,7 +49,7 @@ dialog {
     background-color: color-mix(in srgb, var(--color-full) 10%, transparent);
   }
 
-  .close-button {
+  .closeButton {
     position: absolute;
     top: 0.5rem;
     right: 0.5rem;
@@ -60,7 +60,7 @@ dialog {
     }
   }
 
-  .dialog-contents {
+  .dialogContents {
     margin-block: 1em;
     padding-inline: 1em;
   }

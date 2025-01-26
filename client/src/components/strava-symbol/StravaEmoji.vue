@@ -9,12 +9,12 @@ const { sportType } = defineProps<StravaSymbolProps>();
 </script>
 
 <template>
-  <div class="emoji" :title="sportTypes[sportType]">
+  <div :class="$style.emoji" :title="sportTypes[sportType]">
     {{ sportIconEmoji(sportType) }}
   </div>
 </template>
 
-<style lang="scss">
+<style module lang="scss">
 .emoji {
   width: 1.5em;
   height: 1.5em;

@@ -28,14 +28,21 @@ useHead({
   <i
     v-if="icon"
     v-bind="$attrs"
-    class="icon material-icons"
-    :class="{ inline, large, placeholder, bottom }"
+    :class="[
+      'material-icons',
+      $style.icon,
+      $style.materialIcons,
+      inline && $style.inline,
+      large && $style.large,
+      placeholder && $style.placeholder,
+      bottom && $style.bottom,
+    ]"
     >{{ icon }}</i
   >
 </template>
 
-<style lang="scss">
-.material-icons {
+<style module lang="scss">
+.icon {
   user-select: none;
   width: 1em;
   overflow: hidden;

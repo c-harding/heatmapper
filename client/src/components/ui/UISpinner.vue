@@ -1,4 +1,4 @@
-<script lang="ts" setup>
+<script setup lang="ts">
 import { computed } from 'vue';
 
 const isNumber = (n: number | string): n is number => !isNaN(parseFloat(`${n}`)) && isFinite(+n);
@@ -48,14 +48,14 @@ const spinnerStyle = computed(() => ({
 </script>
 
 <template>
-  <div class="spinner-container">
+  <div class="spinnerContainer">
     <div class="spinner" :style="spinnerStyle" />
     <span><slot /></span>
   </div>
 </template>
 
-<style scoped>
-.spinner-container {
+<style module>
+.spinnerContainer {
   display: flex;
 
   &:has(> :is(.spinner, :not(:empty)) ~ :not(:empty)) {

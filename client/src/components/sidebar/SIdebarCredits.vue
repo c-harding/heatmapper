@@ -5,15 +5,23 @@ const gitHash = config.GIT_HASH ?? null;
 </script>
 
 <template>
-  <div class="sidebar-credits">
+  <div :class="$style.sidebarCredits">
     <p>
       Made by
-      <span class="keep-together">Charlie Harding</span>
-      <span class="keep-together">
-        <a class="icon strava" href="https://www.strava.com/athletes/13013632" target="_blank">
+      <span :class="$style.keepTogether">Charlie Harding</span>
+      <span :class="$style.keepTogether">
+        <a
+          :class="[$style.icon, $style.strava]"
+          href="https://www.strava.com/athletes/13013632"
+          target="_blank"
+        >
           <img src="@/assets/strava.png" />
         </a>
-        <a class="icon github" href="https://github.com/c-harding/heatmapper" target="_blank">
+        <a
+          :class="[$style.icon, $style.github]"
+          href="https://github.com/c-harding/heatmapper"
+          target="_blank"
+        >
           <img src="@/assets/github.png" />
         </a>
       </span>
@@ -24,14 +32,14 @@ const gitHash = config.GIT_HASH ?? null;
   </div>
 </template>
 
-<style lang="scss" scoped>
-.sidebar-credits {
+<style module lang="scss">
+.sidebarCredits {
   font-size: 14px;
   padding: 1em;
   text-align: center;
   margin-top: auto;
 
-  p {
+  > p {
     margin: 0;
   }
 
@@ -66,7 +74,7 @@ const gitHash = config.GIT_HASH ?? null;
   }
 }
 
-.keep-together {
+.keepTogether {
   display: inline-block;
 }
 </style>
