@@ -11,11 +11,11 @@ while (($#)); do
       shift 2 # past argument and value
       ;;
     -e*)
-      ENV="${$1#-e}"
+      ENV="${1#-e}"
       shift
       ;;
     --env=*)
-      ENV="${$1#*=}"
+      ENV="${1#*=}"
       shift
       ;;
     --)
