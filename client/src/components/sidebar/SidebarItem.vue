@@ -39,7 +39,7 @@ const fullDate = computed(() => formatFullDateTime(startDate.value));
 
 <template>
   <div
-    :class="[$style.sidebarItem, 'selected', selected && $style.selected]"
+    :class="[$style.sidebarItem, selected && 'selected', selected && $style.selected]"
     @click="emit('click', $event)"
     @touchstart="emit('touchstart')"
     @dblclick="emit('dblclick', $event)"
