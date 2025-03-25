@@ -9,5 +9,6 @@
     "moduleResolution": "node",
     "outDir": "../dist/shared",
     "declaration": true
-  }
+  },
+  "exclude": ["eslint.config.mjs"]
 }
