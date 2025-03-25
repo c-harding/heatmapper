@@ -11,6 +11,9 @@ export default tseslint.config(
   ...tseslint.configs.stylisticTypeChecked,
   importPlugin.flatConfigs.recommended,
   {
+    ignores: ['eslint.config.mjs'],
+  },
+  {
     plugins: {
       'simple-import-sort': simpleImportSort,
       'unused-imports': unusedImports,
@@ -21,9 +24,7 @@ export default tseslint.config(
       ecmaVersion: 2020,
       sourceType: 'script',
       parserOptions: {
-        projectService: {
-          allowDefaultProject: ['eslint.config.js'],
-        },
+        projectService: true,
         tsconfigRootDir: import.meta.dirname,
       },
     },
