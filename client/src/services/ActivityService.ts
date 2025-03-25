@@ -4,6 +4,7 @@ import {
   type MapItem,
   type MapItemType,
 } from '@strava-heatmapper/shared/interfaces';
+import { type SportTypesAndGroups } from '@strava-heatmapper/shared/interfaces/SportType';
 import { type InjectionKey, type Ref } from 'vue';
 export interface LoadingStats {
   closed?: boolean;
@@ -20,14 +21,15 @@ export interface FilterModel {
 export type MapItemTypes = Partial<Record<MapItemType, boolean>>;
 
 export interface ActivityService {
-  continueLogin: Readonly<Ref<((withCookies: boolean) => void) | undefined>>;
-  stats: Readonly<Ref<LoadingStats>>;
+  readonly continueLogin: Readonly<Ref<((withCookies: boolean) => void) | undefined>>;
+  readonly stats: Readonly<Ref<LoadingStats>>;
   readonly filterModel: FilterModel;
-  error: Ref<string | undefined>;
-  gear: ReadonlyMap<string, Gear | null>;
-  useRoutes: Ref<boolean>;
+  readonly error: Readonly<Ref<string | undefined>>;
+  readonly gear: ReadonlyMap<string, Gear | null>;
+  readonly useRoutes: Ref<boolean>;
 
-  mapItems: Readonly<Ref<readonly MapItem[]>>;
+  readonly mapItems: Readonly<Ref<readonly MapItem[]>>;
+  readonly availableSports: Readonly<Ref<SportTypesAndGroups | undefined>>;
 
   cancelLoading(): void;
   discardCache(mapItemTypes?: boolean | MapItemTypes, clearStorage?: boolean): void;

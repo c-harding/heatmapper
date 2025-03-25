@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { routeTypeMap, sportGroups, sportTypes } from '@strava-heatmapper/shared/interfaces';
 import { computed, ref, watch } from 'vue';
 
-import { doesSportTypeMatch, useActivityService } from '@/services/useActivityService';
+import { useActivityService } from '@/services/useActivityService';
+import useSportsTypes from '@/services/useSportsTypes';
 import useUser from '@/services/useUser';
 import { combineCallbacks } from '@/utils/functions';
 
@@ -19,7 +19,6 @@ import UIMultiText from '../ui/UIMultiText.vue';
 import LoadingStatus from './LoadingStatus.vue';
 import UserLogin from './UserLogin.vue';
 import UserSettings from './UserSettings.vue';
-
 const start = ref<Date>();
 const end = ref<Date>();
 
@@ -42,17 +41,7 @@ const continueLogin = computed(() =>
 
 const settingsOpen = ref(false);
 
-const sortedSportTypes = computed(() =>
-  [...Object.entries(sportGroups), ...Object.entries(sportTypes)]
-    .map(([value, label]) => ({
-      value,
-      label,
-      disabled:
-        useRoutes.value &&
-        !Object.values(routeTypeMap).some((sportType) => doesSportTypeMatch(value, sportType)),
-    }))
-    .sort((a, b) => a.label.localeCompare(b.label)),
-);
+const { sportsDropdownOptions, sportsFilter } = useSportsTypes();
 
 function onLogout(): void {
   document.cookie = `token=;expires=${new Date(0).toUTCString()}`;
@@ -152,8 +141,8 @@ defineExpose({ gear });
       <label>
         <span>Sport type</span>
         <UIDropdown
-          v-model="filterModel.sportType"
-          :options="sortedSportTypes"
+          v-model="sportsFilter"
+          :options="sportsDropdownOptions"
           blankValue=""
           blankLabel="All sports"
         />

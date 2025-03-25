@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { computed } from 'vue';
+
 import UIIcon from './UIIcon.vue';
 
 export interface DropdownOption {
@@ -13,30 +15,38 @@ const {
   blankLabel,
   clearButton = false,
 } = defineProps<{
-  options: DropdownOption[];
+  options: (DropdownOption | DropdownOption[])[];
   blankValue?: string;
   blankLabel?: string;
   clearButton?: boolean;
 }>();
 
 const model = defineModel<string | undefined>({ default: undefined });
+
+const blankLabels = computed<Partial<DropdownOption>[]>(() => {
+  if (blankLabel) return [{ label: blankLabel, value: blankValue }];
+  return [];
+});
+
+const optionsAndGaps = computed(() => {
+  return (
+    [blankLabels.value, ...options]
+      .flatMap((value) => (Array.isArray(value) ? [undefined, ...value, undefined] : [value]))
+      // Delete every blank unless it is followed by a value
+      .filter((val, i, arr) => val ?? arr[i + 1])
+  );
+});
 </script>
 
 <template>
   <div :class="$style.dropdown">
     <select v-model="model">
-      <option v-if="blankLabel" :value="blankValue">
-        {{ blankLabel }}
-      </option>
-      <option v-if="blankLabel" disabled />
-      <option
-        v-for="option in options"
-        :key="option.value"
-        :value="option.value"
-        :disabled="option.disabled"
-      >
-        {{ option.label }}
-      </option>
+      <template v-for="(option, i) in optionsAndGaps" :key="option?.value ?? i">
+        <option v-if="option" :value="option.value" :disabled="option.disabled">
+          {{ option.label }}
+        </option>
+        <hr v-else-if="i > 0" />
+      </template>
       <slot />
     </select>
     <UIIcon

@@ -6,6 +6,11 @@ import {
   type Route,
   TimeRange,
 } from '@strava-heatmapper/shared/interfaces';
+import {
+  sportGroups,
+  sportTypes,
+  type SportTypesAndGroups,
+} from '@strava-heatmapper/shared/interfaces/SportType';
 import { computed, inject, provide, reactive, readonly, type Ref, ref, shallowRef } from 'vue';
 
 import Socket from '@/socket';
@@ -69,6 +74,18 @@ function makeActivityService({
   const allMapItems = computed<readonly MapItem[]>(() =>
     useRoutes.value ? allRoutes.value : allActivities.value,
   );
+
+  const availableSports = computed<SportTypesAndGroups | undefined>(() => {
+    if (!allMapItems.value) return undefined;
+    const presentSportTypes = [...new Set(allMapItems.value.map((item) => item.type))];
+    const presentSportGroups = Object.keys(sportGroups).filter((group) =>
+      presentSportTypes.some((type) => doesSportTypeMatch(group, type)),
+    );
+    return {
+      sportTypes: Object.fromEntries(presentSportTypes.map((type) => [type, sportTypes[type]])),
+      sportGroups: Object.fromEntries(presentSportGroups.map((type) => [type, sportGroups[type]])),
+    };
+  });
 
   const stats = computed(() => (useRoutes.value ? routeStats.value : activityStats.value));
 
@@ -380,6 +397,7 @@ function makeActivityService({
     gear: readonly(gear),
 
     mapItems: visibleMapItems,
+    availableSports,
 
     cancelLoading,
     discardCache,

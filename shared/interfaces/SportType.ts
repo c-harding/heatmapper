@@ -53,15 +53,15 @@ export enum SportType {
 
 export default SportType;
 
-export const sportGroups: Record<string, string> = {
+export const sportGroups = Object.freeze<Record<string, string>>({
   'Hike,Snowshoe,Run,TrailRun,Walk': 'All on foot',
   'Run,TrailRun': 'All running',
   'Hike,Walk': 'All walking',
   'EBikeRide,GravelRide,Handcycle,MountainBikeRide,Ride,Velomobile,VirtualRide': 'All biking',
   'AlpineSki,BackcountrySki,IceSkate,Snowboard,Snowshoe,NordicSki': 'All winter sports',
-};
+});
 
-export const sportTypes: Record<SportType, string> = {
+export const sportTypes = Object.freeze<Record<SportType, string>>({
   AlpineSki: 'Downhill skiing',
   BackcountrySki: 'Off-piste skiing',
   Badminton: 'Badminton',
@@ -112,7 +112,12 @@ export const sportTypes: Record<SportType, string> = {
   Windsurf: 'Windsurfing',
   Workout: 'Workout',
   Yoga: 'Yoga',
-};
+});
+
+export interface SportTypesAndGroups {
+  sportGroups: Readonly<Record<string, string>>;
+  sportTypes: Readonly<Record<string, string>>;
+}
 
 export const routeTypeMap = {
   1: SportType.Ride,
