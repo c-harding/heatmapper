@@ -107,14 +107,6 @@ defineExpose({ gear });
 <template>
   <aside :class="$style.sidebarForm">
     <div :class="$style.controlsGrid">
-      <label>
-        <span>Start date</span>
-        <UIDateInput v-model="start" name="start" />
-      </label>
-      <label>
-        <span>End date</span>
-        <UIDateInput v-model="end" name="end" />
-      </label>
       <div :class="$style.buttons">
         <SegmentedControl
           v-slot="{ option }"
@@ -126,6 +118,14 @@ defineExpose({ gear });
           <SegmentedControlItem :option="option(true)"> Routes </SegmentedControlItem>
         </SegmentedControl>
       </div>
+      <label>
+        <span>Start date</span>
+        <UIDateInput v-model="start" name="start" />
+      </label>
+      <label>
+        <span>End date</span>
+        <UIDateInput v-model="end" name="end" />
+      </label>
       <div :class="$style.buttons">
         <UIButtonGroup>
           <UIButton @click="loadButton">
