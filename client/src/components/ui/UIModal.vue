@@ -24,7 +24,7 @@ watch(
 </script>
 
 <template>
-  <dialog ref="modal" @close="open = false" @click="open = false">
+  <dialog ref="modal" :class="$style.uiModal" @close="open = false" @click="open = false">
     <a :class="$style.closeButton" @click.stop.prevent="open = false"><UIIcon icon="close" /></a>
     <div :class="$style.dialogContents" @click.stop>
       <slot v-if="open" />

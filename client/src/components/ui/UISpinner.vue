@@ -38,18 +38,11 @@ const lineSizePx = computed(() => {
   if (size in sizes) return sizes[size].lineSize;
   return isNumber(lineSize) ? lineSize : 4;
 });
-
-const spinnerStyle = computed(() => ({
-  width: sizePx.value + 'px',
-  height: sizePx.value + 'px',
-  maxWidth: sizePx.value + 'px',
-  maxHeight: sizePx.value + 'px',
-}));
 </script>
 
 <template>
-  <div class="spinnerContainer">
-    <div class="spinner" :style="spinnerStyle" />
+  <div :class="$style.spinnerContainer">
+    <div :class="$style.spinner" />
     <span><slot /></span>
   </div>
 </template>
@@ -71,6 +64,10 @@ const spinnerStyle = computed(() => ({
   animation-duration: calc(v-bind(speed) * 1s);
   border: calc(v-bind(lineSizePx) * 1px) solid v-bind(lineBgColor);
   border-top-color: v-bind(lineFgColor);
+  width: calc(v-bind(sizePx) * 1px);
+  height: calc(v-bind(sizePx) * 1px);
+  min-width: calc(v-bind(sizePx) * 1px);
+  min-height: calc(v-bind(sizePx) * 1px);
 }
 
 @keyframes spinner-spin {
