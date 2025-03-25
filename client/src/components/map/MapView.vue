@@ -240,7 +240,9 @@ function mapLoaded(map: MapboxMap): void {
 function dblclick(e: MapMouseEvent) {
   if (selectedMapItems.value.length !== 0) {
     e.preventDefault();
-    nextTick(() => zoomToSelection());
+    nextTick(() => {
+      zoomToSelection();
+    });
   }
 }
 
@@ -254,17 +256,29 @@ function moveend(map: MapboxMap) {
 
 const { click } = useMapSelection({
   getExternalSelection: () => selected.value,
-  flyToSelection: () => flyTo(selectedMapItems.value, false),
+  flyToSelection: () => {
+    flyTo(selectedMapItems.value, false);
+  },
   emitUpdate: (newSelected) => (selected.value = newSelected),
 });
 
 const buttonTarget = map.getContainer().querySelector(`.mapboxgl-ctrl-${topCorner}`);
 
-map.on('zoomend', () => zoomend(map));
-map.on('moveend', () => moveend(map));
-map.on('click', (ev) => click(ev));
-map.on('dblclick', (ev) => dblclick(ev));
-map.once('idle', () => mapLoaded(map));
+map.on('zoomend', () => {
+  zoomend(map);
+});
+map.on('moveend', () => {
+  moveend(map);
+});
+map.on('click', (ev) => {
+  click(ev);
+});
+map.on('dblclick', (ev) => {
+  dblclick(ev);
+});
+map.once('idle', () => {
+  mapLoaded(map);
+});
 </script>
 
 <template>

@@ -11,7 +11,11 @@ export function combineCallbacks<T extends unknown[]>(
 ): undefined | Callback<T> {
   const nonNullFunctions = functions.filter((ref): ref is Callback<T> => !!ref);
   if (nonNullFunctions.length) {
-    return (...args) => nonNullFunctions.forEach((f) => f(...args));
+    return (...args) => {
+      nonNullFunctions.forEach((f) => {
+        f(...args);
+      });
+    };
   } else {
     return undefined;
   }

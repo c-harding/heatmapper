@@ -1,4 +1,4 @@
-import { MapItemStats, SportType } from '@strava-heatmapper/shared/interfaces';
+import { type MapItemStats, SportType } from '@strava-heatmapper/shared/interfaces';
 
 const elevationLossSports: readonly SportType[] = [
   // SportType.AlpineSki,

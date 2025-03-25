@@ -6,8 +6,9 @@ const [ascentArrow, descentArrow] = document.dir === 'rtl' ? ['↖', '↙'] : ['
 import { type MapItemStats } from '@strava-heatmapper/shared/interfaces';
 import { computed } from 'vue';
 
-import { formatKilometers, formatDuration, formatMeters } from '@/utils/numberFormat';
 import { getElevationGain, getElevationLoss } from '@/utils/elevationConfig';
+import { formatDuration, formatKilometers, formatMeters } from '@/utils/numberFormat';
+
 import StatsList from './StatsList.vue';
 
 const { item } = defineProps<{

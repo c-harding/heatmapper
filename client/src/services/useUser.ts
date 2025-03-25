@@ -30,7 +30,7 @@ export default function useUser(): UseUser {
         'encountered error',
         userResponse.status,
         userResponse.statusText,
-        await userResponse?.text?.(),
+        await userResponse.text(),
       );
       throw new Error('Cannot load user information');
     }

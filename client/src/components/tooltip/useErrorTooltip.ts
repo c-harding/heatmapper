@@ -33,7 +33,7 @@ export function useErrorTooltip(): UseErrorTooltip {
   function getErrorPosition(): ErrorPosition {
     return {
       targetBox: targetRef.value?.getBoundingClientRect(),
-      frame: targetRef.value?.closest(':modal[open]') || document.body,
+      frame: targetRef.value?.closest(':modal[open]') ?? document.body,
     };
   }
 

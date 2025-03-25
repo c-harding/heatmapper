@@ -1,71 +1,75 @@
-import path from "node:path";
-import { fileURLToPath } from "node:url";
-
 import eslint from '@eslint/js';
 import importPlugin from 'eslint-plugin-import';
-import tsParser from "@typescript-eslint/parser";
-import simpleImportSort from "eslint-plugin-simple-import-sort";
-import unusedImports from "eslint-plugin-unused-imports";
+import simpleImportSort from 'eslint-plugin-simple-import-sort';
+import unusedImports from 'eslint-plugin-unused-imports';
 import eslintConfigPrettier from 'eslint-config-prettier';
 import tseslint from 'typescript-eslint';
 
-
-export default [
+export default tseslint.config(
   eslint.configs.recommended,
-  ...tseslint.configs.recommended,
-  ...tseslint.configs.stylistic,
   eslintConfigPrettier,
+  ...tseslint.configs.stylisticTypeChecked,
   importPlugin.flatConfigs.recommended,
   {
     plugins: {
-      "simple-import-sort": simpleImportSort,
-      "unused-imports": unusedImports,
-      import: fixupPluginRules(_import),
+      'simple-import-sort': simpleImportSort,
+      'unused-imports': unusedImports,
     },
 
     languageOptions: {
-      parser: tsParser,
+      parser: tseslint.parser,
       ecmaVersion: 2020,
-      sourceType: "script",
+      sourceType: 'script',
+      parserOptions: {
+        projectService: {
+          allowDefaultProject: ['eslint.config.js'],
+        },
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
+
+    settings: {
+      'import/resolver': {
+        typescript: {
+          alwaysTryTypes: true,
+          project: ['**/tsconfig.json'],
+        },
+      },
     },
 
     rules: {
-      "comma-dangle": ["error", "always-multiline"],
+      'comma-dangle': ['error', 'always-multiline'],
 
-      "no-underscore-dangle": [
-        "warn",
+      'no-underscore-dangle': [
+        'warn',
         {
           allowAfterThis: true,
         },
       ],
 
-      "import/extensions": "off",
+      'import/extensions': 'off',
 
-      "import/no-duplicates": [
-        "error",
+      'import/no-duplicates': ['off'],
+
+      'unused-imports/no-unused-imports': 'error',
+      '@typescript-eslint/consistent-type-imports': [
+        'warn',
         {
-          "prefer-inline": true,
+          fixStyle: 'inline-type-imports',
         },
       ],
 
-      "unused-imports/no-unused-imports": "error",
+      'import/consistent-type-specifier-style': ['warn', 'prefer-inline'],
+      'simple-import-sort/imports': 'warn',
+      'no-unused-vars': 'off',
 
-      "@typescript-eslint/no-unused-vars": [
-        "off",
-        {
-          ignoreRestSiblings: true,
-        },
-      ],
-
-      "@typescript-eslint/consistent-type-imports": [
-        "warn",
-        {
-          fixStyle: "inline-type-imports",
-        },
-      ],
-
-      "import/consistent-type-specifier-style": ["warn", "prefer-inline"],
-      "simple-import-sort/imports": "warn",
+      '@typescript-eslint/prefer-nullish-coalescing': ['error', { ignorePrimitives: true }],
     },
   },
-];
+  {
+    files: ['eslint.config.mjs'],
+    rules: {
+      'import/no-unresolved': 'off',
+    },
+  },
+);

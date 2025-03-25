@@ -1,9 +1,9 @@
-type PaddingOptions = {
+interface PaddingOptions {
   top: number;
   bottom: number;
   left: number;
   right: number;
-};
+}
 
 export default class Viewport {
   constructor(

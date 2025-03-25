@@ -150,13 +150,9 @@ function makeActivityService({
     );
   }
 
-  function loadFromActivityCache(
-    partial = false,
-    start?: Date | undefined,
-    end?: Date | undefined,
-  ): TimeRange[] {
+  function loadFromActivityCache(partial = false, start?: Date, end?: Date): TimeRange[] {
     const { covered, activities } = getActivityStore();
-    if (activities?.length) {
+    if (activities.length) {
       if (!partial) {
         activityStats.value = {
           inCache: true,
@@ -170,7 +166,7 @@ function makeActivityService({
 
   function loadFromRouteCache(): void {
     const routes = getCachedRoutes();
-    if (routes?.length) {
+    if (routes.length) {
       routeStats.value = {
         inCache: true,
         finding: { started: true, finished: true, length: routes.length },
@@ -366,7 +362,7 @@ function makeActivityService({
       startLoading(socket, activityRanges, routes);
     }
 
-    return await socket.completion();
+    await socket.completion();
   }
 
   async function load(partial: boolean, start?: Date, end?: Date): Promise<void> {

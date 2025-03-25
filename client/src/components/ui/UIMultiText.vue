@@ -6,7 +6,7 @@ const { texts, selected } = defineProps<{
   selected?: T;
 }>();
 
-const slots = defineSlots<{ [x in T]: unknown }>();
+const slots = defineSlots<Record<T, unknown>>();
 
 const keys = computed(() => (texts ? Object.keys(texts) : Object.keys(slots)) as T[]);
 

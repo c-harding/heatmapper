@@ -1,4 +1,9 @@
-import { CombinedMapItemStats, MapItem, SportType } from '@strava-heatmapper/shared/interfaces';
+import {
+  type CombinedMapItemStats,
+  type MapItem,
+  type SportType,
+} from '@strava-heatmapper/shared/interfaces';
+
 import { getElevationGain, getElevationLoss } from './elevationConfig';
 
 const isDefined = (val: number | false | undefined): val is number => !!val || val === 0;

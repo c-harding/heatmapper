@@ -39,11 +39,13 @@
     "eslint-config-prettier": "^9.1.0",
     "eslint-gitignore": "^0.1.0",
     "eslint-plugin-prettier": "^5.2.1",
-    "globals": "^15.12.0",
+    "eslint-plugin-unused-imports": "^4.1.4",
+    "globals": "^16.0.0",
     "nodemon": "^3.1.7",
     "prettier": "^3.3.3",
     "ts-node": "^10.9.2",
-    "typescript": "~5.7.2"
+    "typescript": "~5.7.2",
+    "typescript-eslint": "^8.28.0"
   },
   "prettier": {
     "printWidth": 120,

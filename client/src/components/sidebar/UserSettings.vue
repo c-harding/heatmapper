@@ -7,7 +7,7 @@ import { countOtherSessions } from '@/utils/strings';
 import { TooltipError } from '../tooltip/TooltipError';
 import UIButton from '../ui/UIButton.vue';
 
-const props = defineProps<{
+const { user } = defineProps<{
   user: UserInfo;
 }>();
 
@@ -15,12 +15,12 @@ const emit = defineEmits<{
   logout: [];
 }>();
 
-const imgSrc = computed<string | undefined>(() => props.user?.image62);
+const imgSrc = computed<string | undefined>(() => user.image62);
 const imgSrcSet = computed<string | undefined>(() => {
-  if (!props.user) return;
+  if (!user) return;
   return [
-    { src: props.user.image62, width: 62 },
-    { src: props.user.image124, width: 124 },
+    { src: user.image62, width: 62 },
+    { src: user.image124, width: 124 },
   ]
     .filter(({ src }) => src)
     .map(({ src, width }) => `${src} ${width}w`)
@@ -28,16 +28,12 @@ const imgSrcSet = computed<string | undefined>(() => {
 });
 
 const fullName = computed<string | undefined>(
-  () => props.user && [props.user?.firstName, props.user?.lastName].filter(Boolean).join(' '),
+  () => user && [user.firstName, user.lastName].filter(Boolean).join(' '),
 );
 
-const profileLink = computed(
-  () => props.user && `https://www.strava.com/athletes/${props.user.id}`,
-);
+const profileLink = computed(() => user && `https://www.strava.com/athletes/${user.id}`);
 
-const otherSessions = computed<number>(() =>
-  props.user ? Math.max(props.user.sessionCount - 1, 0) : 0,
-);
+const otherSessions = computed<number>(() => (user ? Math.max(user.sessionCount - 1, 0) : 0));
 
 const logout = async (global = false) => {
   const url = global ? '/api/user?global' : '/api/user';

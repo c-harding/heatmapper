@@ -46,7 +46,7 @@ export async function updateFile<T>(
         fileContents = initial;
       }
     }
-    const newContents = transformer(fileContents) || fileContents;
+    const newContents = transformer(fileContents) ?? fileContents;
     await writeFile(file, JSON.stringify(newContents));
     return newContents;
   });

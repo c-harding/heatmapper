@@ -5,8 +5,8 @@ import { useRouter } from 'vue-router';
 import MapView from './components/map/MapView.vue';
 import CollapsibleSidebar from './components/sidebar/CollapsibleSidebar.vue';
 import SidebarContent from './components/sidebar/SidebarContent.vue';
-import { provideActivityService } from './services/useActivityService';
 import { SELECTED_SIDEBAR_ITEM_SELECTOR } from './components/sidebar/SidebarItem.vue';
+import { provideActivityService } from './services/useActivityService';
 
 const { routes = false } = defineProps<{ routes: boolean }>();
 

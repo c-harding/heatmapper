@@ -1,8 +1,8 @@
-import type {
-  FindingStats,
-  Gear,
-  MapItem,
-  MapItemType,
+import {
+  type FindingStats,
+  type Gear,
+  type MapItem,
+  type MapItemType,
 } from '@strava-heatmapper/shared/interfaces';
 import { type InjectionKey, type Ref } from 'vue';
 export interface LoadingStats {

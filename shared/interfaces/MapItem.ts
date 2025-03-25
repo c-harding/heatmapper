@@ -1,7 +1,7 @@
 import type Activity from './Activity';
-import { ActivityStats } from './Activity';
+import { type ActivityStats } from './Activity';
 import type Route from './Route';
-import { RouteStats } from './Route';
+import { type RouteStats } from './Route';
 
 export type MapItemStats = ActivityStats | RouteStats;
 

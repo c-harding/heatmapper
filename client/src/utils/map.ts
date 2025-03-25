@@ -1,15 +1,15 @@
 import { toGeoJSON } from '@mapbox/polyline';
 import { type MapItem } from '@strava-heatmapper/shared/interfaces';
 import { type Feature, type FeatureCollection, type LineString } from 'geojson';
-import type {
-  ExpressionSpecification,
-  GeoJSONSourceSpecification,
-  GeoJSONSource,
-  Map as MapboxMap,
-  MapMouseEvent,
-  Point,
-  PointLike,
-  LineLayerSpecification,
+import {
+  type ExpressionSpecification,
+  type GeoJSONSource,
+  type GeoJSONSourceSpecification,
+  type LineLayerSpecification,
+  type Map as MapboxMap,
+  type MapMouseEvent,
+  type Point,
+  type PointLike,
 } from 'mapbox-gl';
 import { nextTick, watch } from 'vue';
 
@@ -121,7 +121,7 @@ const buildLineLayer = (id: string, layer: LayerDef): LineLayerSpecification => 
 
 export const addLayersToMap = (map: MapboxMap, style: MapStyle) => {
   Object.values(MapSourceLayer).forEach(
-    (id) => map.getSource(id) || map.addSource(id, makeGeoJson()),
+    (id) => map.getSource(id) ?? map.addSource(id, makeGeoJson()),
   );
 
   Object.entries(getLayersForStyle(style)).forEach(([id, layer]) => {
@@ -135,7 +135,7 @@ export const applyMapItems = (
   next: readonly MapItem[],
   sourceID: MapSourceLayer,
 ): void => {
-  const source = map.getSource(sourceID) as GeoJSONSource | undefined;
+  const source = map.getSource<GeoJSONSource>(sourceID);
   source?.setData(makeGeoJsonData(next));
 };
 
@@ -161,14 +161,14 @@ export const useMapSelection = ({
 }: UseMapSelectionConfig): UseMapSelection => {
   let localSelection: readonly string[] = [];
 
-  watch(getExternalSelection, () => {
+  watch(getExternalSelection, () =>
     nextTick(() => {
       if (getExternalSelection() !== localSelection) {
         localSelection = getExternalSelection();
         flyToSelection();
       }
-    });
-  });
+    }),
+  );
 
   function toggleSelect(id: string | undefined): void {
     if (!id) return;

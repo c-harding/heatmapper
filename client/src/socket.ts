@@ -46,7 +46,9 @@ export default class Socket {
       if (this.signal?.aborted) {
         connection.close();
       } else {
-        this.signal?.addEventListener('abort', () => connection.close());
+        this.signal?.addEventListener('abort', () => {
+          connection.close();
+        });
       }
 
       connection.addEventListener('error', () => {
@@ -66,7 +68,9 @@ export default class Socket {
           this.messageHandler(data, this);
         }
       });
-      connection.addEventListener('close', () => this.closedHandler(this.errored));
+      connection.addEventListener('close', () => {
+        this.closedHandler(this.errored);
+      });
     }));
   }
 
@@ -117,7 +121,9 @@ export default class Socket {
       connection.readyState !== connection.CLOSING &&
       connection.readyState !== connection.CLOSED
     ) {
-      await new Promise((resolve) => connection.addEventListener('close', resolve));
+      await new Promise((resolve) => {
+        connection.addEventListener('close', resolve);
+      });
     }
   }
 }

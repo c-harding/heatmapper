@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { CombinedMapItemStats } from '@strava-heatmapper/shared/interfaces';
+import { type CombinedMapItemStats } from '@strava-heatmapper/shared/interfaces';
 import { computed } from 'vue';
 
 import { countActivities, countRoutes, countSelected } from '@/utils/strings';
+
 import StatsList from './StatsList.vue';
 
 const { counts } = defineProps<{

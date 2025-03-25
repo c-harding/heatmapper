@@ -3,14 +3,14 @@ import { type MapItem } from '@strava-heatmapper/shared/interfaces';
 import { computed, nextTick, reactive, ref, watch } from 'vue';
 
 import { useActivityService } from '@/services/useActivityService';
+import { combineStats } from '@/utils/stats';
 import { cancelTextSelection } from '@/utils/ui';
 
-import SidebarForm from './SidebarForm.vue';
-import SidebarItemList from './SidebarItemList.vue';
 import SidebarCredits from './SIdebarCredits.vue';
-import SidebarItemStats from './SidebarItemStats.vue';
-import { combineStats } from '@/utils/stats';
+import SidebarForm from './SidebarForm.vue';
 import SidebarItemCount from './SidebarItemCount.vue';
+import SidebarItemList from './SidebarItemList.vue';
+import SidebarItemStats from './SidebarItemStats.vue';
 
 function getRange(
   mapItems: readonly MapItem[],

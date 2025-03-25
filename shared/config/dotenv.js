@@ -1,5 +1,4 @@
 /* eslint-env node */
-/* eslint-disable @typescript-eslint/no-require-imports */
 
 require('dotenv').config({
   path: require('path').resolve(process.cwd(), '..', process.env.DOTENV_FILE || '.env'),

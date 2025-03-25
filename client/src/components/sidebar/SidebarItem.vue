@@ -7,13 +7,13 @@ import { type MapItem } from '@strava-heatmapper/shared/interfaces';
 import { computed } from 'vue';
 
 import config from '@/utils/config';
+import { formatFullDateTime, formatSplitDate } from '@/utils/numberFormat';
 
 import StravaEmoji from '../strava-symbol/StravaEmoji.vue';
 import StravaIcon from '../strava-symbol/StravaIcon.vue';
 import UISpinner from '../ui/UISpinner.vue';
-import SidebarItemStats from './SidebarItemStats.vue';
-import { formatFullDateTime, formatSplitDate } from '@/utils/numberFormat';
 import SidebarItemLink from './SidebarItemLink.vue';
+import SidebarItemStats from './SidebarItemStats.vue';
 
 // This conditional must be in the component rather than the template, so that tree-shaking works
 const StravaActivitySymbol = config.USE_STRAVA_ICONS ? StravaIcon : StravaEmoji;

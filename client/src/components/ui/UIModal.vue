@@ -7,7 +7,9 @@ const open = defineModel<boolean>({ default: false });
 
 const modal = ref<HTMLDialogElement>();
 
-const mountedPromise = new Promise<void>((resolve) => onMounted(resolve));
+const mountedPromise = new Promise<void>((resolve) => {
+  onMounted(resolve);
+});
 
 watch(
   open,
