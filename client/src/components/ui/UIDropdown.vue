@@ -65,12 +65,12 @@ const optionsAndGaps = computed(() => {
   margin: 0.5rem;
   min-height: 1.75rem;
   box-sizing: border-box;
+  align-self: stretch;
 
   border-radius: var(--border-radius);
   border: 1px solid var(--color-weak);
   background-color: var(--background-strong);
 
-  max-width: min-content;
   min-width: 3em;
 
   // Hack to prevent zooming on iOS when entering dropdown
@@ -88,7 +88,7 @@ const optionsAndGaps = computed(() => {
   }
 
   select {
-    flex-shrink: 1;
+    flex: 1;
     min-width: 0;
     padding-inline-start: 0.5rem;
     margin-inline-end: -1.5rem;

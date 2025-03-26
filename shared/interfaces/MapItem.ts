@@ -8,7 +8,7 @@ export type MapItemStats = ActivityStats | RouteStats;
 export type CombinedMapItemStats = MapItemStats & {
   activityCount: number;
   routeCount: number;
-  selectedCount: number;
+  showSelected: boolean;
 };
 
 type MapItem = Activity | Route;

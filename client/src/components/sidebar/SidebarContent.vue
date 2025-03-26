@@ -38,7 +38,7 @@ const emit = defineEmits<{
 
 const { mapItems } = useActivityService();
 
-const totals = computed(() => combineStats(mapItems.value, selected.value.length));
+const totals = computed(() => combineStats(mapItems.value, selected.value));
 
 let localSelected: readonly string[] | undefined;
 let selectionBase: readonly string[] | undefined;
@@ -83,7 +83,10 @@ watch(selected, async (selected) => {
 <template>
   <div :class="$style.sidebarContent">
     <SidebarForm />
-    <div v-if="mapItems?.length" :class="$style.sidebarTotals">
+    <div
+      v-if="mapItems?.length"
+      :class="[$style.sidebarTotals, totals.showSelected && $style.stickyTotals]"
+    >
       <SidebarItemCount :counts="totals" />
       <SidebarItemStats :item="totals" />
     </div>
@@ -107,6 +110,10 @@ watch(selected, async (selected) => {
   display: flex;
   flex-direction: column;
   gap: 1em;
+
+  section:has(& .stickyTotals) {
+    scroll-padding-top: 50px;
+  }
 }
 
 .sidebarTotals {
@@ -114,5 +121,14 @@ watch(selected, async (selected) => {
   flex-direction: column;
   gap: 0.25em;
   padding-inline: 1em;
+  padding-block: 0.5em;
+  margin-block: -0.5em;
+}
+
+.stickyTotals {
+  position: sticky;
+  top: 0;
+  background-color: var(--background-full);
+  z-index: 1;
 }
 </style>

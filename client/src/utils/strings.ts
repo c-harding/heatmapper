@@ -26,7 +26,11 @@ export const countActivities = (n: number | null) => count(n, 'activity', 'activ
 
 export const countRoutes = (n: number | null) => count(n, 'route');
 
-export const countSelected = (n: number | null) => countAdjective(n, 'selected');
+export const countSelectedActivities = (n: number | null) =>
+  count(n, 'activity selected', 'activities selected');
+
+export const countSelectedRoutes = (n: number | null) =>
+  count(n, 'route selected', 'routes selected');
 
 export const countOtherSessions = (n: number | null) => count(n, 'other session');
 

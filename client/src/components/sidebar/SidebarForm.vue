@@ -138,7 +138,7 @@ defineExpose({ gear });
     <UserLogin v-if="continueLogin" @login="continueLogin($event)" />
     <LoadingStatus v-else :useRoutes :error />
     <div :class="[$style.controls, $style.row]">
-      <label>
+      <label :class="$style.expand">
         <span>Sport type</span>
         <UIDropdown
           v-model="sportsFilter"
@@ -195,6 +195,10 @@ defineExpose({ gear });
       padding-inline: 0.5rem;
       display: block;
     }
+
+    &.expand {
+      flex: 1;
+    }
   }
 }
 
@@ -225,7 +229,6 @@ defineExpose({ gear });
 
   > label {
     display: flex;
-    align-items: center;
     min-width: 0;
     margin-top: -1.2em;
     flex-direction: column;

@@ -10,7 +10,17 @@ const isDefined = (val: number | false | undefined): val is number => !!val || v
 const add = (a: number | undefined, b: number) => (a ?? 0) + b;
 const uniqueValueOrUndefined = <T>(acc: T | undefined, val: T) => (acc === val ? acc : undefined);
 
-export function combineStats(items: readonly MapItem[], selectedCount = 0): CombinedMapItemStats {
+export function combineStats(
+  allItems: readonly MapItem[],
+  selected: readonly string[] = [],
+): CombinedMapItemStats {
+  // Filter the list, but short-circuit if there won’t be more than one result anyway
+  const filteredItems =
+    selected.length > 1 ? allItems.filter((item) => selected.includes(item.id)) : [];
+
+  const [showSelected, items] =
+    filteredItems.length > 1 ? [true, filteredItems] : [false, allItems];
+
   const routeCount = items.filter((item) => item.route).length;
   const activityCount = items.length - routeCount;
   const distance = items
@@ -35,7 +45,7 @@ export function combineStats(items: readonly MapItem[], selectedCount = 0): Comb
       type,
       routeCount,
       activityCount,
-      selectedCount,
+      showSelected,
     };
   }
 
@@ -52,7 +62,7 @@ export function combineStats(items: readonly MapItem[], selectedCount = 0): Comb
   return {
     activityCount,
     routeCount,
-    selectedCount,
+    showSelected,
     route: false,
     distance,
     movingTime: movingTime ?? 0,
