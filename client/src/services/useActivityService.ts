@@ -76,7 +76,7 @@ function makeActivityService({
   );
 
   const availableSports = computed<SportTypesAndGroups | undefined>(() => {
-    if (!allMapItems.value) return undefined;
+    if (allMapItems.value.length === 0) return undefined;
     const presentSportTypes = [...new Set(allMapItems.value.map((item) => item.type))];
     const presentSportGroups = Object.keys(sportGroups).filter((group) =>
       presentSportTypes.some((type) => doesSportTypeMatch(group, type)),
