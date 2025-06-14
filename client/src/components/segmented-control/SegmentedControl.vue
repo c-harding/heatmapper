@@ -30,6 +30,7 @@ function option(value: T): SegmentedControlItemContext {
 <style module lang="scss">
 ul.segmentedControl {
   display: flex;
+  flex-wrap: wrap;
   gap: 1px;
   margin: 0.5rem;
   padding: 0;

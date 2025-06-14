@@ -183,7 +183,7 @@ defineExpose({ gear });
   }
 
   .segmentedControl:only-child {
-    flex: 1;
+    flex-grow: 1;
   }
 }
 

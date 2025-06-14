@@ -43,11 +43,12 @@ li.segmentedControlItem {
 
   min-height: 1.75rem;
   box-sizing: border-box;
-  flex: 1;
+  flex-grow: 1;
 
   &.selected {
     border-color: var(--color-strong);
     background-color: var(--background-strong);
+    z-index: 1;
   }
 
   &.selected.disabled {
@@ -101,9 +102,8 @@ li.segmentedControlItem {
 li:not(.selected) + li:not(.selected)::before {
   content: '';
   position: absolute;
-  top: 0.3em;
-  bottom: 0.3em;
-  right: 100%;
+  inset-block: 0.3em;
+  inset-inline-end: 100%;
   border-left: 1px solid var(--color-weak);
 }
 
