@@ -87,6 +87,11 @@ function cancelButton() {
   unchangedSinceLoad.value = false;
 }
 
+function clearButton() {
+  discardCache({ activities: !useRoutes.value, routes: useRoutes.value }, true);
+  unchangedSinceLoad.value = false;
+}
+
 watch([start, end, useRoutes], () => {
   unchangedSinceLoad.value = false;
 });
@@ -124,7 +129,7 @@ defineExpose({ gear });
               :selected="unchangedSinceLoad ? 'reload' : 'load'"
             />
           </UIButton>
-          <UIButton @click="loading ? cancelButton() : discardCache(true, true)">
+          <UIButton @click="loading ? cancelButton() : clearButton()">
             <UIMultiText :selected="loading ? 'cancel' : 'discard'">
               <template #cancel> Cancel </template>
               <template #discard>

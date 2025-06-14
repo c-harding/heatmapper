@@ -100,6 +100,7 @@ export function clearCachedActivities(start?: Date, end?: Date) {
   const store = getActivityStore();
   if (!start && !end) {
     store.activities = [];
+    store.covered = [];
   } else {
     const timeRange: TimeRange = {
       start: start && start.getTime() / 1000,
@@ -108,6 +109,7 @@ export function clearCachedActivities(start?: Date, end?: Date) {
     store.activities = store.activities.filter(
       (activity) => !TimeRange.includes([timeRange], activity.date),
     );
+    store.covered = TimeRange.subtract(store.activities, [timeRange]);
   }
   localStorage.setItem('activities', JSON.stringify(store));
 }
