@@ -26,8 +26,9 @@ import { useMapStyle } from '@/MapStyle';
 import { addLayersToMap, applyMapItems, MapSourceLayer, useMapSelection } from '@/utils/map';
 import Viewport from '@/Viewport';
 
-const { mapItems } = defineProps<{
+const { mapItems, bounds } = defineProps<{
   mapItems: readonly MapItem[];
+  bounds?: LngLatBounds;
 }>();
 
 const center = defineModel<LngLatLike>('center', { required: true });
@@ -58,6 +59,7 @@ if (!window.cachedMapElement) {
   const newMap = new mapboxgl.Map({
     accessToken: config.MAPBOX_TOKEN,
     container: document.createElement('div'),
+    bounds,
     style: mapStyleUrl.value,
     center: center.value,
     zoom: zoom.value,

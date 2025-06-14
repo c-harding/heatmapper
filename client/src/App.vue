@@ -7,6 +7,7 @@ import CollapsibleSidebar from './components/sidebar/CollapsibleSidebar.vue';
 import SidebarContent from './components/sidebar/SidebarContent.vue';
 import { SELECTED_SIDEBAR_ITEM_SELECTOR } from './components/sidebar/SidebarItem.vue';
 import { provideActivityService } from './services/useActivityService';
+import { getBestCenter } from './utils/midpoint';
 
 const { routes = false } = defineProps<{ routes: boolean }>();
 
@@ -23,11 +24,13 @@ const useRoutes = computed<boolean>({
 
 const map = ref<typeof MapView>();
 
-const geolocation = ref({ lat: 51.45, lng: -2.6 });
-
-const zoom = ref(10);
-
 const { mapItems } = provideActivityService({ useRoutes });
+
+const geolocation = getBestCenter(mapItems.value);
+
+const center = ref({ lat: 51.5, lng: -0.1 });
+
+const zoom = ref(8);
 
 const selected = ref<readonly string[]>([]);
 
@@ -58,9 +61,10 @@ defineExpose({ mapItems });
     <Suspense>
       <MapView
         ref="map"
-        v-model:center="geolocation"
+        v-model:center="center"
         v-model:zoom="zoom"
         v-model:selected="selected"
+        :bounds="geolocation"
         :mapItems
       />
     </Suspense>
