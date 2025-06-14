@@ -2,6 +2,7 @@
 import { computed, ref } from 'vue';
 
 import { useExpandableGroup } from '@/services/useExpandableGroups';
+import useStickyHeader from '@/services/useStickyHeader';
 import { type MapItemGroup } from '@/stores/ActivityStore';
 import { useSelectionStore } from '@/stores/SelectionStore';
 import { cancelTextSelection } from '@/utils/ui';
@@ -32,6 +33,8 @@ const arrow = computed(() => (isExpanded.value ? 'keyboard_arrow_down' : 'keyboa
 
 const groupRef = ref<HTMLDivElement>();
 const headerRef = ref<HTMLDivElement>();
+
+const { heightPx: stickyHeaderHeightPx } = useStickyHeader();
 
 function toggleExpanded() {
   if (isExpanded.value) {
@@ -110,7 +113,8 @@ function clickGroup(e: MouseEvent) {
 .sidebarGroupHeader {
   position: sticky;
   cursor: pointer;
-  top: 0;
+  top: calc(v-bind('stickyHeaderHeightPx') - var(--group-height));
+  height: var(--group-height);
   bottom: 36px;
   background-color: var(--background-full);
   z-index: 1;
