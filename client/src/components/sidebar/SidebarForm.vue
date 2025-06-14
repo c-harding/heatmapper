@@ -5,6 +5,7 @@ import { useActivityService } from '@/services/useActivityService';
 import useSportsTypes from '@/services/useSportsTypes';
 import useUser from '@/services/useUser';
 import { combineCallbacks } from '@/utils/functions';
+import { useResettingRef } from '@/utils/resetting-ref';
 
 import SegmentedControl from '../segmented-control/SegmentedControl.vue';
 import SegmentedControlItem from '../segmented-control/SegmentedControlItem.vue';
@@ -60,7 +61,7 @@ async function settingsButton() {
 
 const loading = ref(false);
 
-const unchangedSinceLoad = ref(false);
+const unchangedSinceLoad = useResettingRef(false, 60 * 60 * 1000);
 
 async function loadButton() {
   loading.value = true;
