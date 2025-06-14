@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 
+import { provideStickyHeader } from '@/services/useStickyHeader';
+
 import UIIcon from '../ui/UIIcon.vue';
 
 const minimised = defineModel<boolean>('minimised');
@@ -14,6 +16,8 @@ const appName = import.meta.env.VITE_APP_NAME as string;
 const emit = defineEmits<{
   scrollDown: [];
 }>();
+
+const { heightPx: stickyHeaderHeightPx } = provideStickyHeader();
 
 const scrollable = ref<HTMLElement>();
 
@@ -130,6 +134,8 @@ $padding-top: calc(0.5rem + var(--top-safe-area));
     transition: margin var(--transition-speed);
     background-color: var(--background-full);
     padding-bottom: var(--bottom-safe-area);
+
+    scroll-padding-block-start: v-bind('stickyHeaderHeightPx');
   }
 
   .topBox {
