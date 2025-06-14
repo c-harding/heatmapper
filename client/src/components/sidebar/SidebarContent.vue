@@ -6,7 +6,7 @@ import { useActivityService } from '@/services/useActivityService';
 import { combineStats } from '@/utils/stats';
 import { cancelTextSelection } from '@/utils/ui';
 
-import SidebarCredits from './SIdebarCredits.vue';
+import SidebarCredits from './SidebarCredits.vue';
 import SidebarForm from './SidebarForm.vue';
 import SidebarItemCount from './SidebarItemCount.vue';
 import SidebarItemList from './SidebarItemList.vue';
