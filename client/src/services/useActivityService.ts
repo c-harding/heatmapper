@@ -278,7 +278,7 @@ function makeActivityService({
 
     function checkFinished(socket: Socket | undefined): boolean {
       const finished =
-        !continueLogin &&
+        !continueLogin.value &&
         (!activities || activityStats.value.finding?.finished === true) &&
         (!routes || routeStats.value.finding?.finished === true);
       if (finished) {
