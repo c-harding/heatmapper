@@ -69,6 +69,13 @@ if (!window.cachedMapElement) {
     topCorner,
   );
 
+  newMap.addControl(
+    new mapboxgl.GeolocateControl({
+      trackUserLocation: true,
+      showUserHeading: true,
+    }),
+  );
+
   newMap.addControl(new mapboxgl.ScaleControl(), 'bottom-left');
 
   window.cachedMapElement = newMap;
