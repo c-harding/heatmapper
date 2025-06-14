@@ -2,6 +2,7 @@
 import { computed, nextTick, ref, watch } from 'vue';
 
 import { provideExpandableGroups } from '@/services/useExpandableGroups';
+import useStickyHeader from '@/services/useStickyHeader';
 import { useActivityStore } from '@/stores/ActivityStore';
 import { useSelectionStore } from '@/stores/SelectionStore';
 import { combineStats } from '@/utils/stats';
@@ -27,6 +28,11 @@ provideExpandableGroups();
 const totals = computed(() => combineStats(activityStore.mapItems, selectionStore.selectedItems));
 
 const sidebarItemListRef = ref<HTMLElement>();
+
+const statsHeight = 50;
+const groupHeight = 50;
+
+useStickyHeader(computed(() => statsHeight + (activityStore.groupLevel ? groupHeight : 0)));
 
 watch(
   () => selectionStore.selected,
@@ -79,24 +85,20 @@ watch(
   flex-direction: column;
   gap: 1em;
 
-  section:has(& .stickyTotals) {
-    scroll-padding-top: 50px;
-  }
+  --group-height: calc(v-bind(groupHeight) * 1px);
 }
 
 .sidebarTotals {
   display: flex;
   flex-direction: column;
+  justify-content: center;
   gap: 0.25em;
   padding-inline: 1em;
-  padding-block: 0.5em;
-  margin-block: -0.5em;
-}
-
-.stickyTotals {
+  height: calc(v-bind(statsHeight) * 1px);
+  margin-block: -1em;
   position: sticky;
   top: 0;
   background-color: var(--background-full);
-  z-index: 1;
+  z-index: 2;
 }
 </style>
