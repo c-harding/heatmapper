@@ -1,4 +1,4 @@
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 
 /**
  * Creates a ref that resets to the value after a delay.
@@ -10,23 +10,22 @@ export function useResettingRef<T>(initial: T, delay: number) {
   const flag = ref<T>(initial);
   let timeoutId: ReturnType<typeof setTimeout> | undefined;
 
-  return new Proxy(flag, {
-    set(target, p, newValue, receiver) {
-      try {
-        return Reflect.set(target, p, newValue, receiver);
-      } finally {
-        if (p === 'value') {
-          clearTimeout(timeoutId);
+  return computed<T>({
+    get(): T {
+      return flag.value;
+    },
 
-          if (newValue !== initial) {
-            timeoutId = setTimeout(() => {
-              flag.value = initial;
-              timeoutId = undefined;
-            }, delay);
-          } else {
-            timeoutId = undefined;
-          }
-        }
+    set(newValue: T) {
+      flag.value = newValue;
+      clearTimeout(timeoutId);
+
+      if (newValue !== initial) {
+        timeoutId = setTimeout(() => {
+          flag.value = initial;
+          timeoutId = undefined;
+        }, delay);
+      } else {
+        timeoutId = undefined;
       }
     },
   });
