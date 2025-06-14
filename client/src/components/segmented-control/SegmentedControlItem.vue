@@ -99,7 +99,7 @@ li.segmentedControlItem {
   }
 }
 
-li:not(.selected) + li:not(.selected)::before {
+li.segmentedControlItem:not(.selected) + li.segmentedControlItem:not(.selected)::before {
   content: '';
   position: absolute;
   inset-block: 0.3em;
