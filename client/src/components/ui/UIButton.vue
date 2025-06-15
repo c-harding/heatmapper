@@ -84,22 +84,25 @@ async function clickHandler(e: MouseEvent) {
 button.button {
   display: grid;
   grid-template-areas: 'button';
-  align-items: center;
 
   margin: 0.5rem;
-  padding: 0.15rem 0.4rem;
-  border-radius: var(--border-radius);
+  padding: 0.15rem 0.15rem;
+
+  --button-border-radius-left: var(--border-radius);
+  --button-border-radius-right: var(--border-radius);
+
+  border-top-left-radius: var(--button-border-radius-left);
+  border-bottom-left-radius: var(--button-border-radius-left);
+  border-top-right-radius: var(--button-border-radius-right);
+  border-bottom-right-radius: var(--button-border-radius-right);
+
   border: 1px solid var(--color-weak);
-  background-color: var(--background-strong);
+  background-color: var(--background-mid);
   color: var(--color-full);
   max-width: max-content;
   min-width: min-content;
   min-height: 1.75rem;
   font-size: 0.9em;
-
-  &:hover:not(:disabled) {
-    background-color: var(--background-weak);
-  }
 
   &:disabled {
     color: var(--color-weak);
@@ -109,7 +112,20 @@ button.button {
   .buttonContents {
     grid-area: button;
     min-height: 1.2em;
-    border-radius: calc(var(--border-radius) - 0.15rem);
+
+    border-top-left-radius: calc(var(--button-border-radius-left) - 0.15rem);
+    border-bottom-left-radius: calc(var(--button-border-radius-left) - 0.15rem);
+    border-top-right-radius: calc(var(--button-border-radius-right) - 0.15rem);
+    border-bottom-right-radius: calc(var(--button-border-radius-right) - 0.15rem);
+
+    padding: 0 0.25rem;
+    align-self: stretch;
+    display: flex;
+    align-items: center;
+  }
+
+  &:hover:not(:disabled) .buttonContents {
+    background-color: var(--background-strong);
   }
 
   &:has(.buttonSpinner) .buttonContents {
@@ -125,7 +141,7 @@ button.button {
     background-color: var(--color-full);
     color: var(--background-strong);
 
-    &:hover:not(:disabled) {
+    &:hover:not(:disabled) .buttonContents {
       background-color: var(--color-full);
       color: var(--background-weak);
     }
