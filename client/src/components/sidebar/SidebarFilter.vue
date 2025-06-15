@@ -99,7 +99,7 @@ const filterSummary = computed(() =>
     chosenSportLabel.value,
     formatRange(filterModel.distance, 'distance', formatKilometers),
     formatRange(filterModel.elevation, 'elevation', formatMeters),
-    useRoutes &&
+    useRoutes.value &&
       filterModel.starred !== undefined &&
       (filterModel.starred ? 'only starred' : 'only unstarred'),
   ].filter((string): string is string => !!string),
