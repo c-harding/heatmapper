@@ -13,13 +13,15 @@ import { TooltipError } from '../tooltip/TooltipError';
 import UIButton from '../ui/UIButton.vue';
 import UIButtonGroup from '../ui/UIButtonGroup.vue';
 import UIDateInput from '../ui/UIDateInput.vue';
-import UIDropdown from '../ui/UIDropdown.vue';
 import UILabelledIcon from '../ui/UILabelledIcon.vue';
 import UIModal from '../ui/UIModal.vue';
 import UIMultiText from '../ui/UIMultiText.vue';
+import controlsStyle from './controls.module.scss';
 import LoadingStatus from './LoadingStatus.vue';
+import SidebarFilter from './SidebarFilter.vue';
 import UserLogin from './UserLogin.vue';
 import UserSettings from './UserSettings.vue';
+
 const start = ref<Date>();
 const end = ref<Date>();
 
@@ -91,12 +93,12 @@ watch([start, end, () => activityStore.useRoutes], () => {
 
 <template>
   <aside :class="$style.sidebarForm">
-    <div :class="$style.controlsGrid">
-      <div :class="$style.buttons">
+    <div :class="[controlsStyle.grid, controlsStyle.center]">
+      <div :class="controlsStyle.buttons">
         <SegmentedControl
           v-slot="{ option }"
           v-model="activityStore.useRoutes"
-          :class="$style.segmentedControl"
+          :class="controlsStyle.segmentedControl"
           :disabled="loading"
         >
           <SegmentedControlItem :option="option(false)"> Activities </SegmentedControlItem>
@@ -111,7 +113,7 @@ watch([start, end, () => activityStore.useRoutes], () => {
         <span>End date</span>
         <UIDateInput v-model="end" name="end" />
       </label>
-      <div :class="$style.buttons">
+      <div :class="controlsStyle.buttons">
         <UIButtonGroup>
           <UIButton @click="loadButton">
             <UIMultiText
@@ -133,32 +135,7 @@ watch([start, end, () => activityStore.useRoutes], () => {
     </div>
     <UserLogin v-if="continueLogin" @login="continueLogin($event)" />
     <LoadingStatus v-else :useRoutes="activityStore.useRoutes" :error="activityStore.error" />
-    <div :class="[$style.controls, $style.row]">
-      <label :class="$style.expand">
-        <span>Sport type</span>
-        <UIDropdown
-          v-model="sportTypeStore.filter"
-          :options="sportTypeStore.dropdownOptions"
-          blankValue=""
-          blankLabel="All sports"
-        />
-      </label>
-      <label
-        :class="!activityStore.useRoutes && $style.hidden"
-        title="Only show starred routes (double-click for unstarred routes)"
-      >
-        <span>Starred</span>
-        <UIButton
-          :invertColor="activityStore.filterModel.starred === false"
-          :icon="activityStore.filterModel.starred === undefined ? 'star_border' : 'star'"
-          @click="
-            activityStore.filterModel.starred =
-              activityStore.filterModel.starred !== undefined ? undefined : true
-          "
-          @dbl-click="activityStore.filterModel.starred = false"
-        />
-      </label>
-    </div>
+    <SidebarFilter />
   </aside>
 
   <UIModal v-if="userStore.user" v-model="settingsOpen" :class="$style.modal">
@@ -172,72 +149,6 @@ watch([start, end, () => activityStore.useRoutes], () => {
   display: flex;
   flex-direction: column;
   gap: 0.5em;
-
-  .buttons {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-evenly;
-    align-items: center;
-  }
-
-  .segmentedControl:only-child {
-    flex-grow: 1;
-  }
-}
-
-.hidden {
-  visibility: hidden;
-}
-
-.controls,
-.controlsGrid {
-  > label {
-    > span {
-      min-height: 1.2em;
-      font-size: 0.9em;
-      font-weight: 600;
-      padding-inline: 0.5rem;
-      display: block;
-    }
-
-    &.expand {
-      flex: 1;
-    }
-  }
-}
-
-.controlsGrid {
-  display: grid;
-  grid-template-columns: max-content max-content;
-  justify-content: center;
-
-  > label {
-    grid-template-columns: subgrid;
-    display: grid;
-    grid-column: span 2;
-    align-items: center;
-  }
-
-  > .buttons {
-    grid-column: span 2;
-    justify-content: space-between;
-  }
-}
-
-.controls {
-  min-width: 0;
-  display: flex;
-  padding-top: 1.2em;
-  row-gap: 1.2em;
-  justify-content: space-evenly;
-
-  > label {
-    display: flex;
-    min-width: 0;
-    margin-top: -1.2em;
-    flex-direction: column;
-    align-items: start;
-  }
 }
 
 .modal {
