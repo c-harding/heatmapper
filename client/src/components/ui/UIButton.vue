@@ -109,6 +109,7 @@ button.button {
   .buttonContents {
     grid-area: button;
     min-height: 1.2em;
+    border-radius: calc(var(--border-radius) - 0.15rem);
   }
 
   &:has(.buttonSpinner) .buttonContents {
