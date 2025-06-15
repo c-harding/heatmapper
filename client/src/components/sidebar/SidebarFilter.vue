@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 
-import { type FilterModel, type RangeFilter, useActivityStore } from '@/stores/ActivityStore';
+import { useActivityStore } from '@/stores/ActivityStore';
 import { useSportTypeStore } from '@/stores/SportTypeStore';
+import { type FilterModel, type RangeFilter } from '@/types/FilterModel';
 import { formatKilometers, formatMeters } from '@/utils/numberFormat';
+import { loadFilterModel, saveFilterModel } from '@/utils/storage';
 
 import UIVerticalTab from '../ui/tabs/UIVerticalTab.vue';
 import UIVerticalTabContainer from '../ui/tabs/UIVerticalTabContainer.vue';
@@ -50,6 +52,12 @@ function compareFilters(filterA: FilterModel, filterB: FilterModel) {
 }
 
 const previousFilters = ref<FilterModel>();
+const savedFilter = ref<FilterModel>(loadFilterModel() ?? blankFilter);
+
+const isSaved = computed(() => compareFilters(activityStore.filterModel, savedFilter.value));
+
+const hideResetToSaved = computed(() => compareFilters(blankFilter, savedFilter.value));
+const canResetToSaved = computed(() => compareFilters(activityStore.filterModel, savedFilter.value));
 
 const filterState = computed<'changed' | 'canUndo' | 'initial'>(() => {
   if (!compareFilters(activityStore.filterModel, blankFilter)) return 'changed';
@@ -64,6 +72,15 @@ function revertFilter() {
   } else {
     Object.assign(activityStore.filterModel, previousFilters.value);
   }
+}
+
+function saveFilter() {
+  saveFilterModel(activityStore.filterModel);
+  savedFilter.value = { ...activityStore.filterModel };
+}
+function resetToSaved() {
+  previousFilters.value = { ...activityStore.filterModel };
+  Object.assign(activityStore.filterModel, savedFilter.value);
 }
 
 function formatRange(
@@ -140,15 +157,24 @@ const filterSummary = computed(() =>
           </label>
           <div :class="controlsStyle.buttons">
             <UIButtonGroup>
+              <UIButton icon="save" :disabled="isSaved" @click="saveFilter"> Save </UIButton>
               <UIButton
                 :disabled="filterState === 'initial'"
                 :icon="filterState === 'canUndo' ? 'undo' : 'delete'"
                 @click="revertFilter"
               >
                 <UIMultiText
-                  :texts="{ reset: 'Reset', undo: 'Undo' }"
-                  :selected="filterState === 'canUndo' ? 'undo' : 'reset'"
+                  :texts="{ clear: 'Clear', undo: 'Undo' }"
+                  :selected="filterState === 'canUndo' ? 'undo' : 'clear'"
                 />
+              </UIButton>
+              <UIButton
+                v-if="!hideResetToSaved"
+                :disabled="canResetToSaved"
+                icon="settings_backup_restore"
+                @click="resetToSaved"
+              >
+                Reset
               </UIButton>
             </UIButtonGroup>
           </div>

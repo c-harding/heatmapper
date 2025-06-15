@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 
-import { type RangeFilter } from '@/stores/ActivityStore';
+import { type RangeFilter } from '@/types/FilterModel';
 
 const model = defineModel<RangeFilter>();
 
@@ -45,11 +45,11 @@ const maxModel = computed({
 <template>
   <div :class="$style.inputContainer">
     <label
-      ><span>min:</span><input v-model="minModel" type="number" autocomplete="off" :min :max :step
+      ><span>min</span><input v-model="minModel" type="number" autocomplete="off" :min :max :step
     /></label>
 
     <label
-      ><span>max:</span><input v-model="maxModel" type="number" autocomplete="off" :min :max :step
+      ><span>max</span><input v-model="maxModel" type="number" autocomplete="off" :min :max :step
     /></label>
   </div>
 </template>

@@ -10,14 +10,13 @@
 .buttonGroup {
   display: flex;
   margin: 0.5rem;
-  display: relative;
 
   > button {
     margin: 0;
 
-    display: relative;
+    position: relative;
 
-    &:focus {
+    &:not(:disabled) {
       z-index: 1;
     }
 
