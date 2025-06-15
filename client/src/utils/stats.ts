@@ -53,7 +53,7 @@ export function combineStats(
   const minElevation = items
     .map((item) => !item.route && item.elevation?.min)
     .filter(isDefined)
-    .reduce<number | undefined>((a, b) => Math.min(a ?? 0, b), undefined);
+    .reduce<number | undefined>((a, b) => Math.min(a ?? Infinity, b), undefined);
 
   return {
     activityCount,
