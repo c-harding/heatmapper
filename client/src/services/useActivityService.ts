@@ -25,14 +25,15 @@ import {
   getCachedGear,
   getCachedRoutes,
   getStoreMeta,
+  loadFilterModel,
   resetStore,
   saveCachedGear,
 } from '@/utils/storage';
 
+import { type FilterModel } from '../types/FilterModel';
 import {
   type ActivityService,
   activityServiceToken,
-  type FilterModel,
   GroupLevel,
   type LoadingStats,
   type MapItemGroup,
@@ -66,10 +67,7 @@ function makeActivityService({
   const routeStats = ref<LoadingStats>({ inCache: false });
   const activityStats = ref<LoadingStats>({ inCache: true });
 
-  const filterModel: FilterModel = reactive({
-    sportType: '',
-    starred: undefined,
-  });
+  const filterModel: FilterModel = reactive(loadFilterModel() ?? {});
 
   const error = ref<string>();
 
@@ -100,6 +98,18 @@ function makeActivityService({
 
       filterModel.starred !== undefined &&
         ((item: MapItem) => !item.route || item.starred === filterModel.starred),
+
+      filterModel.distance?.min !== undefined &&
+        ((item: MapItem) => item.distance >= (filterModel.distance?.min ?? -Infinity)),
+      filterModel.distance?.max !== undefined &&
+        ((item: MapItem) => item.distance <= (filterModel.distance?.max ?? Infinity)),
+
+      filterModel.elevation?.min !== undefined &&
+        ((item: MapItem) =>
+          item.elevation?.gain && item.elevation.gain >= (filterModel.elevation?.min ?? -Infinity)),
+      filterModel.elevation?.max !== undefined &&
+        ((item: MapItem) =>
+          item.elevation?.gain && item.elevation.gain <= (filterModel.elevation?.max ?? Infinity)),
     ]
       // Remove falsy filters
       .filter((f): f is (value: MapItem) => boolean => !!f);
@@ -422,6 +432,6 @@ export function provideActivityService(options: { useRoutes?: Ref<boolean> } = {
   return service;
 }
 
-export function useActivityService() {
+export function useActivityService(): ActivityService {
   return inject(activityServiceToken, provideActivityService, true);
 }
