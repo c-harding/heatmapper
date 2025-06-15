@@ -1,0 +1,35 @@
+.filterGrid {
+  display: grid;
+  grid-template-columns: [tab] max-content [content] 1fr;
+  column-gap: 0.25rem;
+}
+
+.subgrid {
+  display: grid;
+  grid-template-columns: subgrid;
+  grid-column: span 2;
+}
+
+.tab {
+  grid-column: tab;
+  border-right: 1px solid var(--color-weak);
+  color: var(--color-weak);
+  display: flex;
+  flex-direction: column;
+
+  &.selected {
+    color: var(--color-full);
+  }
+
+  .button {
+    all: unset;
+    display: flex;
+    height: 100%;
+    flex-direction: column;
+    padding-block: 0.125rem;
+  }
+}
+
+.content {
+  grid-column: content;
+}
