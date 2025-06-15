@@ -9,6 +9,7 @@ import { useResettingRef } from '@/utils/resetting-ref';
 import SegmentedControl from '../segmented-control/SegmentedControl.vue';
 import SegmentedControlItem from '../segmented-control/SegmentedControlItem.vue';
 import { TooltipError } from '../tooltip/TooltipError';
+import UIVerticalTabContainer from '../ui/tabs/UIVerticalTabContainer.vue';
 import UIButton from '../ui/UIButton.vue';
 import UIButtonGroup from '../ui/UIButtonGroup.vue';
 import UIDateInput from '../ui/UIDateInput.vue';
@@ -140,7 +141,9 @@ defineExpose({ gear });
     </div>
     <UserLogin v-if="continueLogin" @login="continueLogin($event)" />
     <LoadingStatus v-else :useRoutes :error />
-    <SidebarFilter />
+    <UIVerticalTabContainer v-slot="{ makeTab }">
+      <SidebarFilter :tab="makeTab('filter')" />
+    </UIVerticalTabContainer>
   </aside>
 
   <UIModal v-if="user" v-model="settingsOpen" :class="$style.modal">

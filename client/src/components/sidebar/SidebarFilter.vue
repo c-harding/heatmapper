@@ -8,7 +8,7 @@ import { formatKilometers, formatMeters } from '@/utils/numberFormat';
 import { loadFilterModel, saveFilterModel } from '@/utils/storage';
 
 import UIVerticalTab from '../ui/tabs/UIVerticalTab.vue';
-import UIVerticalTabContainer from '../ui/tabs/UIVerticalTabContainer.vue';
+import { type Tab } from '../ui/tabs/UIVerticalTabContainer.vue';
 import UIButton from '../ui/UIButton.vue';
 import UIButtonGroup from '../ui/UIButtonGroup.vue';
 import UIDropdown from '../ui/UIDropdown.vue';
@@ -19,6 +19,8 @@ import controlsStyle from './controls.module.scss';
 const { useRoutes, filterModel } = useActivityService();
 
 const { sportsDropdownOptions, sportsFilter } = useSportsTypes();
+
+defineProps<{ tab: Tab<string> }>();
 
 const chosenSportLabel = computed(() => {
   if (sportsFilter.value) {
@@ -107,79 +109,75 @@ const filterSummary = computed(() =>
 </script>
 
 <template>
-  <UIVerticalTabContainer v-slot="{ makeTab }">
-    <UIVerticalTab :tab="makeTab('filter')" icon="filter_alt" :contentClass="$style.content">
-      <template #summary="{ select }">
-        <div :class="$style.summary" @click="select">
-          <template v-for="(summaryItem, i) of filterSummary" :key="i"
-            ><span>{{ summaryItem }}</span
-            ><template v-if="i + 1 < filterSummary.length">, </template></template
-          >
-          <template v-if="!filterSummary.length">No filter set</template>
-        </div>
-      </template>
-      <template #expanded>
-        <div :class="controlsStyle.grid">
-          <label>
-            <span>Sport type</span>
-            <UIDropdown
-              v-model="sportsFilter"
-              :options="sportsDropdownOptions"
-              blankValue=""
-              blankLabel="All sports"
-            />
-          </label>
+  <UIVerticalTab :tab icon="filter_alt" :contentClass="$style.content">
+    <template #styledSummary>
+      <template v-for="(summaryItem, i) of filterSummary" :key="i"
+        ><span :class="$style.summarySpan">{{ summaryItem }}</span
+        ><template v-if="i + 1 < filterSummary.length">, </template></template
+      >
+      <template v-if="!filterSummary.length">No filter set</template>
+    </template>
+    <template #expanded>
+      <div :class="controlsStyle.grid">
+        <label>
+          <span>Sport type</span>
+          <UIDropdown
+            v-model="sportsFilter"
+            :options="sportsDropdownOptions"
+            blankValue=""
+            blankLabel="All sports"
+          />
+        </label>
 
-          <label>
-            <span>Distance</span>
-            <UIRange v-model="filterModel.distance" :step="1" :scale="0.001" />
-          </label>
+        <label>
+          <span>Distance</span>
+          <UIRange v-model="filterModel.distance" :step="1" :scale="0.001" />
+        </label>
 
-          <label>
-            <span>Elevation</span>
-            <UIRange v-model="filterModel.elevation" :step="0.1" />
-          </label>
+        <label>
+          <span>Elevation</span>
+          <UIRange v-model="filterModel.elevation" :step="0.1" />
+        </label>
 
-          <label
-            v-if="useRoutes"
-            title="Only show starred routes (double-click for unstarred routes)"
-            :class="$style.noPointer"
-          >
-            <span>Starred</span>
+        <label
+          v-if="useRoutes"
+          title="Only show starred routes (double-click for unstarred routes)"
+          :class="$style.noPointer"
+        >
+          <span>Starred</span>
+          <UIButton
+            :invertColor="filterModel.starred === false"
+            :icon="filterModel.starred === undefined ? 'star_border' : 'star'"
+            @click="filterModel.starred = filterModel.starred !== undefined ? undefined : true"
+            @dbl-click="filterModel.starred = false"
+          />
+        </label>
+        <div :class="controlsStyle.buttons">
+          <UIButtonGroup>
+            <UIButton icon="save" :disabled="isSaved" @click="saveFilter"> Save </UIButton>
             <UIButton
-              :invertColor="filterModel.starred === false"
-              :icon="filterModel.starred === undefined ? 'star_border' : 'star'"
-              @click="filterModel.starred = filterModel.starred !== undefined ? undefined : true"
-              @dbl-click="filterModel.starred = false"
-            />
-          </label>
-          <div :class="controlsStyle.buttons">
-            <UIButtonGroup>
-              <UIButton icon="save" :disabled="isSaved" @click="saveFilter"> Save </UIButton>
-              <UIButton
-                :disabled="filterState === 'initial'"
-                :icon="filterState === 'canUndo' ? 'undo' : 'delete'"
-                @click="revertFilter"
-              >
-                <UIMultiText
-                  :texts="{ clear: 'Clear', undo: 'Undo' }"
-                  :selected="filterState === 'canUndo' ? 'undo' : 'clear'"
-                />
-              </UIButton>
-              <UIButton
-                v-if="!hideResetToSaved"
-                :disabled="canResetToSaved"
-                icon="settings_backup_restore"
-                @click="resetToSaved"
-              >
-                Reset
-              </UIButton>
-            </UIButtonGroup>
-          </div>
+              :disabled="filterState === 'initial'"
+              :icon="filterState === 'canUndo' ? 'undo' : 'delete'"
+              @click="revertFilter"
+            >
+              <UIMultiText
+                :texts="{ clear: 'Clear', undo: 'Undo' }"
+                :selected="filterState === 'canUndo' ? 'undo' : 'clear'"
+              />
+            </UIButton>
+            <UIButton
+              v-if="!hideResetToSaved"
+              :disabled="canResetToSaved"
+              icon="settings_backup_restore"
+              @click="resetToSaved"
+            >
+              Reset
+            </UIButton>
+          </UIButtonGroup>
         </div>
-      </template>
-    </UIVerticalTab>
-  </UIVerticalTabContainer>
+      </div>
+    </template>
+  </UIVerticalTab>
 </template>
 
 <style lang="scss" module>
@@ -188,13 +186,8 @@ const filterSummary = computed(() =>
   flex-direction: column;
 }
 
-.summary {
-  font-size: 0.9em;
-  font-style: italic;
-
-  > span {
-    white-space: nowrap;
-  }
+.summarySpan {
+  white-space: nowrap;
 }
 
 .noPointer {
