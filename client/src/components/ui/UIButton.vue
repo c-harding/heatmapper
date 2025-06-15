@@ -16,15 +16,19 @@ const {
   icon,
   loading: loadingProp = false,
   loadingText,
+  invertColor = false,
   disabled = false,
   onClick,
+  onDblClick,
   onRejection,
 } = defineProps<{
   icon?: string;
   loading?: boolean;
+  invertColor?: boolean;
   loadingText?: string;
   disabled?: boolean;
   onClick?: () => void | Promise<void>;
+  onDblClick?: () => void | Promise<void>;
   onRejection?: (value: ButtonError) => string | void;
 }>();
 
@@ -34,10 +38,16 @@ const runningClickHandler = ref(false);
 
 const loading = computed(() => loadingProp || runningClickHandler.value);
 
-async function clickHandler() {
-  if (runningClickHandler.value) return;
+async function clickHandler(e: MouseEvent) {
+  let handler = onClick;
+  if (onDblClick && e.detail === 2) {
+    handler = onDblClick;
+  } else if (runningClickHandler.value) {
+    return;
+  }
+
   runningClickHandler.value = true;
-  Promise.resolve(onClick?.())
+  Promise.resolve(handler?.())
     .catch((error: unknown) => {
       if (onRejection) {
         onRejection({ error, showError });
@@ -55,7 +65,7 @@ async function clickHandler() {
 <template>
   <button
     ref="buttonRef"
-    :class="$style.button"
+    :class="[$style.button, invertColor && $style.invertColor]"
     :disabled="loading || disabled"
     :loading
     @click="clickHandler"
@@ -107,6 +117,22 @@ button.button {
 
   .buttonSpinner {
     grid-area: button;
+  }
+
+  &.invertColor {
+    border-color: var(--color-full);
+    background-color: var(--color-full);
+    color: var(--background-strong);
+
+    &:hover:not(:disabled) {
+      background-color: var(--color-full);
+      color: var(--background-weak);
+    }
+
+    &:disabled {
+      background-color: var(--color-weak);
+      border-color: var(--background-weak);
+    }
   }
 }
 </style>

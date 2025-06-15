@@ -64,7 +64,7 @@ function makeActivityService({
 
   const filterModel: FilterModel = reactive({
     sportType: '',
-    starred: false,
+    starred: undefined,
   });
 
   const error = ref<string>();
@@ -94,7 +94,8 @@ function makeActivityService({
     const filters: ((value: MapItem) => boolean)[] = [
       sportType && ((item: MapItem) => doesSportTypeMatch(sportType, item.type)),
 
-      filterModel.starred && ((item: MapItem) => !item.route || item.starred),
+      filterModel.starred !== undefined &&
+        ((item: MapItem) => !item.route || item.starred === filterModel.starred),
     ]
       // Remove falsy filters
       .filter((f): f is (value: MapItem) => boolean => !!f);

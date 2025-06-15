@@ -153,11 +153,16 @@ defineExpose({ gear });
           blankLabel="All sports"
         />
       </label>
-      <label :class="!useRoutes && $style.hidden" title="Only show starred routes">
+      <label
+        :class="!useRoutes && $style.hidden"
+        title="Only show starred routes (double-click for unstarred routes)"
+      >
         <span>Starred</span>
         <UIButton
-          :icon="filterModel.starred ? 'star' : 'star_border'"
-          @click="filterModel.starred = !filterModel.starred"
+          :invertColor="filterModel.starred === false"
+          :icon="filterModel.starred === undefined ? 'star_border' : 'star'"
+          @click="filterModel.starred = filterModel.starred !== undefined ? undefined : true"
+          @dbl-click="filterModel.starred = false"
         />
       </label>
     </div>

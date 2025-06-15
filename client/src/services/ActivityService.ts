@@ -15,7 +15,9 @@ export interface LoadingStats {
 
 export interface FilterModel {
   sportType?: string;
-  starred: boolean;
+
+  /** Set to true to only show starred routes, or false to only show unfiltered routes */
+  starred?: boolean;
 }
 
 export type MapItemTypes = Partial<Record<MapItemType, boolean>>;
