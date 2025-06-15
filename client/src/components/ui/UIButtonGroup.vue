@@ -21,13 +21,11 @@
     }
 
     &:not(:first-child) {
-      border-start-start-radius: 0;
-      border-end-start-radius: 0;
+      --button-border-radius-left: 0;
       margin-left: -1px;
     }
     &:not(:last-child) {
-      border-start-end-radius: 0;
-      border-end-end-radius: 0;
+      --button-border-radius-right: 0;
     }
   }
 }
