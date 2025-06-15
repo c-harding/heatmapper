@@ -24,14 +24,15 @@ import {
   getCachedGear,
   getCachedRoutes,
   getStoreMeta,
+  loadFilterModel,
   resetStore,
   saveCachedGear,
 } from '@/utils/storage';
 
+import { type FilterModel } from '../types/FilterModel';
 import {
   type ActivityService,
   activityServiceToken,
-  type FilterModel,
   type LoadingStats,
   type MapItemTypes,
 } from './ActivityService';
@@ -62,10 +63,7 @@ function makeActivityService({
   const routeStats = ref<LoadingStats>({ inCache: false });
   const activityStats = ref<LoadingStats>({ inCache: true });
 
-  const filterModel: FilterModel = reactive({
-    sportType: '',
-    starred: undefined,
-  });
+  const filterModel: FilterModel = reactive(loadFilterModel() ?? {});
 
   const error = ref<string>();
 
@@ -236,7 +234,6 @@ function makeActivityService({
       end,
     );
   }
-
 
   function clearMapItems(
     { activities = false, routes = false }: MapItemTypes,

@@ -5,6 +5,8 @@ import {
   TimeRange,
 } from '@strava-heatmapper/shared/interfaces';
 
+import { type FilterModel } from '@/types/FilterModel';
+
 export interface StoreMeta {
   version: number;
   user: number;
@@ -26,6 +28,15 @@ export function saveCachedGear(id: string, gear: Gear) {
 export function getCachedGear(id: string): Gear | undefined {
   const json = localStorage.getItem(`gear:${id}`);
   if (json) return JSON.parse(json) as Gear;
+}
+
+export function loadFilterModel() {
+  const json = localStorage.getItem('filter');
+  if (json) return JSON.parse(json) as FilterModel;
+}
+
+export function saveFilterModel(filter: FilterModel) {
+  localStorage.setItem('filter', JSON.stringify(filter));
 }
 
 export function getStoreMeta(): StoreMeta {

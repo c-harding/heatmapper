@@ -47,7 +47,7 @@ async function clickHandler(e: MouseEvent) {
   }
 
   runningClickHandler.value = true;
-  Promise.resolve(handler?.())
+  Promise.try(() => handler?.())
     .catch((error: unknown) => {
       if (onRejection) {
         onRejection({ error, showError });
