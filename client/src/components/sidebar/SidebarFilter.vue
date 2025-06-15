@@ -143,6 +143,7 @@ const filterSummary = computed(() =>
           <label
             v-if="activityStore.useRoutes"
             title="Only show starred routes (double-click for unstarred routes)"
+            :class="$style.noPointer"
           >
             <span>Starred</span>
             <UIButton
@@ -196,6 +197,15 @@ const filterSummary = computed(() =>
 
   > span {
     white-space: nowrap;
+  }
+}
+
+.noPointer {
+  pointer-events: none;
+
+  > * {
+    pointer-events: initial;
+    margin-right: auto;
   }
 }
 </style>
