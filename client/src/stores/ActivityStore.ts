@@ -16,6 +16,7 @@ import { defineStore } from 'pinia';
 import { computed, reactive, type Ref, ref, shallowRef, toRef } from 'vue';
 
 import Socket from '@/socket';
+import { type FilterModel } from '@/types/FilterModel';
 import config from '@/utils/config';
 import { groupMapItems } from '@/utils/groupMapItems';
 import {
@@ -27,6 +28,7 @@ import {
   getCachedGear,
   getCachedRoutes,
   getStoreMeta,
+  loadFilterModel,
   resetStore,
   saveCachedGear,
 } from '@/utils/storage';
@@ -40,23 +42,6 @@ export interface LoadingStats {
   inCache: boolean;
 }
 
-export interface RangeFilter {
-  // These fields are both readonly to avoid problems with shallow copies of the filter model
-  readonly min?: number;
-  readonly max?: number;
-}
-
-export interface FilterModel {
-  sportType?: string;
-
-  /** Set to true to only show starred routes, or false to only show unfiltered routes */
-  starred?: boolean;
-
-  distance?: RangeFilter;
-  elevation?: RangeFilter;
-}
-
-export type MapItemTypes = Partial<Record<MapItemType, boolean>>;
 export enum GroupLevel {
   OFF = '',
   WEEKLY_MO = 'WEEKLY_MO',
@@ -65,6 +50,8 @@ export enum GroupLevel {
   MONTHLY = 'MONTHLY',
   YEARLY = 'YEARLY',
 }
+
+export type MapItemTypes = Partial<Record<MapItemType, boolean>>;
 
 export interface MapItemGroup {
   items: MapItem[];
@@ -96,10 +83,7 @@ export const useActivityStore = defineStore('activity', () => {
   const routeStats = ref<LoadingStats>({ inCache: false });
   const activityStats = ref<LoadingStats>({ inCache: true });
 
-  const filterModel: FilterModel = reactive({
-    sportType: '',
-    starred: undefined,
-  });
+  const filterModel: FilterModel = reactive(loadFilterModel() ?? {});
 
   const error = ref<string>();
 
