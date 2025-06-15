@@ -7,12 +7,13 @@ defineProps<{
   icon?: string;
   tab: Tab<T>;
   contentClass?: unknown;
+  summary?: string;
 }>();
 </script>
 
 <template>
-  <div :class="style.subgrid">
-    <div :class="[style.tab, tab.isOpen && style.selected]">
+  <div :class="[style.uiVerticalTab, tab.isOpen && style.selected]">
+    <div :class="style.tab">
       <button :class="style.button" @click="tab.toggle">
         <slot name="icon"><UIIcon :icon inline /></slot>
       </button>
@@ -21,7 +22,11 @@ defineProps<{
     <div :class="[style.content, contentClass]">
       <slot :isOpen="tab.isOpen" :toggle="tab.toggle" :select="tab.select">
         <slot v-if="tab.isOpen" name="expanded" :toggle="tab.toggle" />
-        <slot v-else name="summary" :select="tab.select" />
+        <slot v-else name="summary" :select="tab.select">
+          <div :class="style.summary" @click="tab.select()">
+            <slot name="styledSummary" :select="tab.select">{{ summary }}</slot>
+          </div>
+        </slot>
       </slot>
     </div>
   </div>
