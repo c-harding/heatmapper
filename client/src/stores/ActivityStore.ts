@@ -40,11 +40,20 @@ export interface LoadingStats {
   inCache: boolean;
 }
 
+export interface RangeFilter {
+  // These fields are both readonly to avoid problems with shallow copies of the filter model
+  readonly min?: number;
+  readonly max?: number;
+}
+
 export interface FilterModel {
   sportType?: string;
 
   /** Set to true to only show starred routes, or false to only show unfiltered routes */
   starred?: boolean;
+
+  distance?: RangeFilter;
+  elevation?: RangeFilter;
 }
 
 export type MapItemTypes = Partial<Record<MapItemType, boolean>>;
@@ -121,6 +130,18 @@ export const useActivityStore = defineStore('activity', () => {
 
       filterModel.starred !== undefined &&
         ((item: MapItem) => !item.route || item.starred === filterModel.starred),
+
+      filterModel.distance?.min !== undefined &&
+        ((item: MapItem) => item.distance >= (filterModel.distance?.min ?? -Infinity)),
+      filterModel.distance?.max !== undefined &&
+        ((item: MapItem) => item.distance <= (filterModel.distance?.max ?? Infinity)),
+
+      filterModel.elevation?.min !== undefined &&
+        ((item: MapItem) =>
+          item.elevation?.gain && item.elevation.gain >= (filterModel.elevation?.min ?? -Infinity)),
+      filterModel.elevation?.max !== undefined &&
+        ((item: MapItem) =>
+          item.elevation?.gain && item.elevation.gain <= (filterModel.elevation?.max ?? Infinity)),
     ]
       // Remove falsy filters
       .filter((f): f is (value: MapItem) => boolean => !!f);
