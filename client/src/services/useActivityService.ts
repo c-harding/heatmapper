@@ -96,6 +96,18 @@ function makeActivityService({
 
       filterModel.starred !== undefined &&
         ((item: MapItem) => !item.route || item.starred === filterModel.starred),
+
+      filterModel.distance?.min !== undefined &&
+        ((item: MapItem) => item.distance >= (filterModel.distance?.min ?? -Infinity)),
+      filterModel.distance?.max !== undefined &&
+        ((item: MapItem) => item.distance <= (filterModel.distance?.max ?? Infinity)),
+
+      filterModel.elevation?.min !== undefined &&
+        ((item: MapItem) =>
+          item.elevation?.gain && item.elevation.gain >= (filterModel.elevation?.min ?? -Infinity)),
+      filterModel.elevation?.max !== undefined &&
+        ((item: MapItem) =>
+          item.elevation?.gain && item.elevation.gain <= (filterModel.elevation?.max ?? Infinity)),
     ]
       // Remove falsy filters
       .filter((f): f is (value: MapItem) => boolean => !!f);
@@ -224,6 +236,7 @@ function makeActivityService({
       end,
     );
   }
+
 
   function clearMapItems(
     { activities = false, routes = false }: MapItemTypes,
@@ -412,6 +425,6 @@ export function provideActivityService(options: { useRoutes?: Ref<boolean> } = {
   return service;
 }
 
-export function useActivityService() {
+export function useActivityService(): ActivityService {
   return inject(activityServiceToken, provideActivityService, true);
 }
