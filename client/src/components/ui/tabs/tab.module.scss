@@ -22,6 +22,10 @@
     height: 100%;
     flex-direction: column;
     padding-block: 0.125rem;
+
+    &:focus-visible {
+      color: AccentColor;
+    }
   }
 }
 

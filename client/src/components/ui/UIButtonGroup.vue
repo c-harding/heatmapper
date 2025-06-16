@@ -18,6 +18,10 @@
 
     &:not(:disabled) {
       z-index: 1;
+
+      &:focus {
+        z-index: 2;
+      }
     }
 
     &:not(:first-child) {
