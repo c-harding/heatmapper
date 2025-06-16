@@ -134,12 +134,12 @@ const filterSummary = computed(() =>
 
         <label>
           <span>Distance</span>
-          <UIRange v-model="activityStore.filterModel.distance" :step="1" :scale="0.001" />
+          <UIRange v-model="activityStore.filterModel.distance" :step="1" :scale="0.001" suffix="km" />
         </label>
 
         <label>
           <span>Elevation</span>
-          <UIRange v-model="activityStore.filterModel.elevation" :step="0.1" />
+          <UIRange v-model="activityStore.filterModel.elevation" :step="0.1" suffix="m" />
         </label>
 
         <label
