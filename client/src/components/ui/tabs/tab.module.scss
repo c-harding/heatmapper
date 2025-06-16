@@ -21,7 +21,12 @@
     display: flex;
     height: 100%;
     flex-direction: column;
-    padding-block: 0.125rem;
+
+    .buttonContent {
+      padding-block: 0.125rem;
+      display: flex;
+      align-items: center;
+    }
 
     &:focus-visible {
       color: AccentColor;
@@ -31,19 +36,33 @@
 
 .uiVerticalTab.selected .tab {
   color: var(--color-full);
-}
 
-.uiVerticalTab.selected:not(:first-child) .content {
-  border-top: 1px solid var(--color-weak);
-}
+  .buttonContent {
+    margin: -1px;
+    border: 1px solid var(--color-weak);
+    border-right: none;
+    background: var(--background-full);
+  }
 
-.uiVerticalTab.selected:not(:last-child) .content {
-  border-bottom: 1px solid var(--color-weak);
+  &:not(:first-child) .content {
+    border-top: 1px solid var(--color-weak);
+  }
+
+  &:not(:last-child) .content {
+    border-bottom: 1px solid var(--color-weak);
+  }
 }
 
 .content {
   grid-column: content;
   padding-left: 0.25rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.heading {
+  all: unset;
+  font-weight: bold;
 }
 
 .summary {
