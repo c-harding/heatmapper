@@ -111,11 +111,14 @@ const filterSummary = computed(() =>
 <template>
   <UIVerticalTab :tab icon="filter_alt" :contentClass="$style.content">
     <template #styledSummary>
-      <template v-for="(summaryItem, i) of filterSummary" :key="i"
-        ><span :class="$style.summarySpan">{{ summaryItem }}</span
-        ><template v-if="i + 1 < filterSummary.length">, </template></template
-      >
-      <template v-if="!filterSummary.length">No filter set</template>
+      <template v-if="filterSummary.length">
+        Filter:
+        <template v-for="(summaryItem, i) of filterSummary" :key="i"
+          ><span :class="$style.summarySpan">{{ summaryItem }}</span
+          ><template v-if="i + 1 < filterSummary.length">, </template></template
+        >
+      </template>
+      <template v-else>No filter set</template>
     </template>
     <template #expanded>
       <div :class="controlsStyle.grid">
