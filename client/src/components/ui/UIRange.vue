@@ -44,23 +44,24 @@ const maxModel = computed({
 <!-- From https://acdcjunior.github.io/how-bind-date-object-to-input-date-vue.js-v-model.html -->
 <template>
   <div :class="$style.inputContainer">
-    <label
-      ><span>min</span><input v-model="minModel" type="number" autocomplete="off" :min :max :step
-    /></label>
+    <label>
+      <span>min</span> <input v-model="minModel" type="number" autocomplete="off" :min :max :step />
+    </label>
 
-    <label
-      ><span>max</span><input v-model="maxModel" type="number" autocomplete="off" :min :max :step
-    /></label>
+    <label>
+      <span>max</span>
+      <input v-model="maxModel" type="number" autocomplete="off" :min :max :step />
+    </label>
   </div>
 </template>
 
 <style module lang="scss">
 .inputContainer {
-  display: flex;
+  display: grid;
+  grid-template-columns: min-content auto;
   margin: 0.5rem;
 
   border-radius: var(--border-radius);
-  border: 1px solid var(--color-weak);
   background-color: var(--background-strong);
 
   min-width: 3em;
@@ -68,7 +69,14 @@ const maxModel = computed({
   box-sizing: border-box;
 
   label {
-    display: contents;
+    display: grid;
+    grid-column: span 2;
+    grid-template-columns: subgrid;
+    border: 1px solid var(--color-weak);
+
+    &:not(:first-child) {
+      margin-top: -1px;
+    }
 
     span {
       align-self: center;
@@ -78,9 +86,26 @@ const maxModel = computed({
     }
   }
 
+  label:first-child {
+    border-top-left-radius: calc(var(--border-radius));
+    border-top-right-radius: calc(var(--border-radius));
+  }
+  label:first-child input {
+    border-top-left-radius: calc(var(--border-radius) - 1px);
+    border-top-right-radius: calc(var(--border-radius) - 1px);
+  }
+
+  label:last-child {
+    border-bottom-left-radius: calc(var(--border-radius));
+    border-bottom-right-radius: calc(var(--border-radius));
+  }
+  label:last-child input {
+    border-bottom-left-radius: calc(var(--border-radius) - 1px);
+    border-bottom-right-radius: calc(var(--border-radius) - 1px);
+  }
+
   input {
     background-color: var(--background-full);
-    border-radius: calc(var(--border-radius) - 1px);
     border: none;
     min-width: 1em;
     padding: 0.15rem 0.4rem;
@@ -89,7 +114,7 @@ const maxModel = computed({
     -moz-appearance: textfield;
 
     &:focus {
-      outline: none;
+      z-index: 1;
     }
   }
 
