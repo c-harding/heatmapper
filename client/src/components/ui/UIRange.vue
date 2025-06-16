@@ -5,7 +5,13 @@ import { type RangeFilter } from '@/types/FilterModel';
 
 const model = defineModel<RangeFilter>();
 
-const { scale = 1 } = defineProps<{ step?: number; min?: number; max?: number; scale?: number }>();
+const { scale = 1 } = defineProps<{
+  step?: number;
+  min?: number;
+  max?: number;
+  scale?: number;
+  suffix: string;
+}>();
 
 const input = ref<HTMLInputElement>();
 
@@ -45,12 +51,15 @@ const maxModel = computed({
 <template>
   <div :class="$style.inputContainer">
     <label>
-      <span>min</span> <input v-model="minModel" type="number" autocomplete="off" :min :max :step />
+      <span>min</span>
+      <input v-model="minModel" type="number" autocomplete="off" :min :max :step />
+      <span>{{ suffix }}</span>
     </label>
 
     <label>
       <span>max</span>
       <input v-model="maxModel" type="number" autocomplete="off" :min :max :step />
+      <span>{{ suffix }}</span>
     </label>
   </div>
 </template>
@@ -58,7 +67,7 @@ const maxModel = computed({
 <style module lang="scss">
 .inputContainer {
   display: grid;
-  grid-template-columns: min-content auto;
+  grid-template-columns: min-content auto min-content;
   margin: 0.5rem;
 
   border-radius: var(--border-radius);
@@ -70,9 +79,10 @@ const maxModel = computed({
 
   label {
     display: grid;
-    grid-column: span 2;
+    grid-column: span 3;
     grid-template-columns: subgrid;
     border: 1px solid var(--color-weak);
+    padding-inline: 0.25rem;
 
     &:not(:first-child) {
       margin-top: -1px;
@@ -81,8 +91,7 @@ const maxModel = computed({
     span {
       align-self: center;
       font-size: 0.9em;
-      margin-left: 0.5rem;
-      margin-right: 0.25rem;
+      margin-inline: 0.25rem;
     }
   }
 
@@ -90,18 +99,10 @@ const maxModel = computed({
     border-top-left-radius: calc(var(--border-radius));
     border-top-right-radius: calc(var(--border-radius));
   }
-  label:first-child input {
-    border-top-left-radius: calc(var(--border-radius) - 1px);
-    border-top-right-radius: calc(var(--border-radius) - 1px);
-  }
 
   label:last-child {
     border-bottom-left-radius: calc(var(--border-radius));
     border-bottom-right-radius: calc(var(--border-radius));
-  }
-  label:last-child input {
-    border-bottom-left-radius: calc(var(--border-radius) - 1px);
-    border-bottom-right-radius: calc(var(--border-radius) - 1px);
   }
 
   input {
@@ -110,8 +111,21 @@ const maxModel = computed({
     min-width: 1em;
     padding: 0.15rem 0.4rem;
     color: var(--color-full);
+    font-size: 0.9em;
+
     appearance: none;
     -moz-appearance: textfield;
+
+    // Hack to prevent zooming on iOS when entering dropdown
+    @media (hover: none) {
+      font-size: 18px;
+    }
+
+    &::-webkit-outer-spin-button,
+    &::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
 
     &:focus {
       z-index: 1;
