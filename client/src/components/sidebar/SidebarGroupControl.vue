@@ -13,12 +13,12 @@ defineProps<{ tab: Tab<string> }>();
 const activityStore = useActivityStore();
 
 const groupLevels = [
-  { value: GroupLevel.OFF, label: 'None', summary: 'Grouping disabled' },
-  { value: GroupLevel.WEEKLY_MO, label: 'Week (Mon–Sun)', summary: 'Grouping by week (Mon–Sun)' },
-  { value: GroupLevel.WEEKLY_SA, label: 'Week (Sat–Fri)', summary: 'Grouping by week (Sat–Fri)' },
-  { value: GroupLevel.WEEKLY_SU, label: 'Week (Sun–Sat)', summary: 'Grouping by week (Sun–Sat)' },
-  { value: GroupLevel.MONTHLY, label: 'Month', summary: 'Grouping by month' },
-  { value: GroupLevel.YEARLY, label: 'Year', summary: 'Grouping by year' },
+  { value: GroupLevel.OFF, label: 'None', summary: 'disabled' },
+  { value: GroupLevel.WEEKLY_MO, label: 'Week (Mon–Sun)', summary: 'by week (Mon–Sun)' },
+  { value: GroupLevel.WEEKLY_SA, label: 'Week (Sat–Fri)', summary: 'by week (Sat–Fri)' },
+  { value: GroupLevel.WEEKLY_SU, label: 'Week (Sun–Sat)', summary: 'by week (Sun–Sat)' },
+  { value: GroupLevel.MONTHLY, label: 'Month', summary: 'by month' },
+  { value: GroupLevel.YEARLY, label: 'Year', summary: 'by year' },
 ];
 
 const summary = computed(
@@ -29,7 +29,7 @@ const summary = computed(
 </script>
 
 <template>
-  <UIVerticalTab :tab icon="segment" :summary="summary">
+  <UIVerticalTab :tab icon="segment" :summary="summary" heading="Grouping">
     <template #expanded>
       <div :class="controlsStyle.grid">
         <label>
