@@ -7,7 +7,6 @@ import { useActivityStore } from '@/stores/ActivityStore';
 import { useSelectionStore } from '@/stores/SelectionStore';
 import { combineStats } from '@/utils/stats';
 
-import UIIcon from '../ui/UIIcon.vue';
 import SidebarCredits from './SidebarCredits.vue';
 import SidebarForm from './SidebarForm.vue';
 import SidebarGroup from './SidebarGroup.vue';
