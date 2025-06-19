@@ -167,6 +167,7 @@ const showHelp = ref(false);
         >
           <span>Starred</span>
           <UIButton
+            light
             :invertColor="activityStore.filterModel.starred === false"
             :icon="activityStore.filterModel.starred === undefined ? 'star_border' : 'star'"
             @click="

@@ -19,6 +19,7 @@ const {
   invertColor = false,
   disabled = false,
   ghost = false,
+  light = false,
   onClick,
   onDblClick,
   onRejection,
@@ -28,6 +29,7 @@ const {
   invertColor?: boolean;
   loadingText?: string;
   disabled?: boolean;
+  light?: boolean;
   ghost?: boolean;
   onClick?: () => void | Promise<void>;
   onDblClick?: () => void | Promise<void>;
@@ -67,7 +69,12 @@ async function clickHandler(e: MouseEvent) {
 <template>
   <button
     ref="buttonRef"
-    :class="[$style.button, invertColor && $style.invertColor, ghost && $style.ghost]"
+    :class="[
+      $style.button,
+      invertColor && $style.invertColor,
+      ghost && $style.ghost,
+      light && !invertColor && $style.light,
+    ]"
     :disabled="loading || disabled"
     :loading
     @click="clickHandler"
@@ -136,6 +143,18 @@ button.button {
 
   .buttonSpinner {
     grid-area: button;
+  }
+
+  &.light {
+    background-color: var(--background-strong);
+
+    &:hover:not(:disabled) {
+      background-color: var(--background-weak);
+
+      .buttonContents {
+        background-color: unset;
+      }
+    }
   }
 
   &.invertColor {

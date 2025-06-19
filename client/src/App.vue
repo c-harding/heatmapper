@@ -130,6 +130,7 @@ a[href] {
     --background-error: hsl(0 90% 30%);
     --bold-color: #fc4c02;
     --link-color: lightblue;
+    color-scheme: dark;
   }
 }
 
