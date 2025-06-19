@@ -1,3 +1,5 @@
+export type FilterField = keyof FilterModel;
+
 export interface RangeFilter {
   // These fields are both readonly to avoid problems with shallow copies of the filter model
   readonly min?: number;

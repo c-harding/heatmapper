@@ -28,8 +28,9 @@ const useTextLink = !config.USE_STRAVA_ICONS;
     @click.stop
   >
     <template v-if="useTextLink">
-      <div>View on</div>
-      <div>Strava</div>
+      View on
+      <br />
+      Strava
     </template>
     <img v-else src="@/assets/strava.png" />
   </a>
