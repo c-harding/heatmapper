@@ -158,6 +158,7 @@ const showHelp = ref(false);
         >
           <span>Starred</span>
           <UIButton
+            light
             :invertColor="filterModel.starred === false"
             :icon="filterModel.starred === undefined ? 'star_border' : 'star'"
             @click="filterModel.starred = filterModel.starred !== undefined ? undefined : true"
