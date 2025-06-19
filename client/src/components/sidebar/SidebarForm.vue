@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
 
-import { GroupLevel } from '@/services/ActivityService';
 import { useActivityService } from '@/services/useActivityService';
 import { useExpandableGroups } from '@/services/useExpandableGroups';
 import useUser from '@/services/useUser';
@@ -15,14 +14,13 @@ import UIVerticalTabContainer from '../ui/tabs/UIVerticalTabContainer.vue';
 import UIButton from '../ui/UIButton.vue';
 import UIButtonGroup from '../ui/UIButtonGroup.vue';
 import UIDateInput from '../ui/UIDateInput.vue';
-import UIDropdown, { type DropdownOption } from '../ui/UIDropdown.vue';
-import UIIcon from '../ui/UIIcon.vue';
 import UILabelledIcon from '../ui/UILabelledIcon.vue';
 import UIModal from '../ui/UIModal.vue';
 import UIMultiText from '../ui/UIMultiText.vue';
 import controlsStyle from './controls.module.scss';
 import LoadingStatus from './LoadingStatus.vue';
 import SidebarFilter from './SidebarFilter.vue';
+import SidebarGroupControl from './SidebarGroupControl.vue';
 import UserLogin from './UserLogin.vue';
 import UserSettings from './UserSettings.vue';
 
@@ -47,15 +45,6 @@ const continueLogin = computed(() =>
 );
 
 const settingsOpen = ref(false);
-
-const groupLevels: DropdownOption[] = [
-  { value: GroupLevel.OFF, label: 'None' },
-  { value: GroupLevel.WEEKLY_MO, label: 'Week (Mon–Sun)' },
-  { value: GroupLevel.WEEKLY_SA, label: 'Week (Sat–Fri)' },
-  { value: GroupLevel.WEEKLY_SU, label: 'Week (Sun–Sat)' },
-  { value: GroupLevel.MONTHLY, label: 'Month' },
-  { value: GroupLevel.YEARLY, label: 'Year' },
-];
 
 function onLogout(): void {
   document.cookie = `token=;expires=${new Date(0).toUTCString()}`;
@@ -164,21 +153,8 @@ defineExpose({ gear });
     <LoadingStatus v-else :useRoutes :error />
     <UIVerticalTabContainer v-slot="{ makeTab }">
       <SidebarFilter :tab="makeTab('filter')" />
+      <SidebarGroupControl :tab="makeTab('group')" />
     </UIVerticalTabContainer>
-    <div :class="[$style.controls, $style.row]">
-      <label :class="!expandableGroups.hasGroups.value && $style.hidden">
-        <span />
-        <a
-          :class="$style.controlIconButton"
-          @click.stop.prevent="expandableGroups.setAllExpanded(!areSomeExpanded)"
-          ><UIIcon :icon="groupingArrow"
-        /></a>
-      </label>
-      <label>
-        <span>Group by</span>
-        <UIDropdown v-model="groupLevel" :options="groupLevels" />
-      </label>
-    </div>
   </aside>
 
   <UIModal v-if="user" v-model="settingsOpen" :class="$style.modal" heading="User settings">
