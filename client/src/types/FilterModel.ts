@@ -14,4 +14,5 @@ export interface FilterModel {
 
   distance?: RangeFilter;
   elevation?: RangeFilter;
+  gear?: string;
 }
