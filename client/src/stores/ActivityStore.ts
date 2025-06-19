@@ -139,6 +139,10 @@ export const useActivityStore = defineStore('activity', () => {
         filterModel.elevation?.max !== undefined &&
         ((item: MapItem) =>
           item.elevation?.gain && item.elevation.gain <= (filterModel.elevation?.max ?? Infinity)),
+
+      filterFields.has('gear') &&
+        filterModel.gear &&
+        ((item: MapItem) => item.route || item.gear === filterModel.gear),
     ]
       // Remove falsy filters
       .filter((f): f is (value: MapItem) => boolean => !!f);
