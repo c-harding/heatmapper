@@ -2,7 +2,7 @@
 import { computed, ref, watch } from 'vue';
 
 import { useExpandableGroups } from '@/services/useExpandableGroups';
-import { GroupLevel, useActivityStore } from '@/stores/ActivityStore';
+import { useActivityStore } from '@/stores/ActivityStore';
 import { useUserStore } from '@/stores/UserStore';
 import { combineCallbacks } from '@/utils/functions';
 import { useResettingRef } from '@/utils/resetting-ref';
@@ -13,8 +13,6 @@ import { TooltipError } from '../tooltip/TooltipError';
 import UIVerticalTabContainer from '../ui/tabs/UIVerticalTabContainer.vue';
 import UIButton from '../ui/UIButton.vue';
 import UIButtonGroup from '../ui/UIButtonGroup.vue';
-import UIDropdown, { type DropdownOption } from '../ui/UIDropdown.vue';
-import UIIcon from '../ui/UIIcon.vue';
 import UILabelledIcon from '../ui/UILabelledIcon.vue';
 import UIModal from '../ui/UIModal.vue';
 import UIMultiText from '../ui/UIMultiText.vue';
@@ -23,6 +21,7 @@ import LoadingStatus from './LoadingStatus.vue';
 import SidebarDateFilter from './SidebarDateFilter.vue';
 import SidebarDisplayOptions from './SidebarDisplayOptions.vue';
 import SidebarFilter from './SidebarFilter.vue';
+import SidebarGroupControl from './SidebarGroupControl.vue';
 import SidebarSelectionControls from './SidebarSelectionControls.vue';
 import UserLogin from './UserLogin.vue';
 import UserSettings from './UserSettings.vue';
@@ -39,15 +38,6 @@ const continueLogin = computed(() =>
 );
 
 const settingsOpen = ref(false);
-
-const groupLevels: DropdownOption[] = [
-  { value: GroupLevel.OFF, label: 'None' },
-  { value: GroupLevel.WEEKLY_MO, label: 'Week (Mon–Sun)' },
-  { value: GroupLevel.WEEKLY_SA, label: 'Week (Sat–Fri)' },
-  { value: GroupLevel.WEEKLY_SU, label: 'Week (Sun–Sat)' },
-  { value: GroupLevel.MONTHLY, label: 'Month' },
-  { value: GroupLevel.YEARLY, label: 'Year' },
-];
 
 function onLogout(): void {
   document.cookie = `token=;expires=${new Date(0).toUTCString()}`;
@@ -154,22 +144,9 @@ watch([start, end, () => activityStore.useRoutes], () => {
     <UIVerticalTabContainer v-slot="{ makeTab }">
       <SidebarFilter :tab="makeTab('filter')" />
       <SidebarDisplayOptions :tab="makeTab('display')" />
+      <SidebarGroupControl :tab="makeTab('group')" />
       <SidebarSelectionControls :tab="makeTab('selection')" />
     </UIVerticalTabContainer>
-    <div :class="[$style.controls, $style.row]">
-      <label :class="!expandableGroups.hasGroups.value && $style.hidden">
-        <span />
-        <a
-          :class="$style.controlIconButton"
-          @click.stop.prevent="expandableGroups.setAllExpanded(!areSomeExpanded)"
-          ><UIIcon :icon="groupingArrow"
-        /></a>
-      </label>
-      <label>
-        <span>Group by</span>
-        <UIDropdown v-model="activityStore.groupLevel" :options="groupLevels" />
-      </label>
-    </div>
   </aside>
 
   <UIModal
