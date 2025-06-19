@@ -15,12 +15,13 @@ import UIDropdown from '../ui/UIDropdown.vue';
 import UIMultiText from '../ui/UIMultiText.vue';
 import UIRange from '../ui/UIRange.vue';
 import controlsStyle from './controls.module.scss';
+import FilterHelp from './FilterHelp.vue';
+
+defineProps<{ tab: Tab<string> }>();
 
 const activityStore = useActivityStore();
 
 const sportTypeStore = useSportTypeStore();
-
-defineProps<{ tab: Tab<string> }>();
 
 const chosenSportLabel = computed(() => {
   if (sportTypeStore.filter) {
@@ -59,7 +60,9 @@ const savedFilter = ref<FilterModel>(loadFilterModel() ?? blankFilter);
 const isSaved = computed(() => compareFilters(activityStore.filterModel, savedFilter.value));
 
 const hideResetToSaved = computed(() => compareFilters(blankFilter, savedFilter.value));
-const canResetToSaved = computed(() => compareFilters(activityStore.filterModel, savedFilter.value));
+const canResetToSaved = computed(() =>
+  compareFilters(activityStore.filterModel, savedFilter.value),
+);
 
 const filterState = computed<'changed' | 'canUndo' | 'initial'>(() => {
   if (!compareFilters(activityStore.filterModel, blankFilter)) return 'changed';
@@ -98,18 +101,29 @@ function formatRange(
 
 const filterSummary = computed(() =>
   [
-    chosenSportLabel.value,
-    formatRange(activityStore.filterModel.distance, 'distance', formatKilometers),
-    formatRange(activityStore.filterModel.elevation, 'elevation', formatMeters),
-    activityStore.useRoutes &&
+    activityStore.filterFields.has('sportType') && chosenSportLabel.value,
+    activityStore.filterFields.has('distance') &&
+      formatRange(activityStore.filterModel.distance, 'distance', formatKilometers),
+    activityStore.filterFields.has('elevation') &&
+      formatRange(activityStore.filterModel.elevation, 'elevation', formatMeters),
+    activityStore.filterFields.has('starred') &&
+      activityStore.useRoutes &&
       activityStore.filterModel.starred !== undefined &&
       (activityStore.filterModel.starred ? 'only starred' : 'only unstarred'),
   ].filter((string): string is string => !!string),
 );
+
+const showHelp = ref(false);
 </script>
 
 <template>
-  <UIVerticalTab :tab icon="filter_alt" :expandedContentClass="$style.content" heading="Filter">
+  <UIVerticalTab
+    :tab
+    icon="filter_alt"
+    :expandedContentClass="$style.content"
+    heading="Filter"
+    @help="showHelp = true"
+  >
     <template #summary>
       <template v-if="filterSummary.length">
         <template v-for="(summaryItem, i) of filterSummary" :key="i"
@@ -121,7 +135,7 @@ const filterSummary = computed(() =>
     </template>
     <template #expanded>
       <div :class="controlsStyle.grid">
-        <label>
+        <label v-if="activityStore.filterFields.has('sportType')">
           <span>Sport type</span>
           <UIDropdown
             v-model="sportTypeStore.filter"
@@ -131,12 +145,17 @@ const filterSummary = computed(() =>
           />
         </label>
 
-        <label>
+        <label v-if="activityStore.filterFields.has('distance')">
           <span>Distance</span>
-          <UIRange v-model="activityStore.filterModel.distance" :step="1" :scale="0.001" suffix="km" />
+          <UIRange
+            v-model="activityStore.filterModel.distance"
+            :step="1"
+            :scale="0.001"
+            suffix="km"
+          />
         </label>
 
-        <label>
+        <label v-if="activityStore.filterFields.has('elevation')">
           <span>Elevation</span>
           <UIRange v-model="activityStore.filterModel.elevation" :step="0.1" suffix="m" />
         </label>
@@ -151,14 +170,15 @@ const filterSummary = computed(() =>
             :invertColor="activityStore.filterModel.starred === false"
             :icon="activityStore.filterModel.starred === undefined ? 'star_border' : 'star'"
             @click="
-                activityStore.filterModel.starred =
-                  activityStore.filterModel.starred !== undefined ? undefined : true
-              "
+              activityStore.filterModel.starred =
+                activityStore.filterModel.starred !== undefined ? undefined : true
+            "
             @dbl-click="activityStore.filterModel.starred = false"
           />
         </label>
         <div :class="controlsStyle.buttons">
-          <UIButtonGroup>
+          <em v-if="activityStore.filterFields.size === 0">All filters are hidden</em>
+          <UIButtonGroup v-else>
             <UIButton icon="save" :disabled="isSaved" @click="saveFilter"> Save </UIButton>
             <UIButton
               :disabled="filterState === 'initial'"
@@ -181,6 +201,7 @@ const filterSummary = computed(() =>
           </UIButtonGroup>
         </div>
       </div>
+      <FilterHelp v-model="showHelp" />
     </template>
   </UIVerticalTab>
 </template>

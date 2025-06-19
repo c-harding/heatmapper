@@ -160,7 +160,12 @@ watch([start, end, () => activityStore.useRoutes], () => {
     </div>
   </aside>
 
-  <UIModal v-if="userStore.user" v-model="settingsOpen" :class="$style.modal">
+  <UIModal
+    v-if="userStore.user"
+    v-model="settingsOpen"
+    :class="$style.modal"
+    heading="User settings"
+  >
     <UserSettings :user="userStore.user" @logout="onLogout" />
   </UIModal>
 </template>
