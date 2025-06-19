@@ -5,6 +5,8 @@ import UIIcon from './UIIcon.vue';
 
 const open = defineModel<boolean>({ default: false });
 
+defineProps<{ heading?: string }>();
+
 const modal = ref<HTMLDialogElement>();
 
 const mountedPromise = new Promise<void>((resolve) => {
@@ -28,6 +30,9 @@ watch(
 <template>
   <dialog ref="modal" :class="$style.uiModal" @close="open = false" @click="open = false">
     <a :class="$style.closeButton" @click.stop.prevent="open = false"><UIIcon icon="close" /></a>
+    <h2 :class="$style.heading" @click.stop>
+      <slot v-if="open" name="heading">{{ heading }}</slot>
+    </h2>
     <div :class="$style.dialogContents" @click.stop>
       <slot v-if="open" />
     </div>
@@ -40,6 +45,11 @@ dialog.uiModal {
   padding: 0;
   border-radius: 1rem;
   position: relative;
+  flex-direction: column;
+
+  &:open {
+    display: flex;
+  }
 
   background-color: var(--background-full);
   color: var(--color-full);
@@ -62,9 +72,21 @@ dialog.uiModal {
     }
   }
 
+  .heading {
+    margin: 0;
+    padding-top: 1rem;
+    padding-left: 1rem;
+    padding-right: 1.5rem;
+    padding-bottom: 0;
+  }
+
   .dialogContents {
-    margin-block: 1em;
-    padding-inline: 1em;
+    padding: 1em;
+    overflow-block: auto;
+
+    :first-child {
+      margin-top: 0;
+    }
   }
 }
 </style>

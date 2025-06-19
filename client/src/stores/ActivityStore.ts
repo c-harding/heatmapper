@@ -13,10 +13,10 @@ import {
 } from '@strava-heatmapper/shared/interfaces';
 import { type SportTypesAndGroups } from '@strava-heatmapper/shared/interfaces/SportType';
 import { defineStore } from 'pinia';
-import { computed, reactive, type Ref, ref, shallowRef, toRef } from 'vue';
+import { computed, reactive, type Ref, ref, shallowRef, toRef, watch } from 'vue';
 
 import Socket from '@/socket';
-import { type FilterModel } from '@/types/FilterModel';
+import { type FilterField, type FilterModel } from '@/types/FilterModel';
 import config from '@/utils/config';
 import { groupMapItems } from '@/utils/groupMapItems';
 import {
@@ -28,9 +28,11 @@ import {
   getCachedGear,
   getCachedRoutes,
   getStoreMeta,
+  loadFilterFields,
   loadFilterModel,
   resetStore,
   saveCachedGear,
+  saveFilterFields,
 } from '@/utils/storage';
 
 import { useContinueLoginStore } from './ContinueLoginStore';
@@ -84,6 +86,10 @@ export const useActivityStore = defineStore('activity', () => {
   const activityStats = ref<LoadingStats>({ inCache: true });
 
   const filterModel: FilterModel = reactive(loadFilterModel() ?? {});
+  const filterFields: Set<FilterField> = reactive(
+    loadFilterFields() ?? new Set(['sportType', 'starred']),
+  );
+  watch(filterFields, saveFilterFields);
 
   const error = ref<string>();
 
@@ -110,20 +116,27 @@ export const useActivityStore = defineStore('activity', () => {
   const visibleMapItems = computed<readonly MapItem[]>(() => {
     const sportType = filterModel.sportType;
     const filters: ((value: MapItem) => boolean)[] = [
-      sportType && ((item: MapItem) => doesSportTypeMatch(sportType, item.type)),
+      filterFields.has('sportType') &&
+        sportType &&
+        ((item: MapItem) => doesSportTypeMatch(sportType, item.type)),
 
-      filterModel.starred !== undefined &&
+      filterFields.has('starred') &&
+        filterModel.starred !== undefined &&
         ((item: MapItem) => !item.route || item.starred === filterModel.starred),
 
-      filterModel.distance?.min !== undefined &&
+      filterFields.has('distance') &&
+        filterModel.distance?.min !== undefined &&
         ((item: MapItem) => item.distance >= (filterModel.distance?.min ?? -Infinity)),
-      filterModel.distance?.max !== undefined &&
+      filterFields.has('distance') &&
+        filterModel.distance?.max !== undefined &&
         ((item: MapItem) => item.distance <= (filterModel.distance?.max ?? Infinity)),
 
-      filterModel.elevation?.min !== undefined &&
+      filterFields.has('elevation') &&
+        filterModel.elevation?.min !== undefined &&
         ((item: MapItem) =>
           item.elevation?.gain && item.elevation.gain >= (filterModel.elevation?.min ?? -Infinity)),
-      filterModel.elevation?.max !== undefined &&
+      filterFields.has('elevation') &&
+        filterModel.elevation?.max !== undefined &&
         ((item: MapItem) =>
           item.elevation?.gain && item.elevation.gain <= (filterModel.elevation?.max ?? Infinity)),
     ]
@@ -433,6 +446,7 @@ export const useActivityStore = defineStore('activity', () => {
     routeStats,
     activityStats,
     filterModel,
+    filterFields,
     useRoutes,
     groupLevel,
     error,

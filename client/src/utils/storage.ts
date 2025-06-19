@@ -6,7 +6,7 @@ import {
 } from '@strava-heatmapper/shared/interfaces';
 import localforage from 'localforage';
 
-import { type FilterModel } from '@/types/FilterModel';
+import { type FilterField, type FilterModel } from '@/types/FilterModel';
 
 export interface StoreMeta {
   version: number;
@@ -54,6 +54,15 @@ export function loadFilterModel() {
 
 export function saveFilterModel(filter: FilterModel) {
   localStorage.setItem('filter', JSON.stringify(filter));
+}
+
+export function loadFilterFields() {
+  const json = localStorage.getItem('filterFields');
+  if (json) return new Set(JSON.parse(json) as FilterField[]);
+}
+
+export function saveFilterFields(filter: Set<FilterField>) {
+  localStorage.setItem('filterFields', JSON.stringify(Array.from(filter)));
 }
 
 export function getStoreMeta(): StoreMeta {
