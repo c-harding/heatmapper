@@ -11,7 +11,17 @@ import {
   sportTypes,
   type SportTypesAndGroups,
 } from '@strava-heatmapper/shared/interfaces/SportType';
-import { computed, inject, provide, reactive, readonly, type Ref, ref, shallowRef } from 'vue';
+import {
+  computed,
+  inject,
+  provide,
+  reactive,
+  readonly,
+  type Ref,
+  ref,
+  shallowRef,
+  watch,
+} from 'vue';
 
 import Socket from '@/socket';
 import config from '@/utils/config';
@@ -24,12 +34,14 @@ import {
   getCachedGear,
   getCachedRoutes,
   getStoreMeta,
+  loadFilterFields,
   loadFilterModel,
   resetStore,
   saveCachedGear,
+  saveFilterFields,
 } from '@/utils/storage';
 
-import { type FilterModel } from '../types/FilterModel';
+import { type FilterField, type FilterModel } from '../types/FilterModel';
 import {
   type ActivityService,
   activityServiceToken,
@@ -64,6 +76,10 @@ function makeActivityService({
   const activityStats = ref<LoadingStats>({ inCache: true });
 
   const filterModel: FilterModel = reactive(loadFilterModel() ?? {});
+  const filterFields: Set<FilterField> = reactive(
+    loadFilterFields() ?? new Set(['sportType', 'starred']),
+  );
+  watch(filterFields, saveFilterFields);
 
   const error = ref<string>();
 
@@ -90,20 +106,27 @@ function makeActivityService({
   const visibleMapItems = computed<readonly MapItem[]>(() => {
     const sportType = filterModel.sportType;
     const filters: ((value: MapItem) => boolean)[] = [
-      sportType && ((item: MapItem) => doesSportTypeMatch(sportType, item.type)),
+      filterFields.has('sportType') &&
+        sportType &&
+        ((item: MapItem) => doesSportTypeMatch(sportType, item.type)),
 
-      filterModel.starred !== undefined &&
+      filterFields.has('starred') &&
+        filterModel.starred !== undefined &&
         ((item: MapItem) => !item.route || item.starred === filterModel.starred),
 
-      filterModel.distance?.min !== undefined &&
+      filterFields.has('distance') &&
+        filterModel.distance?.min !== undefined &&
         ((item: MapItem) => item.distance >= (filterModel.distance?.min ?? -Infinity)),
-      filterModel.distance?.max !== undefined &&
+      filterFields.has('distance') &&
+        filterModel.distance?.max !== undefined &&
         ((item: MapItem) => item.distance <= (filterModel.distance?.max ?? Infinity)),
 
-      filterModel.elevation?.min !== undefined &&
+      filterFields.has('elevation') &&
+        filterModel.elevation?.min !== undefined &&
         ((item: MapItem) =>
           item.elevation?.gain && item.elevation.gain >= (filterModel.elevation?.min ?? -Infinity)),
-      filterModel.elevation?.max !== undefined &&
+      filterFields.has('elevation') &&
+        filterModel.elevation?.max !== undefined &&
         ((item: MapItem) =>
           item.elevation?.gain && item.elevation.gain <= (filterModel.elevation?.max ?? Infinity)),
     ]
@@ -403,6 +426,7 @@ function makeActivityService({
     continueLogin,
     stats,
     filterModel,
+    filterFields,
     useRoutes,
     error,
     gear: readonly(gear),

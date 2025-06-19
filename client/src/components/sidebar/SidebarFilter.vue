@@ -15,12 +15,13 @@ import UIDropdown from '../ui/UIDropdown.vue';
 import UIMultiText from '../ui/UIMultiText.vue';
 import UIRange from '../ui/UIRange.vue';
 import controlsStyle from './controls.module.scss';
-
-const { useRoutes, filterModel } = useActivityService();
-
-const { sportsDropdownOptions, sportsFilter } = useSportsTypes();
+import FilterHelp from './FilterHelp.vue';
 
 defineProps<{ tab: Tab<string> }>();
+
+const { useRoutes, filterModel, filterFields } = useActivityService();
+
+const { sportsDropdownOptions, sportsFilter } = useSportsTypes();
 
 const chosenSportLabel = computed(() => {
   if (sportsFilter.value) {
@@ -98,18 +99,27 @@ function formatRange(
 
 const filterSummary = computed(() =>
   [
-    chosenSportLabel.value,
-    formatRange(filterModel.distance, 'distance', formatKilometers),
-    formatRange(filterModel.elevation, 'elevation', formatMeters),
-    useRoutes.value &&
+    filterFields.has('sportType') && chosenSportLabel.value,
+    filterFields.has('distance') && formatRange(filterModel.distance, 'distance', formatKilometers),
+    filterFields.has('elevation') && formatRange(filterModel.elevation, 'elevation', formatMeters),
+    filterFields.has('starred') &&
+      useRoutes.value &&
       filterModel.starred !== undefined &&
       (filterModel.starred ? 'only starred' : 'only unstarred'),
   ].filter((string): string is string => !!string),
 );
+
+const showHelp = ref(false);
 </script>
 
 <template>
-  <UIVerticalTab :tab icon="filter_alt" :expandedContentClass="$style.content" heading="Filter">
+  <UIVerticalTab
+    :tab
+    icon="filter_alt"
+    :expandedContentClass="$style.content"
+    heading="Filter"
+    @help="showHelp = true"
+  >
     <template #summary>
       <template v-if="filterSummary.length">
         <template v-for="(summaryItem, i) of filterSummary" :key="i"
@@ -121,7 +131,7 @@ const filterSummary = computed(() =>
     </template>
     <template #expanded>
       <div :class="controlsStyle.grid">
-        <label>
+        <label v-if="filterFields.has('sportType')">
           <span>Sport type</span>
           <UIDropdown
             v-model="sportsFilter"
@@ -131,18 +141,18 @@ const filterSummary = computed(() =>
           />
         </label>
 
-        <label>
+        <label v-if="filterFields.has('distance')">
           <span>Distance</span>
           <UIRange v-model="filterModel.distance" :step="1" :scale="0.001" suffix="km" />
         </label>
 
-        <label>
+        <label v-if="filterFields.has('elevation')">
           <span>Elevation</span>
           <UIRange v-model="filterModel.elevation" :step="0.1" suffix="m" />
         </label>
 
         <label
-          v-if="useRoutes"
+          v-if="useRoutes && filterFields.has('starred')"
           title="Only show starred routes (double-click for unstarred routes)"
           :class="$style.noPointer"
         >
@@ -155,7 +165,8 @@ const filterSummary = computed(() =>
           />
         </label>
         <div :class="controlsStyle.buttons">
-          <UIButtonGroup>
+          <em v-if="filterFields.size === 0">All filters are hidden</em>
+          <UIButtonGroup v-else>
             <UIButton icon="save" :disabled="isSaved" @click="saveFilter"> Save </UIButton>
             <UIButton
               :disabled="filterState === 'initial'"
@@ -178,6 +189,7 @@ const filterSummary = computed(() =>
           </UIButtonGroup>
         </div>
       </div>
+      <FilterHelp v-model="showHelp" />
     </template>
   </UIVerticalTab>
 </template>

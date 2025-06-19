@@ -146,7 +146,7 @@ defineExpose({ gear });
     </UIVerticalTabContainer>
   </aside>
 
-  <UIModal v-if="user" v-model="settingsOpen" :class="$style.modal">
+  <UIModal v-if="user" v-model="settingsOpen" :class="$style.modal" heading="User settings">
     <UserSettings :user @logout="onLogout" />
   </UIModal>
 </template>

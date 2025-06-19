@@ -7,7 +7,7 @@ import {
 import { type SportTypesAndGroups } from '@strava-heatmapper/shared/interfaces/SportType';
 import { type InjectionKey, type Ref } from 'vue';
 
-import { type FilterModel } from '@/types/FilterModel';
+import { type FilterField, type FilterModel } from '@/types/FilterModel';
 
 export interface LoadingStats {
   closed?: boolean;
@@ -22,6 +22,7 @@ export interface ActivityService {
   readonly continueLogin: Readonly<Ref<((withCookies: boolean) => void) | undefined>>;
   readonly stats: Readonly<Ref<LoadingStats>>;
   readonly filterModel: FilterModel;
+  readonly filterFields: Set<FilterField>;
   readonly error: Readonly<Ref<string | undefined>>;
   readonly gear: ReadonlyMap<string, Gear | null>;
   readonly useRoutes: Ref<boolean>;
