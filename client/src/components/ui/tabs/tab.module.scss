@@ -41,6 +41,7 @@
     margin: -1px;
     border: 1px solid var(--color-weak);
     border-right: none;
+    padding-right: 1px;
     background: var(--background-full);
   }
 
@@ -63,9 +64,14 @@
 .heading {
   all: unset;
   font-weight: bold;
+  cursor: default;
 }
 
 .summary {
   font-size: 0.9em;
   font-style: italic;
+}
+
+.summaryRow {
+  list-style: none;
 }
