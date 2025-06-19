@@ -1,6 +1,87 @@
 import polyline from '@mapbox/polyline';
 import { type MapItem } from '@strava-heatmapper/shared/interfaces';
-import mapboxgl, { LngLat, LngLatBounds, type LngLatLike } from 'mapbox-gl';
+import { type LngLatLike } from 'mapbox-gl';
+
+// Equivalent to the mapbox classes, but defined separately to avoid the mapbox bundle blocking the initial bundle
+class LngLat {
+  constructor(
+    readonly lng: number,
+    readonly lat: number,
+  ) {}
+
+  static convert(input: LngLatLike) {
+    if (Array.isArray(input)) {
+      return new LngLat(input[0], input[1]);
+    } else if ('lng' in input) {
+      return new LngLat(input.lng, input.lat);
+    } else {
+      return new LngLat(input.lon, input.lat);
+    }
+  }
+}
+
+class LngLatBounds {
+  southWest: LngLat;
+  northEast: LngLat;
+  constructor(init: [west: number, south: number, east: number, north: number]);
+  constructor(init: [southWest: LngLatLike, northEast: LngLatLike]);
+  constructor(southWest: LngLatLike, northEast: LngLatLike);
+  constructor(
+    ...args:
+      | [[west: number, south: number, east: number, north: number]]
+      | [[southWest: LngLatLike, northEast: LngLatLike]]
+      | [southWest: LngLatLike, northEast: LngLatLike]
+  ) {
+    if (args.length === 2) {
+      this.southWest = LngLat.convert(args[0]);
+      this.northEast = LngLat.convert(args[1]);
+    } else if (args[0].length === 2) {
+      this.southWest = LngLat.convert(args[0][0]);
+      this.northEast = LngLat.convert(args[0][1]);
+    } else {
+      this.southWest = new LngLat(args[0][0], args[0][1]);
+      this.northEast = new LngLat(args[0][2], args[0][3]);
+    }
+  }
+  get south() {
+    return this.southWest.lat;
+  }
+  get west() {
+    return this.southWest.lng;
+  }
+  get north() {
+    return this.southWest.lat;
+  }
+  get east() {
+    return this.southWest.lng;
+  }
+
+  extend(toAdd: LngLatLike): this {
+    const lngLat = LngLat.convert(toAdd);
+    if ((lngLat.lng < this.west, lngLat.lat < this.south)) {
+      this.southWest = new LngLat(
+        Math.min(this.west, lngLat.lng),
+        Math.min(this.south, lngLat.lat),
+      );
+    }
+    if ((lngLat.lng > this.east, lngLat.lat < this.north)) {
+      this.northEast = new LngLat(
+        Math.max(this.east, lngLat.lng),
+        Math.max(this.north, lngLat.lat),
+      );
+    }
+    return this;
+  }
+
+  static empty() {
+    return new LngLatBounds([Infinity, Infinity, -Infinity, -Infinity]);
+  }
+
+  *[Symbol.iterator]() {
+    yield this.southWest;
+    yield this.northEast;
+  }
+}
 
 export function getBestCenter(
   items: readonly MapItem[],
@@ -63,8 +144,8 @@ class LocationBucketCounter {
   }
 
   private *allBuckets(bounds: LngLatBounds): Generator<[LngLat, number], void, unknown> {
-    const minBucket = this.getBucket(bounds.getSouthWest());
-    const maxBucket = this.getBucket(bounds.getNorthEast());
+    const minBucket = this.getBucket(bounds.southWest);
+    const maxBucket = this.getBucket(bounds.northEast);
 
     const minBlur = new LngLat(minBucket.lng - this.lngBlur, minBucket.lat - this.latBlur);
     const maxBlur = new LngLat(maxBucket.lng + this.lngBlur, maxBucket.lat + this.latBlur);
@@ -83,7 +164,7 @@ class LocationBucketCounter {
   }
 
   private addToBucket(coord: LngLat, weight = 1) {
-    const x = Math.round(coord.lng / this.lngResolution);
+    const x = Math.round(((coord.lng + 360) % 360) / this.lngResolution);
     const y = Math.round(coord.lat / this.latResolution);
     const row = (this.buckets[y] ??= {});
     row[x] = (row[x] ?? 0) + weight;
@@ -98,7 +179,7 @@ class LocationBucketCounter {
   private getBounds(item: MapItem) {
     const coordinates = polyline.decode(item.map).map(([lat, lng]) => new LngLat(lng, lat));
 
-    return coordinates.reduce((acc, coord) => acc.extend(coord), new mapboxgl.LngLatBounds());
+    return coordinates.reduce((acc, coord) => acc.extend(coord), LngLatBounds.empty());
   }
 
   addItem(item: MapItem) {
