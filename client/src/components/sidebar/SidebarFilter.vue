@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { type Gear } from '@strava-heatmapper/shared/interfaces';
 import { computed, ref } from 'vue';
 
 import { useActivityService } from '@/services/useActivityService';
@@ -11,7 +12,7 @@ import UIVerticalTab from '../ui/tabs/UIVerticalTab.vue';
 import { type Tab } from '../ui/tabs/UIVerticalTabContainer.vue';
 import UIButton from '../ui/UIButton.vue';
 import UIButtonGroup from '../ui/UIButtonGroup.vue';
-import UIDropdown from '../ui/UIDropdown.vue';
+import UIDropdown, { type DropdownOption } from '../ui/UIDropdown.vue';
 import UIMultiText from '../ui/UIMultiText.vue';
 import UIRange from '../ui/UIRange.vue';
 import controlsStyle from './controls.module.scss';
@@ -19,7 +20,7 @@ import FilterHelp from './FilterHelp.vue';
 
 defineProps<{ tab: Tab<string> }>();
 
-const { useRoutes, filterModel, filterFields } = useActivityService();
+const { useRoutes, filterModel, filterFields, gear } = useActivityService();
 
 const { sportsDropdownOptions, sportsFilter } = useSportsTypes();
 
@@ -33,6 +34,12 @@ const chosenSportLabel = computed(() => {
   }
   return undefined;
 });
+
+const gearOptions = computed<DropdownOption[]>(() =>
+  Array.from(gear.entries())
+    .filter((entry): entry is [string, Gear] => !!entry[1])
+    .map(([id, gear]): DropdownOption => ({ label: gear.name, value: id })),
+);
 
 const blankFilter = Object.freeze<FilterModel>({
   distance: undefined,
@@ -165,6 +172,17 @@ const showHelp = ref(false);
             @dbl-click="filterModel.starred = false"
           />
         </label>
+
+        <label v-if="filterFields.has('gear')">
+          <span>Gear</span>
+          <UIDropdown
+            v-model="filterModel.gear"
+            :options="gearOptions"
+            blankValue=""
+            blankLabel="All gear"
+          />
+        </label>
+
         <div :class="controlsStyle.buttons">
           <em v-if="filterFields.size === 0">All filters are hidden</em>
           <UIButtonGroup v-else>

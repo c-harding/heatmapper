@@ -81,6 +81,19 @@ function toggleFilter(field: FilterField) {
         Show only routes that you have starred in Strava. Double-click on the button to invert the
         filter, i.e. to show only non-starred routes.
       </dd>
+      <dt v-if="!useRoutes">
+        <label>
+          Gear
+          <input
+            type="checkbox"
+            :checked="filterFields.has('gear')"
+            @change="toggleFilter('gear')"
+          />
+        </label>
+      </dt>
+      <dd v-if="!useRoutes">
+        Show only the activities recorded with the chosen gear (shoes/bike).
+      </dd>
     </dl>
     <hr />
     <p>
