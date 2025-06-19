@@ -91,6 +91,10 @@ const fullDate = computed(() => formatFullDateTime(startDate.value));
     margin-right: 4px;
   }
 
+  .sidebarItemName {
+    overflow-wrap: anywhere;
+  }
+
   .sidebarItemInfo {
     flex: 1;
     display: flex;
