@@ -36,7 +36,9 @@ const chosenSportLabel = computed(() => {
 });
 
 const gearOptions = computed<DropdownOption[][]>(() => {
-  const pairs = Array.from(activityStore.gear.entries()).filter((entry): entry is [string, Gear] => !!entry[1]);
+  const pairs = Array.from(activityStore.gear.entries()).filter(
+    (entry): entry is [string, Gear] => !!entry[1],
+  );
   const partitions = [
     pairs.filter(([, piece]) => !piece.isBike),
     pairs.filter(([, piece]) => piece.isBike),
@@ -190,7 +192,7 @@ const showHelp = ref(false);
           />
         </label>
 
-        <label v-if="activityStore.filterFields.has('gear')">
+        <label v-if="!activityStore.useRoutes && activityStore.filterFields.has('gear')">
           <span>Gear</span>
           <UIDropdown
             v-model="activityStore.filterModel.gear"
