@@ -6,12 +6,14 @@ const {
   inline = false,
   large = false,
   bottom = false,
+  rotation = 0,
 } = defineProps<{
   icon: string | undefined;
   inline?: boolean;
   large?: boolean;
   placeholder?: boolean;
   bottom?: boolean;
+  rotation?: number;
 }>();
 
 useMaterialIcons();
@@ -39,6 +41,8 @@ useMaterialIcons();
   user-select: none;
   width: 1em;
   overflow: hidden;
+  transform: rotate(calc(v-bind(rotation) * 1deg));
+  transition: transform var(--transition-speed);
 
   &.inline {
     vertical-align: middle;
