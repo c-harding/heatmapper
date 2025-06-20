@@ -66,10 +66,6 @@ const loading = ref(false);
 const unchangedSinceLoad = useResettingRef(false, 60 * 60 * 1000);
 
 const expandableGroups = useExpandableGroups();
-const areSomeExpanded = expandableGroups.areSomeExpanded;
-const groupingArrow = computed(() =>
-  areSomeExpanded.value ? 'keyboard_double_arrow_down' : 'keyboard_double_arrow_right',
-);
 
 async function loadButton() {
   loading.value = true;
