@@ -1,5 +1,6 @@
 <script lang="tsx">
 import {
+  LngLatBoundsLike,
   type LngLatBounds,
   type LngLatLike,
   type Map as MapboxMap,
@@ -28,7 +29,7 @@ import Viewport from '@/Viewport';
 
 const { mapItems, bounds } = defineProps<{
   mapItems: readonly MapItem[];
-  bounds?: LngLatBounds;
+  bounds?: LngLatBoundsLike;
 }>();
 
 const center = defineModel<LngLatLike>('center', { required: true });

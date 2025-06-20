@@ -1,6 +1,6 @@
 import polyline from '@mapbox/polyline';
 import { type MapItem } from '@strava-heatmapper/shared/interfaces';
-import { type LngLatLike } from 'mapbox-gl';
+import { type LngLatBoundsLike, type LngLatLike } from 'mapbox-gl';
 
 // Equivalent to the mapbox classes, but defined separately to avoid the mapbox bundle blocking the initial bundle
 class LngLat {
@@ -58,13 +58,13 @@ class LngLatBounds {
 
   extend(toAdd: LngLatLike): this {
     const lngLat = LngLat.convert(toAdd);
-    if ((lngLat.lng < this.west, lngLat.lat < this.south)) {
+    if (lngLat.lng < this.west || lngLat.lat < this.south) {
       this.southWest = new LngLat(
         Math.min(this.west, lngLat.lng),
         Math.min(this.south, lngLat.lat),
       );
     }
-    if ((lngLat.lng > this.east, lngLat.lat < this.north)) {
+    if (lngLat.lng > this.east || lngLat.lat > this.north) {
       this.northEast = new LngLat(
         Math.max(this.east, lngLat.lng),
         Math.max(this.north, lngLat.lat),
@@ -76,11 +76,6 @@ class LngLatBounds {
   static empty() {
     return new LngLatBounds([Infinity, Infinity, -Infinity, -Infinity]);
   }
-
-  *[Symbol.iterator]() {
-    yield this.southWest;
-    yield this.northEast;
-  }
 }
 
 export function getBestCenter(
@@ -89,10 +84,11 @@ export function getBestCenter(
     resolution = 1 / 8,
     blurSteps = 1,
   }: { resolution?: number | LngLatLike; blurSteps?: number } = {},
-): LngLatBounds | undefined {
+): LngLatBoundsLike | undefined {
   const counter = new LocationBucketCounter(resolution, blurSteps);
   counter.addItems(items);
-  return counter.getBestBucket();
+  const bounds = counter.getBestBucket();
+  return bounds && [bounds.southWest, bounds.northEast];
 }
 
 class LocationBucketCounter {
