@@ -5,4 +5,5 @@ export default interface Gear {
   brand: string;
   model: string;
   description: string;
+  isBike: boolean;
 }
