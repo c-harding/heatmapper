@@ -31,10 +31,16 @@ const totals = computed(() => combineStats(activityStore.mapItems, selectionStor
 
 const sidebarItemListRef = ref<HTMLElement>();
 
+const stickyTotals = computed(() => totals.value.showSelected || !!activityStore.groupLevel);
+
 const statsHeight = 50;
 const groupHeight = 50;
 
-useStickyHeader(computed(() => statsHeight + (activityStore.groupLevel ? groupHeight : 0)));
+useStickyHeader(
+  computed(
+    () => (stickyTotals.value ? statsHeight : 0) + (activityStore.groupLevel ? groupHeight : 0),
+  ),
+);
 
 watch(selectionStore.selected, async (selected) => {
   if (selectionStore.updateSource === 'map') {
@@ -50,7 +56,7 @@ watch(selectionStore.selected, async (selected) => {
     <SidebarForm />
     <div
       v-if="activityStore.mapItems?.length"
-      :class="[$style.sidebarTotalsContainer, totals.showSelected && $style.stickyTotals]"
+      :class="[$style.sidebarTotalsContainer, stickyTotals && $style.stickyTotals]"
     >
       <a
         v-if="expandableGroups.hasGroups.value"
@@ -106,6 +112,10 @@ watch(selectionStore.selected, async (selected) => {
   top: 0;
   background-color: var(--background-full);
   z-index: 2;
+
+  &.stickyTotals {
+    position: sticky;
+  }
 }
 
 .sidebarTotals {
