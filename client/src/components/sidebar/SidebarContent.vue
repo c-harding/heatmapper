@@ -53,10 +53,12 @@ let selectionBase: readonly string[] | undefined;
 
 const sidebarItemListRef = ref<HTMLElement>();
 
+const stickyTotals = computed(() => totals.value.showSelected || !!groupLevel.value);
+
 const statsHeight = 50;
 const groupHeight = 50;
 
-useStickyHeader(computed(() => statsHeight + (groupLevel ? groupHeight : 0)));
+useStickyHeader(computed(() => (stickyTotals ? statsHeight : 0) + (groupLevel ? groupHeight : 0)));
 
 function toggleInArray<T>(array: readonly T[], items: T[]): T[] {
   if (items.every((item) => array.includes(item))) return array.filter((x) => !items.includes(x));
@@ -99,7 +101,7 @@ watch(selected, async (selected) => {
     <SidebarForm />
     <div
       v-if="mapItems?.length"
-      :class="[$style.sidebarTotalsContainer, totals.showSelected && $style.stickyTotals]"
+      :class="[$style.sidebarTotalsContainer, stickyTotals && $style.stickyTotals]"
     >
       <a
         v-if="expandableGroups.hasGroups.value"
@@ -159,9 +161,7 @@ watch(selected, async (selected) => {
   background-color: var(--background-full);
   z-index: 2;
 
-  &.stickyTotals,
-  // sticky header is permanently enabled due to an issue with useStickyHeader
-  &:not(.stickyTotals) {
+  &.stickyTotals {
     position: sticky;
   }
 }
