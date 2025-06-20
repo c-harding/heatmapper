@@ -176,7 +176,6 @@ export const useActivityStore = defineStore('activity', () => {
     );
   }
 
-  // TODO: keep alive. Verify that every gear request resolves
   async function requestGear(ids: (string | undefined)[], socket?: Socket) {
     const validIds = ids.filter((id?: string): id is string => !!id);
 
@@ -188,7 +187,10 @@ export const useActivityStore = defineStore('activity', () => {
           gear: gearId,
         });
       } else {
-        gear.set(gearId, (await getCachedGear(gearId)) ?? null);
+        const cachedGear = await getCachedGear(gearId);
+        if (cachedGear) {
+          gear.set(gearId, cachedGear);
+        }
       }
     }
   }
@@ -336,7 +338,8 @@ export const useActivityStore = defineStore('activity', () => {
       const finished =
         !continueLoginStore.continueLogin &&
         (!activities || activityStats.value.finding?.finished === true) &&
-        (!routes || routeStats.value.finding?.finished === true);
+        (!routes || routeStats.value.finding?.finished === true) &&
+        Iterator.from(gear.values()).every(Boolean);
       if (finished) {
         socket?.close();
       }
@@ -417,6 +420,7 @@ export const useActivityStore = defineStore('activity', () => {
     if (store.version !== serverVersion || store.user !== user) {
       allActivities.value = [];
       allRoutes.value = [];
+      gear.clear();
       await resetStore(serverVersion, user);
     }
 
