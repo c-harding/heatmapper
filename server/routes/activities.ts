@@ -99,8 +99,9 @@ function convertGear({
   primary,
   brand_name: brand,
   model_name: model,
+  frame_type: frameType,
 }: DetailedGear): Gear {
-  return { name, description, distance, primary, brand, model };
+  return { name, description, distance, primary, brand, model, isBike: frameType !== undefined };
 }
 
 function convertActivity({ id, map }, highDetail = false): ActivityMap {

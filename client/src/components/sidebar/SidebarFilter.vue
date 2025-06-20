@@ -35,11 +35,16 @@ const chosenSportLabel = computed(() => {
   return undefined;
 });
 
-const gearOptions = computed<DropdownOption[]>(() =>
-  Array.from(activityStore.gear.entries())
-    .filter((entry): entry is [string, Gear] => !!entry[1])
-    .map(([id, gear]): DropdownOption => ({ label: gear.name, value: id })),
-);
+const gearOptions = computed<DropdownOption[][]>(() => {
+  const pairs = Array.from(activityStore.gear.entries()).filter((entry): entry is [string, Gear] => !!entry[1]);
+  const partitions = [
+    pairs.filter(([, piece]) => !piece.isBike),
+    pairs.filter(([, piece]) => piece.isBike),
+  ];
+  return partitions.map((partition) =>
+    partition.map(([id, piece]): DropdownOption => ({ label: piece.name, value: id })),
+  );
+});
 
 const blankFilter = Object.freeze<FilterModel>({
   distance: undefined,
