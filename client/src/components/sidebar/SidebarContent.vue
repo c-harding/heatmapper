@@ -33,10 +33,16 @@ const totals = computed(() =>
 
 const sidebarItemListRef = ref<HTMLElement>();
 
+const stickyTotals = computed(() => totals.value.showSelected || !!activityStore.groupLevel);
+
 const statsHeight = 50;
 const groupHeight = 50;
 
-useStickyHeader(computed(() => statsHeight + (activityStore.groupLevel ? groupHeight : 0)));
+useStickyHeader(
+  computed(
+    () => (stickyTotals.value ? statsHeight : 0) + (activityStore.groupLevel ? groupHeight : 0),
+  ),
+);
 
 watch(selectionStore.selected, async (selected) => {
   if (selectionStore.updateSource === 'map' && !selectionStore.multiSelectionMode) {
@@ -52,7 +58,7 @@ watch(selectionStore.selected, async (selected) => {
     <SidebarForm />
     <div
       v-if="selectionStore.visibleItems?.length"
-      :class="[$style.sidebarTotalsContainer, totals.showSelected && $style.stickyTotals]"
+      :class="[$style.sidebarTotalsContainer, stickyTotals && $style.stickyTotals]"
     >
       <a
         v-if="expandableGroups.hasGroups.value"
@@ -108,9 +114,7 @@ watch(selectionStore.selected, async (selected) => {
   background-color: var(--background-full);
   z-index: 2;
 
-  &.stickyTotals,
-  // sticky header is permanently enabled due to an issue with useStickyHeader
-  &:not(.stickyTotals) {
+  &.stickyTotals {
     position: sticky;
   }
 }
