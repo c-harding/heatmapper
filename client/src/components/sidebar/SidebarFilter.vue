@@ -178,7 +178,7 @@ const showHelp = ref(false);
           />
         </label>
 
-        <label v-if="filterFields.has('gear')">
+        <label v-if="!useRoutes && filterFields.has('gear')">
           <span>Gear</span>
           <UIDropdown
             v-model="filterModel.gear"
