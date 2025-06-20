@@ -25,11 +25,7 @@ const activityStore = useActivityStore();
 const selectionStore = useSelectionStore();
 
 const expandableGroups = provideExpandableGroups();
-const groupingArrow = computed(() =>
-  expandableGroups.areSomeExpanded.value
-    ? 'keyboard_double_arrow_down'
-    : 'keyboard_double_arrow_right',
-);
+const areSomeExpanded = expandableGroups.areSomeExpanded;
 
 const totals = computed(() => combineStats(activityStore.mapItems, selectionStore.selectedItems));
 
@@ -62,7 +58,7 @@ watch(selectionStore.selected, async (selected) => {
         @click.stop.prevent="
           expandableGroups.setAllExpanded(!expandableGroups.areSomeExpanded.value)
         "
-        ><UIIcon :icon="groupingArrow"
+        ><UIIcon icon="keyboard_double_arrow_right" :rotation="areSomeExpanded ? 90 : 0"
       /></a>
       <div :class="$style.sidebarTotals">
         <SidebarItemCount :counts="totals" />

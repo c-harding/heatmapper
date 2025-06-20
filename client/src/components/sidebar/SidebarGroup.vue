@@ -29,8 +29,6 @@ const someSelected = computed(() =>
   group.items.some((item) => selectionStore.selected.has(item.id)),
 );
 
-const arrow = computed(() => (isExpanded.value ? 'keyboard_arrow_down' : 'keyboard_arrow_right'));
-
 const groupRef = ref<HTMLDivElement>();
 const headerRef = ref<HTMLDivElement>();
 
@@ -77,7 +75,9 @@ function clickGroup(e: MouseEvent) {
       @click="clickGroup($event)"
       @dblclick="forceSelect()"
     >
-      <a @click.stop.prevent="toggleExpanded" @dblclick.stop><UIIcon :icon="arrow" /></a>
+      <a @click.stop.prevent="toggleExpanded" @dblclick.stop
+        ><UIIcon icon="keyboard_arrow_right" :rotation="isExpanded ? 90 : 0"
+      /></a>
       <div :class="$style.sideBarGroupInfo">
         <div :class="$style.sidebarGroupHeaderName" v-text="group.date" />
         <SidebarItemCount :counts="group.stats" />
