@@ -6,7 +6,7 @@ import { HookHandler } from './routes/hook';
 import { getToken } from './routes/token';
 import { UserHandler } from './routes/user';
 
-const MODEL_VERSION = 4;
+const MODEL_VERSION = 5;
 
 export default function apiRouter(domain: string): express.Router {
   const router = express.Router() as Router;
