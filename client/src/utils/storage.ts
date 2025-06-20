@@ -81,6 +81,11 @@ export function resetStore(version: number, user: number) {
     JSON.stringify({ activities: [], covered: [] } satisfies ActivityStore),
   );
   localStorage.setItem('routes', JSON.stringify({ routes: [] } satisfies RouteStore));
+  for (const key of Object.keys(localStorage)) {
+    if (key.startsWith('gear:')) {
+      localStorage.removeItem(key);
+    }
+  }
 }
 
 export function getCachedActivities(): Activity[] {

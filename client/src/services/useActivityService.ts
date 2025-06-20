@@ -162,7 +162,6 @@ function makeActivityService({
     );
   }
 
-  // TODO: keep alive. Verify that every gear request resolves
   function requestGear(ids: (string | undefined)[], socket?: Socket) {
     const validIds = ids.filter((id?: string): id is string => !!id);
 
@@ -174,7 +173,10 @@ function makeActivityService({
           gear: gearId,
         });
       } else {
-        gear.set(gearId, getCachedGear(gearId) ?? null);
+        const cachedGear = getCachedGear(gearId);
+        if (cachedGear) {
+          gear.set(gearId, cachedGear);
+        }
       }
     }
   }
@@ -318,7 +320,8 @@ function makeActivityService({
       const finished =
         !continueLogin.value &&
         (!activities || activityStats.value.finding?.finished === true) &&
-        (!routes || routeStats.value.finding?.finished === true);
+        (!routes || routeStats.value.finding?.finished === true) &&
+        gear.values().every(Boolean);
       if (finished) {
         socket?.close();
       }
@@ -399,6 +402,7 @@ function makeActivityService({
     if (store.version !== serverVersion || store.user !== user) {
       allActivities.value = [];
       allRoutes.value = [];
+      gear.clear();
       resetStore(serverVersion, user);
     }
 
