@@ -28,8 +28,9 @@ import { useMapStyle } from '@/MapStyle';
 import { addLayersToMap, applyMapItems, MapSourceLayer, useMapSelection } from '@/utils/map';
 import Viewport from '@/Viewport';
 
-const { mapItems, bounds } = defineProps<{
+const { mapItems, backgroundMapItems, bounds } = defineProps<{
   mapItems: readonly MapItem[];
+  backgroundMapItems: readonly MapItem[];
   bounds?: LngLatBoundsLike;
 }>();
 
@@ -93,19 +94,17 @@ onMounted(() => {
   map.resize();
 });
 
-watch(
-  () => mapItems,
-  (mapItems) => {
-    applyMapItems(map, mapItems, MapSourceLayer.LINES);
-  },
-);
+watch([() => mapItems], ([mapItems]) => {
+  applyMapItems(map, mapItems, MapSourceLayer.LINES);
+});
 
-watch(
-  () => selectionStore.selectedItems,
-  (selectedMapItems) => {
-    applyMapItems(map, selectedMapItems, MapSourceLayer.SELECTED);
-  },
-);
+watch([() => backgroundMapItems], ([backgroundMapItems]) => {
+  applyMapItems(map, backgroundMapItems, MapSourceLayer.BACKGROUND);
+});
+
+watch([() => selectionStore.selectedItems], ([selectedMapItems]) => {
+  applyMapItems(map, selectedMapItems, MapSourceLayer.SELECTED);
+});
 
 watch(mapStyleUrl, (style) => {
   map.setStyle(style + '?optimize=true');
@@ -244,6 +243,7 @@ function mapLoaded(map: MapboxMap): void {
   addLayersToMap(map, mapStyle.value);
   onTerrain();
 
+  applyMapItems(map, backgroundMapItems, MapSourceLayer.BACKGROUND);
   applyMapItems(map, mapItems, MapSourceLayer.LINES);
   applyMapItems(map, selectionStore.selectedItems, MapSourceLayer.SELECTED);
 }
