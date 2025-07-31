@@ -42,6 +42,10 @@ export interface LoadingStats {
   inCache: boolean;
 }
 
+export interface DisplayOptions {
+  showActivities: boolean;
+}
+
 export type MapItemTypes = Partial<Record<MapItemType, boolean>>;
 
 /** One day in milliseconds */
@@ -73,6 +77,10 @@ export const useActivityStore = defineStore('activity', () => {
   );
   watch(filterFields, saveFilterFields);
 
+  const displayOptions: DisplayOptions = reactive({
+    showActivities: false,
+  });
+
   const error = ref<string>();
 
   let socketController = new AbortController();
@@ -95,44 +103,54 @@ export const useActivityStore = defineStore('activity', () => {
 
   const stats = computed(() => (useRoutes.value ? routeStats.value : activityStats.value));
 
-  const visibleMapItems = computed<readonly MapItem[]>(() => {
+  const filters = computed<((value: MapItem) => boolean)[]>(() => {
     const sportType = filterModel.sportType;
-    const filters: ((value: MapItem) => boolean)[] = [
-      filterFields.has('sportType') &&
-        sportType &&
-        ((item: MapItem) => doesSportTypeMatch(sportType, item.type)),
+    return (
+      [
+        filterFields.has('sportType') &&
+          sportType &&
+          ((item: MapItem) => doesSportTypeMatch(sportType, item.type)),
+        filterFields.has('starred') &&
+          filterModel.starred !== undefined &&
+          ((item: MapItem) => !item.route || item.starred === filterModel.starred),
 
-      filterFields.has('starred') &&
-        filterModel.starred !== undefined &&
-        ((item: MapItem) => !item.route || item.starred === filterModel.starred),
+        filterFields.has('distance') &&
+          filterModel.distance?.min !== undefined &&
+          ((item: MapItem) => item.distance >= (filterModel.distance?.min ?? -Infinity)),
+        filterFields.has('distance') &&
+          filterModel.distance?.max !== undefined &&
+          ((item: MapItem) => item.distance <= (filterModel.distance?.max ?? Infinity)),
 
-      filterFields.has('distance') &&
-        filterModel.distance?.min !== undefined &&
-        ((item: MapItem) => item.distance >= (filterModel.distance?.min ?? -Infinity)),
-      filterFields.has('distance') &&
-        filterModel.distance?.max !== undefined &&
-        ((item: MapItem) => item.distance <= (filterModel.distance?.max ?? Infinity)),
+        filterFields.has('elevation') &&
+          filterModel.elevation?.min !== undefined &&
+          ((item: MapItem) =>
+            item.elevation?.gain &&
+            item.elevation.gain >= (filterModel.elevation?.min ?? -Infinity)),
+        filterFields.has('elevation') &&
+          filterModel.elevation?.max !== undefined &&
+          ((item: MapItem) =>
+            item.elevation?.gain &&
+            item.elevation.gain <= (filterModel.elevation?.max ?? Infinity)),
 
-      filterFields.has('elevation') &&
-        filterModel.elevation?.min !== undefined &&
-        ((item: MapItem) =>
-          item.elevation?.gain && item.elevation.gain >= (filterModel.elevation?.min ?? -Infinity)),
-      filterFields.has('elevation') &&
-        filterModel.elevation?.max !== undefined &&
-        ((item: MapItem) =>
-          item.elevation?.gain && item.elevation.gain <= (filterModel.elevation?.max ?? Infinity)),
-
-      filterFields.has('gear') &&
-        filterModel.gear &&
-        ((item: MapItem) => item.route || item.gear === filterModel.gear),
-    ]
-      // Remove falsy filters
-      .filter((f): f is (value: MapItem) => boolean => !!f);
-
-    return filters.length
-      ? allMapItems.value.filter((item) => filters.every((filter) => filter(item)))
-      : allMapItems.value;
+        filterFields.has('gear') &&
+          filterModel.gear &&
+          ((item: MapItem) => item.route || item.gear === filterModel.gear),
+      ]
+        // Remove falsy filters
+        .filter((f): f is (value: MapItem) => boolean => !!f)
+    );
   });
+
+  const filterMapItems = <T extends MapItem>(mapItems: readonly T[]): readonly T[] =>
+    filters.value.length
+      ? mapItems.filter((item) => filters.value.every((filter) => filter(item)))
+      : mapItems;
+
+  const visibleMapItems = computed<readonly MapItem[]>(() => filterMapItems(allMapItems.value));
+
+  const backgroundMapItems = computed(() =>
+    useRoutes.value && displayOptions.showActivities ? filterMapItems(allActivities.value) : [],
+  );
 
   /** A map of all gear, where null represents gear that is not yet fetched */
   const gear = reactive(new Map<string, Gear | null>());
@@ -429,11 +447,13 @@ export const useActivityStore = defineStore('activity', () => {
     activityStats,
     filterModel,
     filterFields,
+    displayOptions,
     useRoutes,
     error,
     gear,
 
     mapItems: visibleMapItems,
+    backgroundMapItems,
     availableSports,
 
     cancelLoading,
