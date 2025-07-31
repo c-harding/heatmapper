@@ -187,12 +187,16 @@ button.button {
       min-height: unset;
     }
 
-    &:hover {
+    &:hover:not(:disabled) {
       color: var(--color-full);
     }
 
     &:hover:not(:disabled) .buttonContents {
       background: none;
+    }
+
+    &:disabled {
+      opacity: 50%;
     }
   }
 }

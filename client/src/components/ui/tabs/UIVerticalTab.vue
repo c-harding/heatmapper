@@ -10,7 +10,9 @@ const { tab } = defineProps<{
   expandedContentClass?: unknown;
   heading?: string;
   summary?: string;
+  resetDisabled?: boolean;
   onHelp?: () => void;
+  onReset?: () => void;
 }>();
 
 function preventIfSelected(event: MouseEvent) {
@@ -43,6 +45,14 @@ function onToggle(event: ToggleEvent) {
             ghost
             icon="help"
             @click="onHelp()"
+          />
+          <UIButton
+            v-if="onReset && tab.isOpen"
+            :disabled="resetDisabled"
+            :class="style.resetButton"
+            ghost
+            icon="settings_backup_restore"
+            @click="onReset()"
           />
           <span v-if="heading" :class="style.heading">{{ heading }}</span>
           {{ ' ' }}
