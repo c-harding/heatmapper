@@ -44,6 +44,10 @@ export interface LoadingStats {
   inCache: boolean;
 }
 
+export interface DisplayOptions {
+  showActivities: boolean;
+}
+
 export enum GroupLevel {
   OFF = '',
   WEEKLY_MO = 'WEEKLY_MO',
@@ -91,6 +95,10 @@ export const useActivityStore = defineStore('activity', () => {
   );
   watch(filterFields, saveFilterFields);
 
+  const displayOptions: DisplayOptions = reactive({
+    showActivities: false,
+  });
+
   const error = ref<string>();
 
   let socketController = new AbortController();
@@ -125,8 +133,9 @@ export const useActivityStore = defineStore('activity', () => {
 
   const parsedDeviceFilter = computed(() => parseDeviceFilter(filterModel.device));
 
-  const mapItemFilters = computed(() => {
+  const mapItemFilters = computed<((value: MapItem) => boolean)[]>(() => {
     const sportType = filterModel.sportType;
+
     return (
       [
         filterFields.has('sportType') &&
@@ -180,13 +189,16 @@ export const useActivityStore = defineStore('activity', () => {
     );
   });
 
-  const visibleMapItems = computed<readonly MapItem[]>(() => {
-    const filters = mapItemFilters.value;
+  const filterMapItems = <T extends MapItem>(mapItems: readonly T[]): readonly T[] =>
+    mapItemFilters.value.length
+      ? mapItems.filter((item) => mapItemFilters.value.every((filter) => filter(item)))
+      : mapItems;
 
-    return filters.length
-      ? allMapItems.value.filter((item) => filters.every((filter) => filter(item)))
-      : allMapItems.value;
-  });
+  const visibleMapItems = computed<readonly MapItem[]>(() => filterMapItems(allMapItems.value));
+
+  const backgroundMapItems = computed(() =>
+    useRoutes.value && displayOptions.showActivities ? filterMapItems(allActivities.value) : [],
+  );
 
   const groupedMapItems = computed<readonly MapItemGroup[]>(() =>
     groupMapItems(visibleMapItems.value, groupLevel.value),
@@ -491,6 +503,7 @@ export const useActivityStore = defineStore('activity', () => {
     activityStats,
     filterModel,
     filterFields,
+    displayOptions,
     useRoutes,
     groupLevel,
     error,
@@ -498,6 +511,7 @@ export const useActivityStore = defineStore('activity', () => {
     devices,
 
     mapItems: visibleMapItems,
+    backgroundMapItems,
     groupedMapItems,
     availableSports,
 
