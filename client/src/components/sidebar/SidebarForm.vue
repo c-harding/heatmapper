@@ -13,12 +13,12 @@ import { TooltipError } from '../tooltip/TooltipError';
 import UIVerticalTabContainer from '../ui/tabs/UIVerticalTabContainer.vue';
 import UIButton from '../ui/UIButton.vue';
 import UIButtonGroup from '../ui/UIButtonGroup.vue';
-import UIDateInput from '../ui/UIDateInput.vue';
 import UILabelledIcon from '../ui/UILabelledIcon.vue';
 import UIModal from '../ui/UIModal.vue';
 import UIMultiText from '../ui/UIMultiText.vue';
 import controlsStyle from './controls.module.scss';
 import LoadingStatus from './LoadingStatus.vue';
+import SidebarDateFilter from './SidebarDateFilter.vue';
 import SidebarFilter from './SidebarFilter.vue';
 import UserLogin from './UserLogin.vue';
 import UserSettings from './UserSettings.vue';
@@ -106,14 +106,12 @@ watch([start, end, () => activityStore.useRoutes], () => {
           <SegmentedControlItem :option="option(true)"> Routes </SegmentedControlItem>
         </SegmentedControl>
       </div>
-      <label>
-        <span>Start date</span>
-        <UIDateInput v-model="start" name="start" />
-      </label>
-      <label>
-        <span>End date</span>
-        <UIDateInput v-model="end" name="end" />
-      </label>
+    </div>
+    <UIVerticalTabContainer v-slot="{ makeTab }">
+      <SidebarDateFilter v-model:start="start" v-model:end="end" :tab="makeTab('dates')" />
+    </UIVerticalTabContainer>
+
+    <div :class="[controlsStyle.grid, controlsStyle.center]">
       <div :class="controlsStyle.buttons">
         <UIButtonGroup>
           <UIButton @click="loadButton">
