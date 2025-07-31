@@ -19,6 +19,7 @@ import UIMultiText from '../ui/UIMultiText.vue';
 import controlsStyle from './controls.module.scss';
 import LoadingStatus from './LoadingStatus.vue';
 import SidebarDateFilter from './SidebarDateFilter.vue';
+import SidebarDisplayOptions from './SidebarDisplayOptions.vue';
 import SidebarFilter from './SidebarFilter.vue';
 import SidebarGroupControl from './SidebarGroupControl.vue';
 import UserLogin from './UserLogin.vue';
@@ -132,6 +133,7 @@ watch([start, end, () => activityStore.useRoutes], () => {
     <UIVerticalTabContainer v-slot="{ makeTab }">
       <SidebarDateFilter v-model:start="start" v-model:end="end" :tab="makeTab('dates')" />
       <SidebarFilter :tab="makeTab('filter')" />
+      <SidebarDisplayOptions :tab="makeTab('display')" />
       <SidebarGroupControl :tab="makeTab('group')" />
     </UIVerticalTabContainer>
   </aside>
