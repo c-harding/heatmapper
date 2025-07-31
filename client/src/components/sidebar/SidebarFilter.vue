@@ -136,17 +136,10 @@ const showHelp = ref(false);
     icon="filter_alt"
     :expandedContentClass="$style.content"
     heading="Filter"
+    :summaryItems="filterSummary"
+    summaryEmpty="none set"
     @help="showHelp = true"
   >
-    <template #summary>
-      <template v-if="filterSummary.length">
-        <template v-for="(summaryItem, i) of filterSummary" :key="i"
-          ><span :class="$style.summarySpan">{{ summaryItem }}</span
-          ><template v-if="i + 1 < filterSummary.length">, </template></template
-        >
-      </template>
-      <template v-else>none set</template>
-    </template>
     <template #expanded>
       <div :class="controlsStyle.grid">
         <label v-if="activityStore.filterFields.has('sportType')">
@@ -236,10 +229,6 @@ const showHelp = ref(false);
 .content {
   display: flex;
   flex-direction: column;
-}
-
-.summarySpan {
-  white-space: nowrap;
 }
 
 .noPointer {
