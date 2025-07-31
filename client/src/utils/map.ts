@@ -24,6 +24,7 @@ export interface MapProperties {
 type RGB = [r: number, g: number, b: number];
 
 export enum MapSourceLayer {
+  BACKGROUND = 'background',
   LINES = 'lines',
   SELECTED = 'selected',
 }
@@ -67,6 +68,7 @@ interface LayerDef {
   source: string;
   color: ExpressionSpecification | string;
   width: ExpressionSpecification | number;
+  opacity?: number;
 }
 
 const lineWidth = fromZoom([5, 1], [14, 4], [22, 8]);
@@ -87,7 +89,13 @@ const colorsForStyle = (style: MapStyle): Record<'lines' | 'medium' | 'hot', RGB
 
 export const getLayersForStyle = (
   style: MapStyle,
-): Record<'lines' | 'medium' | 'hot' | 'selected', LayerDef> => ({
+): Record<'background' | 'lines' | 'medium' | 'hot' | 'selected', LayerDef> => ({
+  background: {
+    source: MapSourceLayer.BACKGROUND,
+    color: '#7f7f7f',
+    width: lineWidth,
+    opacity: 0.4,
+  },
   lines: {
     source: MapSourceLayer.LINES,
     color: colorOpacityFromZoom(colorsForStyle(style).lines, [5, 0.75], [10, 0.35]),
@@ -118,6 +126,7 @@ const buildLineLayer = (id: string, layer: LayerDef): LineLayerSpecification => 
   paint: {
     'line-color': layer.color,
     'line-width': layer.width,
+    'line-opacity': layer.opacity ?? 1,
   },
 });
 

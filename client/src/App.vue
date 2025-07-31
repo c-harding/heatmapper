@@ -64,6 +64,7 @@ defineExpose({ mapItems: activityStore.mapItems });
         v-model:center="center"
         v-model:zoom="zoom"
         :mapItems="activityStore.mapItems"
+        :backgroundMapItems="activityStore.backgroundMapItems"
       />
     </Suspense>
   </div>

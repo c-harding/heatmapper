@@ -31,8 +31,9 @@ import { addLayersToMap, applyMapItems, MapSourceLayer, useMapSelection } from '
 import { getBestCenter } from '@/utils/midpoint';
 import Viewport from '@/Viewport';
 
-const { mapItems } = defineProps<{
+const { mapItems, backgroundMapItems } = defineProps<{
   mapItems: readonly MapItem[];
+  backgroundMapItems: readonly MapItem[];
 }>();
 
 const center = defineModel<LngLatLike>('center', { required: true });
@@ -98,13 +99,10 @@ onMounted(() => {
   applyDefaultPosition();
 });
 
-watch(
-  () => mapItems,
-  (mapItems, previousMapItems) => {
-    applyMapItems(map, mapItems, MapSourceLayer.LINES);
-    if (!previousMapItems.length) applyDefaultPosition();
-  },
-);
+watch([() => mapItems], ([mapItems], [previousMapItems]) => {
+  applyMapItems(map, mapItems, MapSourceLayer.LINES);
+  if (!previousMapItems.length) applyDefaultPosition();
+});
 
 map.on('movestart', ({ originalEvent: userEvent }) => {
   if (userEvent) userMoved = true;
@@ -117,12 +115,13 @@ function applyDefaultPosition(): void {
   if (bounds) map.fitBounds(bounds, { animate: false });
 }
 
-watch(
-  () => selectionStore.selectedItems,
-  (selectedMapItems) => {
-    applyMapItems(map, selectedMapItems, MapSourceLayer.SELECTED);
-  },
-);
+watch([() => backgroundMapItems], ([backgroundMapItems]) => {
+  applyMapItems(map, backgroundMapItems, MapSourceLayer.BACKGROUND);
+});
+
+watch([() => selectionStore.selectedItems], ([selectedMapItems]) => {
+  applyMapItems(map, selectedMapItems, MapSourceLayer.SELECTED);
+});
 
 watch(mapStyleUrl, (style) => {
   map.setStyle(style + '?optimize=true');
@@ -261,6 +260,7 @@ function mapLoaded(map: MapboxMap): void {
   addLayersToMap(map, mapStyle.value);
   onTerrain();
 
+  applyMapItems(map, backgroundMapItems, MapSourceLayer.BACKGROUND);
   applyMapItems(map, mapItems, MapSourceLayer.LINES);
   applyMapItems(map, selectionStore.selectedItems, MapSourceLayer.SELECTED);
 }
