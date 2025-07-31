@@ -18,6 +18,7 @@ import UIMultiText from '../ui/UIMultiText.vue';
 import controlsStyle from './controls.module.scss';
 import LoadingStatus from './LoadingStatus.vue';
 import SidebarDateFilter from './SidebarDateFilter.vue';
+import SidebarDisplayOptions from './SidebarDisplayOptions.vue';
 import SidebarFilter from './SidebarFilter.vue';
 import UserLogin from './UserLogin.vue';
 import UserSettings from './UserSettings.vue';
@@ -133,6 +134,7 @@ watch([start, end, () => activityStore.useRoutes], () => {
     <LoadingStatus v-else :useRoutes="activityStore.useRoutes" :error="activityStore.error" />
     <UIVerticalTabContainer v-slot="{ makeTab }">
       <SidebarFilter :tab="makeTab('filter')" />
+      <SidebarDisplayOptions :tab="makeTab('display')" />
     </UIVerticalTabContainer>
   </aside>
 
