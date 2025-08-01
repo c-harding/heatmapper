@@ -11,6 +11,7 @@ import { formatFullDateTime, formatSplitDate } from '@/utils/numberFormat';
 
 import StravaEmoji from '../strava-symbol/StravaEmoji.vue';
 import StravaIcon from '../strava-symbol/StravaIcon.vue';
+import UIIcon from '../ui/UIIcon.vue';
 import UISpinner from '../ui/UISpinner.vue';
 import SidebarItemLink from './SidebarItemLink.vue';
 import SidebarItemStats from './SidebarItemStats.vue';
@@ -22,10 +23,12 @@ const {
   item,
   selected = false,
   expanded = true,
+  showCheckbox = false,
 } = defineProps<{
   item: MapItem;
   selected?: boolean;
   expanded?: boolean;
+  showCheckbox?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -67,6 +70,13 @@ const device = computed(() => {
     @touchstart="emit('touchstart')"
     @dblclick="emit('dblclick', $event)"
   >
+    <UIIcon
+      v-if="showCheckbox"
+      :class="$style.checkbox"
+      :icon="selected ? 'check_circle_outline' : 'radio_button_unchecked'"
+      inline
+      large
+    />
     <StravaActivitySymbol v-if="expanded" :class="$style.stravaIcon" :sportType="item.type" />
     <div :class="$style.sidebarItemInfo">
       <div :class="$style.sidebarItemName" v-text="item.name" />
@@ -87,7 +97,7 @@ const device = computed(() => {
 .sidebarItem {
   cursor: pointer;
   font-size: 14px;
-  padding-left: 8px;
+  padding-inline-start: 8px;
   display: flex;
   align-items: center;
   gap: 0 4px;
@@ -100,6 +110,14 @@ const device = computed(() => {
 
   &:hover {
     background: var(--background-strong);
+  }
+
+  &:has(.checkbox) {
+    padding-inline-start: 0;
+  }
+
+  .checkbox {
+    margin-inline: 4px;
   }
 
   &.selected {

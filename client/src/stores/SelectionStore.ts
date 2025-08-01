@@ -3,16 +3,44 @@ import { computed, reactive, ref } from 'vue';
 
 import { useActivityStore } from './ActivityStore';
 
-export type SelectionUpdateSource = 'map' | 'list';
+export type SelectionUpdateSource = 'map' | 'list' | 'options';
 
 export const useSelectionStore = defineStore('selection', () => {
   const activityStore = useActivityStore();
 
+  const multiSelectionMode = ref(false);
+
   const selected = reactive<Set<string>>(new Set());
 
-  const selectedItems = computed(() =>
-    activityStore.mapItems.filter((item) => selected.has(item.id)),
+  // The locked selection is kept separate for routes and non-routes, to allow customisation of the ghost mode
+  const lockedSelections = reactive<Map<typeof activityStore.useRoutes, ReadonlySet<string>>>(
+    new Map(),
   );
+  const lockedSelection = computed({
+    get() {
+      return lockedSelections.get(activityStore.useRoutes);
+    },
+    set(value: ReadonlySet<string> | undefined) {
+      if (value) lockedSelections.set(activityStore.useRoutes, value);
+      else lockedSelections.delete(activityStore.useRoutes);
+    },
+  });
+
+  const visibleItems = computed(() => {
+    const selection = lockedSelection.value;
+    return selection
+      ? activityStore.mapItems.filter((item) => selection.has(item.id))
+      : activityStore.mapItems;
+  });
+
+  const visibleBackgroundItems = computed(() => {
+    if (!activityStore.backgroundMapItems.length) return [];
+    const selection = lockedSelections.get(false);
+    return selection
+      ? activityStore.backgroundMapItems.filter((item) => selection.has(item.id))
+      : activityStore.backgroundMapItems;
+  });
+  const selectedItems = computed(() => visibleItems.value.filter((item) => selected.has(item.id)));
 
   const updateSource = ref<SelectionUpdateSource>();
 
@@ -25,10 +53,10 @@ export const useSelectionStore = defineStore('selection', () => {
 
     const limits = new Set<string>([...base, ...to]);
 
-    const start = activityStore.mapItems.findIndex(({ id }) => limits.has(id));
+    const start = visibleItems.value.findIndex(({ id }) => limits.has(id));
     if (start === -1) return limits;
-    const end = activityStore.mapItems.findLastIndex(({ id }) => limits.has(id));
-    return new Set(activityStore.mapItems.slice(start, end + 1).map(({ id }) => id));
+    const end = visibleItems.value.findLastIndex(({ id }) => limits.has(id));
+    return new Set(visibleItems.value.slice(start, end + 1).map(({ id }) => id));
   }
 
   function toggleAll(ids: string[]) {
@@ -48,6 +76,7 @@ export const useSelectionStore = defineStore('selection', () => {
    * @param source The source of the event:
    *                 `map` means a click on the map.
    *                 `list` means a click in the list in the sidebar.
+   *                 `options` means a click in the selection options panel.
    * @param ctrlKey Whether the ctrl/meta key is pressed.
    *                When true, the selection is toggled rather than replaced.
    * @param shiftKey Whether the shift key is pressed.
@@ -63,7 +92,7 @@ export const useSelectionStore = defineStore('selection', () => {
   ) {
     const flatIds = [ids].flat();
 
-    if (!ctrlKey) {
+    if (!ctrlKey && !multiSelectionMode.value) {
       selected.clear();
     }
 
@@ -87,11 +116,39 @@ export const useSelectionStore = defineStore('selection', () => {
     updateSource.value = source;
   }
 
+  function lockSelection() {
+    if (selected.size === 0) return;
+    lockedSelection.value = new Set(selected);
+    selected.clear();
+    updateSource.value = 'options';
+  }
+
+  function releaseSelection() {
+    if (!lockedSelection.value) return;
+    selected.clear();
+    lockedSelection.value.forEach((id) => selected.add(id));
+    lockedSelection.value = undefined;
+    updateSource.value = 'options';
+  }
+
+  function clearSelection() {
+    selected.clear();
+    updateSource.value = 'options';
+  }
+
   return {
+    multiSelectionMode,
     selected,
     selectedItems,
     updateSource,
+    lockedSelections,
+    lockedSelection,
+    visibleItems,
+    visibleBackgroundItems,
 
     select,
+    lockSelection,
+    releaseSelection,
+    clearSelection,
   };
 });

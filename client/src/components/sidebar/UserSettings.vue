@@ -51,8 +51,6 @@ const logout = async (global = false) => {
 };
 </script>
 <template>
-  <h2>User settings</h2>
-
   <div :class="$style.flexLine">
     <img :class="$style.profilePic" :srcset="imgSrcSet" :src="imgSrc" />
     <a :href="profileLink" :class="$style.userName" target="_blank">{{ fullName }}</a>

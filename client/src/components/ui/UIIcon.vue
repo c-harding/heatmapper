@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useHead } from '@unhead/vue';
+import { useMaterialIcons } from './material-icons';
 
 const {
   icon,
@@ -14,14 +14,7 @@ const {
   bottom?: boolean;
 }>();
 
-useHead({
-  link: [
-    {
-      href: 'https://fonts.googleapis.com/icon?family=Material+Icons',
-      rel: 'stylesheet',
-    },
-  ],
-});
+useMaterialIcons();
 </script>
 
 <template>
