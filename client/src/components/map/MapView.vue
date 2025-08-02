@@ -7,6 +7,7 @@ import {
   type MapMouseEvent,
 } from 'mapbox-gl';
 
+import { useSelectionStore } from '@/stores/SelectionStore';
 import config from '@/utils/config';
 
 import PickerControl from './PickerControl.vue';
@@ -21,7 +22,7 @@ declare global {
 <script setup lang="tsx">
 import polyline from '@mapbox/polyline';
 import { type MapItem } from '@strava-heatmapper/shared/interfaces';
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 
 import { useMapStyle } from '@/MapStyle';
 import { addLayersToMap, applyMapItems, MapSourceLayer, useMapSelection } from '@/utils/map';
@@ -34,9 +35,10 @@ const { mapItems, bounds } = defineProps<{
 
 const center = defineModel<LngLatLike>('center', { required: true });
 const zoom = defineModel<number>('zoom', { required: true });
-const selected = defineModel<readonly string[]>('selected', { required: true });
 
 defineExpose({ zoomToSelection });
+
+const selectionStore = useSelectionStore();
 
 const { default: mapboxgl } = await import('mapbox-gl');
 
@@ -91,10 +93,6 @@ onMounted(() => {
   map.resize();
 });
 
-const selectedMapItems = computed<readonly MapItem[]>(() =>
-  mapItems.filter((item) => selected.value.includes(item.id)),
-);
-
 watch(
   () => mapItems,
   (mapItems) => {
@@ -102,9 +100,12 @@ watch(
   },
 );
 
-watch(selectedMapItems, (selectedMapItems) => {
-  applyMapItems(map, selectedMapItems, MapSourceLayer.SELECTED);
-});
+watch(
+  () => selectionStore.selectedItems,
+  (selectedMapItems) => {
+    applyMapItems(map, selectedMapItems, MapSourceLayer.SELECTED);
+  },
+);
 
 watch(mapStyleUrl, (style) => {
   map.setStyle(style + '?optimize=true');
@@ -224,7 +225,7 @@ function flyTo(mapItems: readonly MapItem[], zoom = false): void {
 }
 
 function zoomToSelection(): void {
-  flyTo(selectedMapItems.value, true);
+  flyTo(selectionStore.selectedItems, true);
 }
 
 const resizeHandler = () => map.resize();
@@ -244,11 +245,11 @@ function mapLoaded(map: MapboxMap): void {
   onTerrain();
 
   applyMapItems(map, mapItems, MapSourceLayer.LINES);
-  applyMapItems(map, selectedMapItems.value, MapSourceLayer.SELECTED);
+  applyMapItems(map, selectionStore.selectedItems, MapSourceLayer.SELECTED);
 }
 
 function dblclick(e: MapMouseEvent) {
-  if (selectedMapItems.value.length !== 0) {
+  if (selectionStore.selectedItems.length !== 0) {
     e.preventDefault();
     nextTick(() => {
       zoomToSelection();
@@ -265,11 +266,9 @@ function moveend(map: MapboxMap) {
 }
 
 const { click } = useMapSelection({
-  getExternalSelection: () => selected.value,
   flyToSelection: () => {
-    flyTo(selectedMapItems.value, false);
+    flyTo(selectionStore.selectedItems, false);
   },
-  emitUpdate: (newSelected) => (selected.value = newSelected),
 });
 
 const buttonTarget = map.getContainer().querySelector(`.mapboxgl-ctrl-${topCorner}`);

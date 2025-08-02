@@ -12,14 +12,10 @@ const uniqueValueOrUndefined = <T>(acc: T | undefined, val: T) => (acc === val ?
 
 export function combineStats(
   allItems: readonly MapItem[],
-  selected: readonly string[] = [],
+  selectedItems: readonly MapItem[] = [],
 ): CombinedMapItemStats {
-  // Filter the list, but short-circuit if there won’t be more than one result anyway
-  const filteredItems =
-    selected.length > 1 ? allItems.filter((item) => selected.includes(item.id)) : [];
-
   const [showSelected, items] =
-    filteredItems.length > 1 ? [true, filteredItems] : [false, allItems];
+    selectedItems.length > 1 ? [true, selectedItems] : [false, allItems];
 
   const routeCount = items.filter((item) => item.route).length;
   const activityCount = items.length - routeCount;

@@ -38,8 +38,6 @@ const center = ref({ lat: 51.5, lng: -0.1 });
 
 const zoom = ref(8);
 
-const selected = ref<readonly string[]>([]);
-
 const minimised = ref(false);
 
 function zoomToSelected(): void {
@@ -58,7 +56,6 @@ defineExpose({ mapItems: activityStore.mapItems });
   <div id="app">
     <CollapsibleSidebar v-model:minimised="minimised" @scroll-down="scrollToSelected()">
       <SidebarContent
-        v-model:selected="selected"
         @focus-sidebar="minimised = false"
         @zoom-to-selected="zoomToSelected"
         @scroll-to-selected="scrollToSelected"
@@ -69,7 +66,6 @@ defineExpose({ mapItems: activityStore.mapItems });
         ref="map"
         v-model:center="center"
         v-model:zoom="zoom"
-        v-model:selected="selected"
         :bounds="geolocation"
         :mapItems="activityStore.mapItems"
       />

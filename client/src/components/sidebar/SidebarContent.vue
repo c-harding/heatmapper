@@ -1,34 +1,15 @@
 <script setup lang="ts">
-import { type MapItem } from '@strava-heatmapper/shared/interfaces';
-import { computed, nextTick, reactive, ref, watch } from 'vue';
+import { computed, nextTick, ref, watch } from 'vue';
 
 import { useActivityStore } from '@/stores/ActivityStore';
+import { useSelectionStore } from '@/stores/SelectionStore';
 import { combineStats } from '@/utils/stats';
-import { cancelTextSelection } from '@/utils/ui';
 
 import SidebarCredits from './SidebarCredits.vue';
 import SidebarForm from './SidebarForm.vue';
 import SidebarItemCount from './SidebarItemCount.vue';
 import SidebarItemList from './SidebarItemList.vue';
 import SidebarItemStats from './SidebarItemStats.vue';
-
-function getRange(
-  mapItems: readonly MapItem[],
-  to: string,
-  from?: string | readonly string[],
-): string[] {
-  if (to === undefined) return [];
-  if (from === undefined) return [to];
-  const fromArray: string[] = [from].flat();
-  if (fromArray.includes(to)) return fromArray;
-
-  const start = mapItems.findIndex(({ id }) => to === id || fromArray.includes(id));
-  if (start === -1) return [to, ...fromArray];
-  const end = mapItems.findLastIndex(({ id }) => to === id || fromArray.includes(id));
-  return mapItems.slice(start, end + 1).map(({ id }) => id);
-}
-
-const selected = defineModel<readonly string[]>('selected', { required: true });
 
 const emit = defineEmits<{
   zoomToSelected: [];
@@ -37,47 +18,22 @@ const emit = defineEmits<{
 }>();
 
 const activityStore = useActivityStore();
+const selectionStore = useSelectionStore();
 
-const totals = computed(() => combineStats(activityStore.mapItems, selected.value));
-
-let localSelected: readonly string[] | undefined;
-let selectionBase: readonly string[] | undefined;
+const totals = computed(() => combineStats(activityStore.mapItems, selectionStore.selectedItems));
 
 const sidebarItemListRef = ref<HTMLElement>();
 
-function toggleInArray<T>(array: readonly T[], item: T): T[] {
-  if (array.includes(item)) return array.filter((x) => x !== item);
-  else return [...array, item];
-}
-
-function getSelectedItems(id: string, e: MouseEvent): string[] {
-  if (e.metaKey || e.ctrlKey) return toggleInArray(selected.value, id);
-  if (e.shiftKey) return getRange(activityStore.mapItems, id, selectionBase);
-  return [id];
-}
-
-function select(id: string, e: MouseEvent): void {
-  if (e.shiftKey) cancelTextSelection();
-  const newSelected = getSelectedItems(id, e);
-  if (newSelected.length === 1) selectionBase = newSelected;
-  localSelected = reactive(newSelected);
-  selected.value = localSelected;
-}
-
-function forceSelect(): void {
-  cancelTextSelection();
-  emit('zoomToSelected');
-}
-
-watch(selected, async (selected) => {
-  if (selected !== localSelected) {
-    localSelected = selected;
-    selectionBase = selected;
-    if (selected.length !== 0) emit('focusSidebar');
-    await nextTick();
-    emit('scrollToSelected');
-  }
-});
+watch(
+  () => selectionStore.selected,
+  async (selected) => {
+    if (selectionStore.updateSource === 'map') {
+      if (selected.size !== 0) emit('focusSidebar');
+      await nextTick();
+      emit('scrollToSelected');
+    }
+  },
+);
 </script>
 
 <template>
@@ -92,10 +48,9 @@ watch(selected, async (selected) => {
     </div>
     <div ref="sidebarItemListRef">
       <SidebarItemList
-        v-model:selected="selected"
         :items="activityStore.mapItems"
-        @select="select"
-        @force-select="forceSelect"
+        @zoom-to-selected="emit('zoomToSelected')"
+        @scroll-to-selected="emit('scrollToSelected')"
       />
     </div>
 

@@ -13,6 +13,8 @@ import {
 } from 'mapbox-gl';
 import { nextTick, watch } from 'vue';
 
+import { useSelectionStore } from '@/stores/SelectionStore';
+
 import { MapStyle } from '../MapStyle';
 
 export interface MapProperties {
@@ -145,53 +147,24 @@ const surround = (point: Point, offset: number): [PointLike, PointLike] => [
 ];
 
 interface UseMapSelectionConfig {
-  getExternalSelection: () => readonly string[];
   flyToSelection: () => void;
-  emitUpdate: (newSelection: readonly string[]) => void;
 }
 
 interface UseMapSelection {
   click: (e: MapMouseEvent) => void;
 }
 
-export const useMapSelection = ({
-  getExternalSelection,
-  flyToSelection,
-  emitUpdate,
-}: UseMapSelectionConfig): UseMapSelection => {
-  let localSelection: readonly string[] = [];
+export const useMapSelection = ({ flyToSelection }: UseMapSelectionConfig): UseMapSelection => {
+  const selectionStore = useSelectionStore();
 
-  watch(getExternalSelection, () =>
-    nextTick(() => {
-      if (getExternalSelection() !== localSelection) {
-        localSelection = getExternalSelection();
-        flyToSelection();
+  watch(
+    () => selectionStore.selected,
+    () => {
+      if (selectionStore.updateSource !== 'map') {
+        nextTick(() => flyToSelection());
       }
-    }),
+    },
   );
-
-  function toggleSelect(id: string | undefined): void {
-    if (!id) return;
-
-    const index = localSelection.indexOf(id);
-    if (index !== -1) {
-      localSelection = localSelection.slice().toSpliced(index, 1);
-    } else {
-      localSelection = localSelection.concat(id);
-    }
-
-    emitUpdate(localSelection);
-  }
-
-  function select(id: string | undefined, toggle: boolean): void {
-    if (toggle) {
-      toggleSelect(id);
-      return;
-    }
-    localSelection = id ? [id] : [];
-
-    emitUpdate(localSelection);
-  }
 
   const click = (e: MapMouseEvent): void => {
     const map = e.target;
@@ -206,11 +179,15 @@ export const useMapSelection = ({
         layers: [MapSourceLayer.LINES, MapSourceLayer.SELECTED],
       });
       if (neighbours.length > 0) {
-        select((neighbours[0].properties as MapProperties).id, keepExisting);
+        selectionStore.selectItem(
+          (neighbours[0].properties as MapProperties).id,
+          'map',
+          keepExisting,
+        );
         return;
       }
     }
-    select(undefined, keepExisting);
+    selectionStore.selectItem(undefined, 'map', keepExisting);
   };
 
   return { click };
