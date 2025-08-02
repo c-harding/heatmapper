@@ -29,7 +29,7 @@ const sidebarItemListRef = ref<HTMLElement>();
 watch(
   () => selectionStore.selected,
   async (selected) => {
-    if (selectionStore.updateSource === 'map') {
+    if (selectionStore.updateSource === 'map' && !selectionStore.multiSelectionMode) {
       if (selected.size !== 0) emit('focusSidebar');
       await nextTick();
       emit('scrollToSelected');
@@ -52,7 +52,6 @@ watch(
       <SidebarItemList
         :items="selectionStore.visibleItems"
         @zoom-to-selected="emit('zoomToSelected')"
-        @scroll-to-selected="emit('scrollToSelected')"
       />
     </div>
 
