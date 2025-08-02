@@ -31,11 +31,6 @@ import { addLayersToMap, applyMapItems, MapSourceLayer, useMapSelection } from '
 import { getBestCenter } from '@/utils/midpoint';
 import Viewport from '@/Viewport';
 
-const { mapItems, backgroundMapItems } = defineProps<{
-  mapItems: readonly MapItem[];
-  backgroundMapItems: readonly MapItem[];
-}>();
-
 const center = defineModel<LngLatLike>('center', { required: true });
 const zoom = defineModel<number>('zoom', { required: true });
 
@@ -99,7 +94,7 @@ onMounted(() => {
   applyDefaultPosition();
 });
 
-watch([() => mapItems], ([mapItems], [previousMapItems]) => {
+watch([() => selectionStore.visibleItems], ([mapItems], [previousMapItems]) => {
   applyMapItems(map, mapItems, MapSourceLayer.LINES);
   if (!previousMapItems.length) applyDefaultPosition();
 });
@@ -111,11 +106,11 @@ map.on('movestart', ({ originalEvent: userEvent }) => {
 /** Open the map on the square holding the most paths, unless the user has taken control of it. */
 function applyDefaultPosition(): void {
   if (userMoved || !container.value) return;
-  const bounds = getBestCenter(mapItems);
+  const bounds = getBestCenter(selectionStore.visibleItems);
   if (bounds) map.fitBounds(bounds, { animate: false });
 }
 
-watch([() => backgroundMapItems], ([backgroundMapItems]) => {
+watch([() => selectionStore.visibleBackgroundItems], ([backgroundMapItems]) => {
   applyMapItems(map, backgroundMapItems, MapSourceLayer.BACKGROUND);
 });
 
@@ -260,8 +255,8 @@ function mapLoaded(map: MapboxMap): void {
   addLayersToMap(map, mapStyle.value);
   onTerrain();
 
-  applyMapItems(map, backgroundMapItems, MapSourceLayer.BACKGROUND);
-  applyMapItems(map, mapItems, MapSourceLayer.LINES);
+  applyMapItems(map, selectionStore.visibleBackgroundItems, MapSourceLayer.BACKGROUND);
+  applyMapItems(map, selectionStore.visibleItems, MapSourceLayer.LINES);
   applyMapItems(map, selectionStore.selectedItems, MapSourceLayer.SELECTED);
 }
 
