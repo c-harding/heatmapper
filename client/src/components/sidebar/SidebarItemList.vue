@@ -37,7 +37,7 @@ function click(id: string, e: MouseEvent): void {
       :key="item.id"
       :item
       :selected="selectionStore.selected.has(item.id)"
-      :showCheckbox="selectionStore.selectionMode"
+      :showCheckbox="selectionStore.multiSelectionMode"
       @click="click(item.id, $event)"
       @dblclick="forceSelect()"
     />
