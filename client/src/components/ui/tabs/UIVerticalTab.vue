@@ -1,6 +1,7 @@
 <script setup lang="ts" generic="T extends string">
 import UIButton from '../UIButton.vue';
 import UIIcon from '../UIIcon.vue';
+import UIUnbrokenList from '../UIUnbrokenList.vue';
 import style from './tab.module.scss';
 import { type Tab } from './UIVerticalTabContainer.vue';
 
@@ -59,16 +60,9 @@ function onToggle(event: ToggleEvent) {
           <span v-if="heading" :class="style.heading">{{ heading }}</span>
           {{ ' ' }}
           <span v-if="!tab.isOpen" :class="style.summary">
-            <slot name="summary" :select="tab.select"
-              ><template v-if="summaryItems"
-                ><template v-if="summaryItems.length">
-                  <template v-for="(summaryItem, i) of summaryItems" :key="i"
-                    ><span :class="style.summarySpan">{{ summaryItem }}</span
-                    ><template v-if="i + 1 < summaryItems.length">, </template></template
-                  ></template
-                ><template v-else>{{ summaryEmpty ?? summary }}</template></template
-              ><template v-else>{{ summary }}</template></slot
-            >
+            <slot name="summary" :select="tab.select">
+              <UIUnbrokenList :items="summaryItems">{{ summaryEmpty ?? summary }}</UIUnbrokenList>
+            </slot>
           </span>
         </slot>
       </summary>
