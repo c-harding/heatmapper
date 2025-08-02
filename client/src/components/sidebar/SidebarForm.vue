@@ -21,6 +21,7 @@ import LoadingStatus from './LoadingStatus.vue';
 import SidebarDateFilter from './SidebarDateFilter.vue';
 import SidebarDisplayOptions from './SidebarDisplayOptions.vue';
 import SidebarFilter from './SidebarFilter.vue';
+import SidebarSelectionControls from './SidebarSelectionControls.vue';
 import UserLogin from './UserLogin.vue';
 import UserSettings from './UserSettings.vue';
 
@@ -138,6 +139,7 @@ watch([start, end, () => activityStore.useRoutes], () => {
     <UIVerticalTabContainer v-slot="{ makeTab }">
       <SidebarFilter :tab="makeTab('filter')" />
       <SidebarDisplayOptions :tab="makeTab('display')" />
+      <SidebarSelectionControls :tab="makeTab('selection')" />
     </UIVerticalTabContainer>
   </aside>
 
