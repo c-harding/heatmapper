@@ -12,7 +12,7 @@ import {
 export interface UseExpandableGroups {
   /** Are there one or more groups? */
   hasGroups: Readonly<Ref<boolean>>;
-  areSomeExpanded: Readonly<Ref<boolean>>;
+  areAllExpanded: Readonly<Ref<boolean>>;
   setAllExpanded(value: boolean): void;
 }
 
@@ -35,22 +35,22 @@ function makeExpandableGroups(): ExpandableGroupsService {
    *
    * This is updated when deleting the last group.
    */
-  let lastState = true;
+  let lastState = false;
 
   const hasGroups = computed(() => groups.size > 0);
-  const areSomeExpanded = computed(() =>
-    Array.from(groups.values()).some((expanded) => expanded.value),
+  const areAllExpanded = computed(() =>
+    Array.from(groups.values()).every((expanded) => expanded.value),
   );
 
   return {
     hasGroups,
-    areSomeExpanded,
+    areAllExpanded,
     setAllExpanded: (value) =>
       groups.forEach((group) => {
         group.value = value;
       }),
     addGroup: () => {
-      const expanded = ref(hasGroups.value ? areSomeExpanded.value : lastState);
+      const expanded = ref(hasGroups.value ? areAllExpanded.value : lastState);
       groups.add(expanded);
       return expanded;
     },
