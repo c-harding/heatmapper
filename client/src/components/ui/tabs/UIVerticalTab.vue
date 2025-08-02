@@ -43,7 +43,7 @@ function onToggle(event: ToggleEvent) {
         <slot :isOpen="tab.isOpen" :toggle="tab.toggle" :select="tab.select">
           <UIButton
             v-if="onHelp && tab.isOpen"
-            :class="style.helpButton"
+            :class="[style.topRightButton, style.helpButton]"
             ghost
             icon="help"
             @click="onHelp()"
@@ -51,7 +51,7 @@ function onToggle(event: ToggleEvent) {
           <UIButton
             v-if="onReset && tab.isOpen"
             :disabled="resetDisabled"
-            :class="style.resetButton"
+            :class="style.topRightButton"
             ghost
             icon="settings_backup_restore"
             @click="onReset()"

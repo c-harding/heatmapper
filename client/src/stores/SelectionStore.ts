@@ -1,18 +1,32 @@
 import { defineStore } from 'pinia';
 import { computed, reactive, ref } from 'vue';
 
-import { useActivityStore } from './ActivityStore';
+import { groupMapItems } from '@/utils/groupMapItems';
 
-export type SelectionUpdateSource = 'map' | 'list';
+import { type MapItemGroup, useActivityStore } from './ActivityStore';
+
+export type SelectionUpdateSource = 'map' | 'list' | 'options';
 
 export const useSelectionStore = defineStore('selection', () => {
   const activityStore = useActivityStore();
 
-  const selected = reactive<Set<string>>(new Set());
+  const selectionMode = ref(false);
 
-  const selectedItems = computed(() =>
-    activityStore.mapItems.filter((item) => selected.has(item.id)),
+  const selected = reactive<Set<string>>(new Set());
+  const lockedSelection = ref<ReadonlySet<string>>();
+
+  const visibleItems = computed(() => {
+    const value = lockedSelection.value;
+    return value
+      ? activityStore.mapItems.filter((item) => value.has(item.id))
+      : activityStore.mapItems;
+  });
+
+  const visibleGroupedItems = computed<readonly MapItemGroup[]>(() =>
+    groupMapItems(visibleItems.value, activityStore.groupLevel),
   );
+
+  const selectedItems = computed(() => visibleItems.value.filter((item) => selected.has(item.id)));
 
   const updateSource = ref<SelectionUpdateSource>();
 
@@ -25,10 +39,10 @@ export const useSelectionStore = defineStore('selection', () => {
 
     const limits = new Set<string>([...base, ...to]);
 
-    const start = activityStore.mapItems.findIndex(({ id }) => limits.has(id));
+    const start = visibleItems.value.findIndex(({ id }) => limits.has(id));
     if (start === -1) return limits;
-    const end = activityStore.mapItems.findLastIndex(({ id }) => limits.has(id));
-    return new Set(activityStore.mapItems.slice(start, end + 1).map(({ id }) => id));
+    const end = visibleItems.value.findLastIndex(({ id }) => limits.has(id));
+    return new Set(visibleItems.value.slice(start, end + 1).map(({ id }) => id));
   }
 
   function toggleAll(ids: string[]) {
@@ -48,6 +62,7 @@ export const useSelectionStore = defineStore('selection', () => {
    * @param source The source of the event:
    *                 `map` means a click on the map.
    *                 `list` means a click in the list in the sidebar.
+   *                 `options` means a click in the selection options panel.
    * @param ctrlKey Whether the ctrl/meta key is pressed.
    *                When true, the selection is toggled rather than replaced.
    * @param shiftKey Whether the shift key is pressed.
@@ -63,7 +78,7 @@ export const useSelectionStore = defineStore('selection', () => {
   ) {
     const flatIds = [ids].flat();
 
-    if (!ctrlKey) {
+    if (!ctrlKey && !selectionMode.value) {
       selected.clear();
     }
 
@@ -87,11 +102,32 @@ export const useSelectionStore = defineStore('selection', () => {
     updateSource.value = source;
   }
 
+  function lockSelection() {
+    if (selected.size === 0) return;
+    lockedSelection.value = new Set(selected);
+    selected.clear();
+    updateSource.value = 'options';
+  }
+
+  function releaseSelection() {
+    if (!lockedSelection.value) return;
+    selected.clear();
+    lockedSelection.value.forEach((id) => selected.add(id));
+    lockedSelection.value = undefined;
+    updateSource.value = 'options';
+  }
+
   return {
+    selectionMode,
     selected,
     selectedItems,
     updateSource,
+    lockedSelection,
+    visibleItems,
+    visibleGroupedItems,
 
     select,
+    lockSelection,
+    releaseSelection,
   };
 });
