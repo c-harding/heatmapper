@@ -7,7 +7,6 @@ import CollapsibleSidebar from './components/sidebar/CollapsibleSidebar.vue';
 import SidebarContent from './components/sidebar/SidebarContent.vue';
 import { SELECTED_SIDEBAR_ITEM_SELECTOR } from './components/sidebar/SidebarItem.vue';
 import { useActivityStore } from './stores/ActivityStore';
-import { useSelectionStore } from './stores/SelectionStore';
 import { getBestCenter } from './utils/midpoint';
 
 const { routes: routesInUrl = false } = defineProps<{ routes: boolean }>();
@@ -17,7 +16,6 @@ const router = useRouter();
 const map = ref<typeof MapView>();
 
 const activityStore = useActivityStore();
-const selectionStore = useSelectionStore();
 
 watch(
   [() => routesInUrl],
@@ -64,14 +62,7 @@ defineExpose({ mapItems: activityStore.mapItems });
       />
     </CollapsibleSidebar>
     <Suspense>
-      <MapView
-        ref="map"
-        v-model:center="center"
-        v-model:zoom="zoom"
-        :bounds="geolocation"
-        :mapItems="selectionStore.visibleItems"
-        :backgroundMapItems="activityStore.backgroundMapItems"
-      />
+      <MapView ref="map" v-model:center="center" v-model:zoom="zoom" :bounds="geolocation" />
     </Suspense>
   </div>
 </template>

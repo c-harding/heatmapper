@@ -28,9 +28,7 @@ import { useMapStyle } from '@/MapStyle';
 import { addLayersToMap, applyMapItems, MapSourceLayer, useMapSelection } from '@/utils/map';
 import Viewport from '@/Viewport';
 
-const { mapItems, backgroundMapItems, bounds } = defineProps<{
-  mapItems: readonly MapItem[];
-  backgroundMapItems: readonly MapItem[];
+const { bounds } = defineProps<{
   bounds?: LngLatBoundsLike;
 }>();
 
@@ -94,11 +92,11 @@ onMounted(() => {
   map.resize();
 });
 
-watch([() => mapItems], ([mapItems]) => {
+watch([() => selectionStore.visibleItems], ([mapItems]) => {
   applyMapItems(map, mapItems, MapSourceLayer.LINES);
 });
 
-watch([() => backgroundMapItems], ([backgroundMapItems]) => {
+watch([() => selectionStore.visibleBackgroundItems], ([backgroundMapItems]) => {
   applyMapItems(map, backgroundMapItems, MapSourceLayer.BACKGROUND);
 });
 
@@ -243,8 +241,8 @@ function mapLoaded(map: MapboxMap): void {
   addLayersToMap(map, mapStyle.value);
   onTerrain();
 
-  applyMapItems(map, backgroundMapItems, MapSourceLayer.BACKGROUND);
-  applyMapItems(map, mapItems, MapSourceLayer.LINES);
+  applyMapItems(map, selectionStore.visibleBackgroundItems, MapSourceLayer.BACKGROUND);
+  applyMapItems(map, selectionStore.visibleItems, MapSourceLayer.LINES);
   applyMapItems(map, selectionStore.selectedItems, MapSourceLayer.SELECTED);
 }
 
