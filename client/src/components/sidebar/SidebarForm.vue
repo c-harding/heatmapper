@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
 
-import { useActivityService } from '@/services/useActivityService';
-import useSportsTypes from '@/services/useSportsTypes';
-import useUser from '@/services/useUser';
+import { useActivityStore } from '@/stores/ActivityStore';
+import { useSportTypeStore } from '@/stores/SportTypeStore';
+import { useUserStore } from '@/stores/UserStore';
 import { combineCallbacks } from '@/utils/functions';
 import { useResettingRef } from '@/utils/resetting-ref';
 
@@ -23,36 +23,27 @@ import UserSettings from './UserSettings.vue';
 const start = ref<Date>();
 const end = ref<Date>();
 
-const {
-  error,
-  filterModel,
-  gear,
-  useRoutes,
-  cancelLoading,
-  discardCache,
-  load,
-  continueLogin: continueActivityLogin,
-} = useActivityService();
+const activityStore = useActivityStore();
 
-const { user, continueLogin: continueUserLogin, getUser } = useUser();
+const userStore = useUserStore();
 
 const continueLogin = computed(() =>
-  combineCallbacks([continueUserLogin.value, continueActivityLogin.value]),
+  combineCallbacks([userStore.continueLogin, activityStore.continueLogin]),
 );
 
 const settingsOpen = ref(false);
 
-const { sportsDropdownOptions, sportsFilter } = useSportsTypes();
+const sportTypeStore = useSportTypeStore();
 
 function onLogout(): void {
   document.cookie = `token=;expires=${new Date(0).toUTCString()}`;
-  discardCache(true, true);
+  activityStore.discardCache(true, true);
   settingsOpen.value = false;
 }
 
 async function settingsButton() {
   try {
-    await getUser();
+    await userStore.getUser();
     settingsOpen.value = true;
   } catch (cause) {
     throw new TooltipError('Cannot load user options', { timeout: 0, cause });
@@ -70,11 +61,9 @@ async function loadButton() {
   const partialLoad = !unchangedSinceLoad.value;
 
   try {
-    await load(partialLoad, start.value, end.value);
+    await activityStore.load(partialLoad, start.value, end.value);
   } catch (cause) {
-    const message = `An error occurred when fetching the ${
-      useRoutes.value ? 'activities' : 'routes'
-    }`;
+    const message = `An error occurred when fetching the ${activityStore.useRoutes ? 'activities' : 'routes'}`;
     console.error(message, cause);
     throw new TooltipError(message, { timeout: 0, cause });
   }
@@ -83,20 +72,21 @@ async function loadButton() {
 }
 
 function cancelButton() {
-  cancelLoading();
+  activityStore.cancelLoading();
   unchangedSinceLoad.value = false;
 }
 
 function clearButton() {
-  discardCache({ activities: !useRoutes.value, routes: useRoutes.value }, true);
+  activityStore.discardCache(
+    { activities: !activityStore.useRoutes, routes: activityStore.useRoutes },
+    true,
+  );
   unchangedSinceLoad.value = false;
 }
 
-watch([start, end, useRoutes], () => {
+watch([start, end, () => activityStore.useRoutes], () => {
   unchangedSinceLoad.value = false;
 });
-
-defineExpose({ gear });
 </script>
 
 <template>
@@ -105,7 +95,7 @@ defineExpose({ gear });
       <div :class="$style.buttons">
         <SegmentedControl
           v-slot="{ option }"
-          v-model="useRoutes"
+          v-model="activityStore.useRoutes"
           :class="$style.segmentedControl"
           :disabled="loading"
         >
@@ -142,34 +132,37 @@ defineExpose({ gear });
       </div>
     </div>
     <UserLogin v-if="continueLogin" @login="continueLogin($event)" />
-    <LoadingStatus v-else :useRoutes :error />
+    <LoadingStatus v-else :useRoutes="activityStore.useRoutes" :error="activityStore.error" />
     <div :class="[$style.controls, $style.row]">
       <label :class="$style.expand">
         <span>Sport type</span>
         <UIDropdown
-          v-model="sportsFilter"
-          :options="sportsDropdownOptions"
+          v-model="sportTypeStore.filter"
+          :options="sportTypeStore.dropdownOptions"
           blankValue=""
           blankLabel="All sports"
         />
       </label>
       <label
-        :class="!useRoutes && $style.hidden"
+        :class="!activityStore.useRoutes && $style.hidden"
         title="Only show starred routes (double-click for unstarred routes)"
       >
         <span>Starred</span>
         <UIButton
-          :invertColor="filterModel.starred === false"
-          :icon="filterModel.starred === undefined ? 'star_border' : 'star'"
-          @click="filterModel.starred = filterModel.starred !== undefined ? undefined : true"
-          @dbl-click="filterModel.starred = false"
+          :invertColor="activityStore.filterModel.starred === false"
+          :icon="activityStore.filterModel.starred === undefined ? 'star_border' : 'star'"
+          @click="
+            activityStore.filterModel.starred =
+              activityStore.filterModel.starred !== undefined ? undefined : true
+          "
+          @dbl-click="activityStore.filterModel.starred = false"
         />
       </label>
     </div>
   </aside>
 
-  <UIModal v-if="user" v-model="settingsOpen" :class="$style.modal">
-    <UserSettings :user @logout="onLogout" />
+  <UIModal v-if="userStore.user" v-model="settingsOpen" :class="$style.modal">
+    <UserSettings :user="userStore.user" @logout="onLogout" />
   </UIModal>
 </template>
 

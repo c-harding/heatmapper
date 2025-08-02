@@ -1,31 +1,31 @@
 import { routeTypeMap, sportGroups, sportTypes } from '@strava-heatmapper/shared/interfaces';
+import { defineStore } from 'pinia';
 import { computed, ref } from 'vue';
 
 import { type DropdownOption } from '@/components/ui/UIDropdown.vue';
+import { doesSportTypeMatch, useActivityStore } from '@/stores/ActivityStore';
 
-import { doesSportTypeMatch, useActivityService } from './useActivityService';
+export const useSportTypeStore = defineStore('sportType', () => {
+  const activityStore = useActivityStore();
 
-export default function useSportsTypes() {
-  const { availableSports, filterModel, useRoutes } = useActivityService();
-
-  const requestedMoreSportTypes = ref(false);
+  const requestedMore = ref(false);
 
   const sports = computed(() => {
     const allSportsReponse = { sportTypes, sportGroups, showMoreButton: false };
 
-    if (requestedMoreSportTypes.value || !availableSports.value) {
+    if (requestedMore.value || !activityStore.availableSports) {
       return allSportsReponse;
     }
 
-    const availableSportsResponse = { showMoreButton: true, ...availableSports.value };
+    const availableSportsResponse = { showMoreButton: true, ...activityStore.availableSports };
 
-    if (!filterModel.sportType) {
+    if (!activityStore.filterModel.sportType) {
       return availableSportsResponse;
     }
 
     const foundInAvailableSports =
-      filterModel.sportType in availableSports.value.sportGroups ||
-      filterModel.sportType in availableSports.value.sportTypes;
+      activityStore.filterModel.sportType in activityStore.availableSports.sportGroups ||
+      activityStore.filterModel.sportType in activityStore.availableSports.sportTypes;
 
     if (foundInAvailableSports) {
       return availableSportsResponse;
@@ -39,25 +39,25 @@ export default function useSportsTypes() {
     value: 'SHOW_MORE',
   } as const satisfies DropdownOption;
 
-  const sportsFilter = computed({
-    get: () => filterModel.sportType,
+  const filter = computed({
+    get: () => activityStore.filterModel.sportType,
     set(value: string | undefined) {
       if (value === showMoreButton.value) {
-        requestedMoreSportTypes.value = true;
+        requestedMore.value = true;
       } else {
-        filterModel.sportType = value;
+        activityStore.filterModel.sportType = value;
       }
     },
   });
 
-  const sportsDropdownOptions = computed<DropdownOption[][]>(() => [
-    mapSportTypes(sports.value.sportGroups, useRoutes.value),
-    mapSportTypes(sports.value.sportTypes, useRoutes.value),
+  const dropdownOptions = computed<DropdownOption[][]>(() => [
+    mapSportTypes(sports.value.sportGroups, activityStore.useRoutes),
+    mapSportTypes(sports.value.sportTypes, activityStore.useRoutes),
     sports.value.showMoreButton ? [showMoreButton] : [],
   ]);
 
-  return { sportsFilter, sportsDropdownOptions };
-}
+  return { filter, dropdownOptions, requestedMore };
+});
 
 function mapSportTypes(sportTypes: Record<string, string>, useRoutes: boolean): DropdownOption[] {
   return Object.entries(sportTypes)

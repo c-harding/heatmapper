@@ -1,17 +1,18 @@
 import {
   type Activity,
+  type FindingStats,
   type Gear,
   type MapItem,
+  type MapItemType,
   type ResponseMessage,
   type Route,
-  TimeRange,
-} from '@strava-heatmapper/shared/interfaces';
-import {
   sportGroups,
   sportTypes,
-  type SportTypesAndGroups,
-} from '@strava-heatmapper/shared/interfaces/SportType';
-import { computed, inject, provide, reactive, readonly, type Ref, ref, shallowRef } from 'vue';
+  TimeRange,
+} from '@strava-heatmapper/shared/interfaces';
+import { type SportTypesAndGroups } from '@strava-heatmapper/shared/interfaces/SportType';
+import { defineStore } from 'pinia';
+import { computed, reactive, type Ref, ref, shallowRef, toRef } from 'vue';
 
 import Socket from '@/socket';
 import config from '@/utils/config';
@@ -28,14 +29,23 @@ import {
   saveCachedGear,
 } from '@/utils/storage';
 
-import {
-  type ActivityService,
-  activityServiceToken,
-  type FilterModel,
-  type LoadingStats,
-  type MapItemTypes,
-} from './ActivityService';
-import { useContinueLogin } from './useContinueLogin';
+import { useContinueLoginStore } from './ContinueLoginStore';
+
+export interface LoadingStats {
+  closed?: boolean;
+  finding?: FindingStats;
+  cleared?: boolean;
+  inCache: boolean;
+}
+
+export interface FilterModel {
+  sportType?: string;
+
+  /** Set to true to only show starred routes, or false to only show unfiltered routes */
+  starred?: boolean;
+}
+
+export type MapItemTypes = Partial<Record<MapItemType, boolean>>;
 
 /** One day in milliseconds */
 const DAY = 24 * 60 * 60 * 1000;
@@ -47,17 +57,15 @@ export function doesSportTypeMatch(sportTypeFilter: string, sportType: string) {
   return sportTypeFilter.split(',').includes(sportType);
 }
 
-function makeActivityService({
-  useRoutes = ref(false),
-}: {
-  useRoutes?: Ref<boolean>;
-}): ActivityService {
+export const useActivityStore = defineStore('activity', () => {
+  const useRoutes = ref(false); // TODO: link to URL
+
   const allRoutes = shallowRef<Route[]>([]);
   const allActivities = shallowRef<Activity[]>([]);
 
   let needsUserValidation = config.VALIDATE_USER_BEFORE_CACHE;
 
-  const { continueLogin, waitForLogin } = useContinueLogin();
+  const continueLoginStore = useContinueLoginStore();
 
   const routeStats = ref<LoadingStats>({ inCache: false });
   const activityStats = ref<LoadingStats>({ inCache: true });
@@ -279,7 +287,7 @@ function makeActivityService({
 
     function checkFinished(socket: Socket | undefined): boolean {
       const finished =
-        !continueLogin.value &&
+        !continueLoginStore.continueLogin &&
         (!activities || activityStats.value.finding?.finished === true) &&
         (!routes || routeStats.value.finding?.finished === true);
       if (finished) {
@@ -335,7 +343,7 @@ function makeActivityService({
             break;
           }
           case 'login': {
-            waitForLogin(data.cookie, data.url);
+            continueLoginStore.waitForLogin(data.cookie, data.url);
             break;
           }
           default:
@@ -390,12 +398,14 @@ function makeActivityService({
   loadFromCache();
 
   return {
-    continueLogin,
+    continueLogin: toRef(continueLoginStore, 'continueLogin'),
     stats,
+    routeStats,
+    activityStats,
     filterModel,
     useRoutes,
     error,
-    gear: readonly(gear),
+    gear,
 
     mapItems: visibleMapItems,
     availableSports,
@@ -404,14 +414,4 @@ function makeActivityService({
     discardCache,
     load,
   };
-}
-
-export function provideActivityService(options: { useRoutes?: Ref<boolean> } = {}) {
-  const service = makeActivityService(options);
-  provide(activityServiceToken, service);
-  return service;
-}
-
-export function useActivityService() {
-  return inject(activityServiceToken, provideActivityService, true);
-}
+});

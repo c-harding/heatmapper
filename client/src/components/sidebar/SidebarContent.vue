@@ -2,7 +2,7 @@
 import { type MapItem } from '@strava-heatmapper/shared/interfaces';
 import { computed, nextTick, reactive, ref, watch } from 'vue';
 
-import { useActivityService } from '@/services/useActivityService';
+import { useActivityStore } from '@/stores/ActivityStore';
 import { combineStats } from '@/utils/stats';
 import { cancelTextSelection } from '@/utils/ui';
 
@@ -36,9 +36,9 @@ const emit = defineEmits<{
   scrollToSelected: [];
 }>();
 
-const { mapItems } = useActivityService();
+const activityStore = useActivityStore();
 
-const totals = computed(() => combineStats(mapItems.value, selected.value));
+const totals = computed(() => combineStats(activityStore.mapItems, selected.value));
 
 let localSelected: readonly string[] | undefined;
 let selectionBase: readonly string[] | undefined;
@@ -52,7 +52,7 @@ function toggleInArray<T>(array: readonly T[], item: T): T[] {
 
 function getSelectedItems(id: string, e: MouseEvent): string[] {
   if (e.metaKey || e.ctrlKey) return toggleInArray(selected.value, id);
-  if (e.shiftKey) return getRange(mapItems.value, id, selectionBase);
+  if (e.shiftKey) return getRange(activityStore.mapItems, id, selectionBase);
   return [id];
 }
 
@@ -84,7 +84,7 @@ watch(selected, async (selected) => {
   <div :class="$style.sidebarContent">
     <SidebarForm />
     <div
-      v-if="mapItems?.length"
+      v-if="activityStore.mapItems?.length"
       :class="[$style.sidebarTotals, totals.showSelected && $style.stickyTotals]"
     >
       <SidebarItemCount :counts="totals" />
@@ -93,7 +93,7 @@ watch(selected, async (selected) => {
     <div ref="sidebarItemListRef">
       <SidebarItemList
         v-model:selected="selected"
-        :items="mapItems"
+        :items="activityStore.mapItems"
         @select="select"
         @force-select="forceSelect"
       />

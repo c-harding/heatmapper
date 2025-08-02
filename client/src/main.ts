@@ -1,4 +1,5 @@
 import { createHead } from '@unhead/vue';
+import { createPinia } from 'pinia';
 import { createApp } from 'vue';
 import { createRouter, createWebHistory, RouterView } from 'vue-router';
 
@@ -14,4 +15,4 @@ const router = createRouter({
   routes,
 });
 
-createApp(RouterView).use(router).use(createHead()).mount('body');
+createApp(RouterView).use(router).use(createHead()).use(createPinia()).mount('body');

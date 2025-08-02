@@ -1,7 +1,7 @@
 <script lang="tsx">
 import {
-  LngLatBoundsLike,
   type LngLatBounds,
+  type LngLatBoundsLike,
   type LngLatLike,
   type Map as MapboxMap,
   type MapMouseEvent,
