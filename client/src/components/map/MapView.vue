@@ -130,30 +130,23 @@ const onTerrain = () => {
 watch(terrain, onTerrain);
 
 /**
- * Calculate best way of zooming to fit the activity while avoiding the controls in the corners.
+ * Calculate all ways of zooming to fit the activity while avoiding the controls in the corners.
  *
  * This works by considering the visual aspect ratio of the route, and for each corner control,
  * considering either placing the route strictly horizontally offset from the control or strictly
  * vertically offset from the control.
- *
- * It compares the area of the bounding box of the activity in each case.
  */
-function optimiseViewport(map: MapboxMap, bounds: LngLatBounds) {
+function getViewports() {
   const padding = 10;
 
   const { width, height } = map.getCanvas().getBoundingClientRect();
-
-  const northWest = mapboxgl.MercatorCoordinate.fromLngLat(bounds.getNorthWest());
-  const southEast = mapboxgl.MercatorCoordinate.fromLngLat(bounds.getSouthEast());
-
-  const aspectRatio = (northWest.y - southEast.y) / (northWest.x - southEast.x);
 
   const topLeft = container.value?.querySelector('.mapboxgl-ctrl-top-left');
   const topRight = container.value?.querySelector('.mapboxgl-ctrl-top-right');
   const bottomLeft = container.value?.querySelector('.mapboxgl-ctrl-bottom-left');
   const bottomRight = container.value?.querySelector('.mapboxgl-ctrl-bottom-right');
 
-  const viewports = [
+  return [
     // Padding is given here as well as at the end so that 2 × padding is maintained from the edges,
     // and 1 × padding is maintained from the controls
     new Viewport(width, height, { left: padding, top: padding, bottom: padding, right: padding }),
@@ -179,9 +172,34 @@ function optimiseViewport(map: MapboxMap, bounds: LngLatBounds) {
       viewport.withOffset({ right: bottomRight?.clientWidth ?? 0 }),
     ])
     .map((viewport) => viewport.withPadding(padding));
+}
+
+/**
+ * Given a list of viewports, find the one with the largest area.
+ */
+function getOptimalViewport(viewports: Viewport[], bounds: LngLatBounds) {
+  const northWest = mapboxgl.MercatorCoordinate.fromLngLat(bounds.getNorthWest());
+  const southEast = mapboxgl.MercatorCoordinate.fromLngLat(bounds.getSouthEast());
+
+  const aspectRatio = (northWest.y - southEast.y) / (northWest.x - southEast.x);
 
   return viewports.reduce((best, current) =>
     best.screenArea(aspectRatio) > current.screenArea(aspectRatio) ? best : current,
+  );
+}
+
+function checkBoundsForViewport(viewport: Viewport, bounds: LngLatBounds) {
+  const screenNorthEast = map.unproject([
+    viewport.width - (viewport.offsets.right ?? 0),
+    viewport.offsets.top ?? 0,
+  ]);
+  const screenSouthWest = map.unproject([
+    viewport.offsets.left ?? 0,
+    viewport.height - (viewport.offsets.bottom ?? 0),
+  ]);
+  const screenBounds = new mapboxgl.LngLatBounds(screenSouthWest, screenNorthEast);
+  return (
+    screenBounds.contains(bounds.getSouthWest()) && screenBounds.contains(bounds.getNorthEast())
   );
 }
 
@@ -195,30 +213,20 @@ function flyTo(mapItems: readonly MapItem[], zoom = false): void {
     new mapboxgl.LngLatBounds(coordinates[0], coordinates[0]),
   );
 
-  const viewport = optimiseViewport(map, bounds);
+  const viewports = getViewports();
 
-  const screenNorthEast = map.unproject([
-    viewport.width - (viewport.offsets.right ?? 0),
-    viewport.offsets.top ?? 0,
-  ]);
-  const screenSouthWest = map.unproject([
-    viewport.offsets.left ?? 0,
-    viewport.height - (viewport.offsets.bottom ?? 0),
-  ]);
-  const screenBounds = new mapboxgl.LngLatBounds(screenSouthWest, screenNorthEast);
-
-  if (
-    zoom ||
-    !screenBounds.contains(bounds.getSouthWest()) ||
-    !screenBounds.contains(bounds.getNorthEast())
-  ) {
-    const maxZoom = zoom ? 30 : map.getZoom();
-    map.fitBounds(bounds, {
-      padding: viewport.offsets,
-      linear: true,
-      maxZoom,
-    });
+  if (!zoom && viewports.some((viewport) => checkBoundsForViewport(viewport, bounds))) {
+    // If one of the viewports fits on the screen, there is no need to rezoom
+    return;
   }
+
+  const viewport = getOptimalViewport(viewports, bounds);
+
+  map.fitBounds(bounds, {
+    padding: viewport.offsets,
+    linear: true,
+    maxZoom: zoom ? 30 : map.getZoom(),
+  });
 }
 
 function zoomToSelection(): void {
