@@ -27,6 +27,10 @@ const activityStore = useActivityStore();
       {{ activityStore.useRoutes ? 'routes' : 'activities' }} in the sidebar, hold the
       <kbd>⇧ Shift</kbd> key when clicking.
     </p>
+    <p>
+      When multiple {{ activityStore.useRoutes ? 'routes' : 'activities' }} are selected, the total
+      statistics are shown at the top of the sidebar.
+    </p>
     <hr />
     <p>
       Enable multiple selection mode to mimic holding the <kbd>Ctrl</kbd>/<kbd>⌘ Command</kbd> key.
