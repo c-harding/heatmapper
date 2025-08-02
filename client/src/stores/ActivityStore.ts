@@ -18,7 +18,6 @@ import { computed, reactive, type Ref, ref, shallowRef, toRef, watch } from 'vue
 import Socket from '@/socket';
 import { type FilterField, type FilterModel, parseDeviceFilter } from '@/types/FilterModel';
 import config from '@/utils/config';
-import { groupMapItems } from '@/utils/groupMapItems';
 import {
   appendCachedActivities,
   appendCachedRoutes,
@@ -194,10 +193,6 @@ export const useActivityStore = defineStore('activity', () => {
 
   const backgroundMapItems = computed(() =>
     useRoutes.value && displayOptions.showActivities ? filterMapItems(allActivities.value) : [],
-  );
-
-  const groupedMapItems = computed<readonly MapItemGroup[]>(() =>
-    groupMapItems(visibleMapItems.value, groupLevel.value),
   );
 
   /** A map of all gear, where null represents gear that is not yet fetched */
@@ -508,7 +503,6 @@ export const useActivityStore = defineStore('activity', () => {
 
     mapItems: visibleMapItems,
     backgroundMapItems,
-    groupedMapItems,
     availableSports,
 
     cancelLoading,

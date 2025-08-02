@@ -26,7 +26,9 @@ const selectionStore = useSelectionStore();
 const expandableGroups = provideExpandableGroups();
 const areAllExpanded = expandableGroups.areAllExpanded;
 
-const totals = computed(() => combineStats(activityStore.mapItems, selectionStore.selectedItems));
+const totals = computed(() =>
+  combineStats(selectionStore.visibleItems, selectionStore.selectedItems),
+);
 
 const sidebarItemListRef = ref<HTMLElement>();
 
@@ -54,7 +56,7 @@ watch(selectionStore.selected, async (selected) => {
   <div :class="$style.sidebarContent">
     <SidebarForm />
     <div
-      v-if="activityStore.mapItems?.length"
+      v-if="selectionStore.visibleItems?.length"
       :class="[$style.sidebarTotalsContainer, stickyTotals && $style.stickyTotals]"
     >
       <a
@@ -73,7 +75,7 @@ watch(selectionStore.selected, async (selected) => {
     <div ref="sidebarItemListRef">
       <template v-if="activityStore.groupLevel">
         <SidebarGroup
-          v-for="group of activityStore.groupedMapItems"
+          v-for="group of selectionStore.visibleGroupedItems"
           :key="group.date"
           :group
           @zoom-to-selected="emit('zoomToSelected')"
@@ -81,7 +83,7 @@ watch(selectionStore.selected, async (selected) => {
       </template>
       <SidebarItemList
         v-else
-        :items="activityStore.mapItems"
+        :items="selectionStore.visibleItems"
         @zoom-to-selected="emit('zoomToSelected')"
         @scroll-to-selected="emit('scrollToSelected')"
       />
