@@ -10,7 +10,7 @@ export type SelectionUpdateSource = 'map' | 'list' | 'options';
 export const useSelectionStore = defineStore('selection', () => {
   const activityStore = useActivityStore();
 
-  const selectionMode = ref(false);
+  const multiSelectionMode = ref(false);
 
   const selected = reactive<Set<string>>(new Set());
 
@@ -91,7 +91,7 @@ export const useSelectionStore = defineStore('selection', () => {
   ) {
     const flatIds = [ids].flat();
 
-    if (!ctrlKey && !selectionMode.value) {
+    if (!ctrlKey && !multiSelectionMode.value) {
       selected.clear();
     }
 
@@ -136,7 +136,7 @@ export const useSelectionStore = defineStore('selection', () => {
   }
 
   return {
-    selectionMode,
+    multiSelectionMode,
     selected,
     selectedItems,
     updateSource,
