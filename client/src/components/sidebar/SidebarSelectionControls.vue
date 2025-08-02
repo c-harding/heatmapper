@@ -10,13 +10,11 @@ import {
   countSelectedRoutes,
 } from '@/utils/strings';
 
-import tabStyle from '../ui/tabs/tab.module.scss';
 import UIVerticalTab from '../ui/tabs/UIVerticalTab.vue';
 import { type Tab } from '../ui/tabs/UIVerticalTabContainer.vue';
 import UIButton from '../ui/UIButton.vue';
 import UIButtonGroup from '../ui/UIButtonGroup.vue';
 import UICheckbox from '../ui/UICheckbox.vue';
-import UIUnbrokenList from '../ui/UIUnbrokenList.vue';
 import SelectionHelp from './SelectionHelp.vue';
 
 defineProps<{ tab: Tab<string> }>();
@@ -24,7 +22,7 @@ defineProps<{ tab: Tab<string> }>();
 const activityStore = useActivityStore();
 const selectionStore = useSelectionStore();
 
-const summaryItems = computed(() =>
+const summary = computed(() =>
   [
     selectionStore.lockedSelection?.size &&
       (activityStore.useRoutes
@@ -44,8 +42,6 @@ function reset() {
 }
 
 const showHelp = ref(false);
-
-const summaryEmpty = 'None selected';
 </script>
 
 <template>
@@ -53,8 +49,9 @@ const summaryEmpty = 'None selected';
     :tab
     icon="done_all"
     heading="Selection"
-    :summaryItems
-    :summaryEmpty
+    :summary
+    summaryEmpty="None selected"
+    showSummaryWhenExpanded
     :resetDisabled="
       selectionStore.selectionMode === false &&
       !selectionStore.lockedSelection &&
@@ -64,9 +61,6 @@ const summaryEmpty = 'None selected';
     @help="showHelp = true"
   >
     <template #expanded>
-      <UIUnbrokenList :items="summaryItems" :class="tabStyle.summary">{{
-        summaryEmpty
-      }}</UIUnbrokenList>
       <UICheckbox v-model="selectionStore.selectionMode">Multiple selection mode</UICheckbox>
       <UIButtonGroup>
         <UIButton

@@ -11,7 +11,7 @@ defineProps<{ tab: Tab<string> }>();
 
 const activityStore = useActivityStore();
 
-const summaryItems = computed(() =>
+const summary = computed(() =>
   [
     activityStore.useRoutes &&
       activityStore.displayOptions.showActivities &&
@@ -30,7 +30,7 @@ function reset() {
     :tab
     icon="visibility"
     heading="Display"
-    :summaryItems
+    :summary
     :resetDisabled="!activityStore.displayOptions.showActivities"
     @reset="reset"
   >

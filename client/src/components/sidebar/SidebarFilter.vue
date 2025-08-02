@@ -234,7 +234,7 @@ const showHelp = ref(false);
     icon="filter_alt"
     :expandedContentClass="$style.content"
     heading="Filter"
-    :summaryItems="filterSummary"
+    :summary="filterSummary"
     summaryEmpty="none set"
     @help="showHelp = true"
   >
