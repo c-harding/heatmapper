@@ -1,0 +1,21 @@
+.helpModal {
+  width: min(35em, calc(100vw - 4rem));
+  max-height: 90vh;
+
+  dl {
+    > dt {
+      font-weight: 600;
+    }
+
+    > dd {
+      margin-left: 1em;
+      margin-block: 0.5em;
+    }
+  }
+
+  kbd {
+    font-family: inherit;
+    font-weight: bold;
+    white-space: nowrap;
+  }
+}

@@ -7,6 +7,16 @@
   display: grid;
   grid-template-columns: subgrid;
   grid-column: span 2;
+
+  .topRightButton {
+    float: inline-end;
+    margin-inline-start: 0.25rem !important;
+    cursor: pointer;
+  }
+
+  .helpButton {
+    cursor: help;
+  }
 }
 
 .tab {
@@ -78,15 +88,4 @@
 
 .summaryRow {
   list-style: none;
-}
-
-.helpButton {
-  float: right;
-  cursor: help;
-  margin-inline: 0.5rem;
-}
-
-.resetButton {
-  float: right;
-  margin-inline: 0.5rem;
 }
