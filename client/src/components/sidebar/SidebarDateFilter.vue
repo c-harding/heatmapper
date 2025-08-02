@@ -38,7 +38,7 @@ const summary = computed(() => {
     :tab
     icon="date_range"
     heading="Dates"
-    :summaryItems="[summary]"
+    :summary="[summary]"
     :resetDisabled="!start && !end"
     @reset="reset"
   >
