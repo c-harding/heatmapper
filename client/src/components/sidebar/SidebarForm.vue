@@ -109,12 +109,6 @@ watch([start, end, () => activityStore.useRoutes], () => {
           <SegmentedControlItem :option="option(true)"> Routes </SegmentedControlItem>
         </SegmentedControl>
       </div>
-    </div>
-    <UIVerticalTabContainer v-slot="{ makeTab }">
-      <SidebarDateFilter v-model:start="start" v-model:end="end" :tab="makeTab('dates')" />
-    </UIVerticalTabContainer>
-
-    <div :class="[controlsStyle.grid, controlsStyle.center]">
       <div :class="controlsStyle.buttons">
         <UIButtonGroup>
           <UIButton @click="loadButton">
@@ -138,6 +132,7 @@ watch([start, end, () => activityStore.useRoutes], () => {
     <UserLogin v-if="continueLogin" @login="continueLogin($event)" />
     <LoadingStatus v-else :useRoutes="activityStore.useRoutes" :error="activityStore.error" />
     <UIVerticalTabContainer v-slot="{ makeTab }">
+      <SidebarDateFilter v-model:start="start" v-model:end="end" :tab="makeTab('dates')" />
       <SidebarFilter :tab="makeTab('filter')" />
       <SidebarDisplayOptions :tab="makeTab('display')" />
       <SidebarGroupControl :tab="makeTab('group')" />
