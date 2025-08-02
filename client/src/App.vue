@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 
 import MapView from './components/map/MapView.vue';
@@ -9,22 +9,28 @@ import { SELECTED_SIDEBAR_ITEM_SELECTOR } from './components/sidebar/SidebarItem
 import { useActivityStore } from './stores/ActivityStore';
 import { getBestCenter } from './utils/midpoint';
 
-const { routes = false } = defineProps<{ routes: boolean }>();
+const { routes: routesInUrl = false } = defineProps<{ routes: boolean }>();
 
 const router = useRouter();
-
-const useRoutes = computed<boolean>({
-  get() {
-    return routes;
-  },
-  set(value) {
-    return value ? router.replace({ path: '/routes' }) : router.push({ path: '/' });
-  },
-});
 
 const map = ref<typeof MapView>();
 
 const activityStore = useActivityStore();
+
+watch(
+  [() => routesInUrl],
+  ([routesInUrl]) => {
+    if (activityStore.useRoutes !== routesInUrl) activityStore.useRoutes = routesInUrl;
+  },
+  { immediate: true },
+);
+watch([() => activityStore.useRoutes], ([useRoutes]) => {
+  if (!useRoutes && routesInUrl) {
+    router.push({ path: '/' });
+  } else if (useRoutes && !routesInUrl) {
+    router.replace({ path: '/routes' });
+  }
+});
 
 const geolocation = getBestCenter(activityStore.mapItems);
 
