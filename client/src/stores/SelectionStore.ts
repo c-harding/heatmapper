@@ -27,10 +27,18 @@ export const useSelectionStore = defineStore('selection', () => {
   });
 
   const visibleItems = computed(() => {
-    const value = lockedSelection.value;
-    return value
-      ? activityStore.mapItems.filter((item) => value.has(item.id))
+    const selection = lockedSelection.value;
+    return selection
+      ? activityStore.mapItems.filter((item) => selection.has(item.id))
       : activityStore.mapItems;
+  });
+
+  const visibleBackgroundItems = computed(() => {
+    if (!activityStore.backgroundMapItems.length) return [];
+    const selection = lockedSelections.get(false);
+    return selection
+      ? activityStore.backgroundMapItems.filter((item) => selection.has(item.id))
+      : activityStore.backgroundMapItems;
   });
   const selectedItems = computed(() => visibleItems.value.filter((item) => selected.has(item.id)));
 
@@ -125,6 +133,7 @@ export const useSelectionStore = defineStore('selection', () => {
     lockedSelections,
     lockedSelection,
     visibleItems,
+    visibleBackgroundItems,
 
     selectItem,
     lockSelection,
