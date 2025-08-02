@@ -130,6 +130,11 @@ export const useSelectionStore = defineStore('selection', () => {
     updateSource.value = 'options';
   }
 
+  function clearSelection() {
+    selected.clear();
+    updateSource.value = 'options';
+  }
+
   return {
     selectionMode,
     selected,
@@ -143,5 +148,6 @@ export const useSelectionStore = defineStore('selection', () => {
     select,
     lockSelection,
     releaseSelection,
+    clearSelection,
   };
 });
