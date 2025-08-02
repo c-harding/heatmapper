@@ -157,14 +157,11 @@ interface UseMapSelection {
 export const useMapSelection = ({ flyToSelection }: UseMapSelectionConfig): UseMapSelection => {
   const selectionStore = useSelectionStore();
 
-  watch(
-    () => selectionStore.selected,
-    () => {
-      if (selectionStore.updateSource !== 'map') {
-        nextTick(() => flyToSelection());
-      }
-    },
-  );
+  watch(selectionStore.selected, () => {
+    if (selectionStore.updateSource !== 'map') {
+      nextTick(() => flyToSelection());
+    }
+  });
 
   const click = (e: MapMouseEvent): void => {
     const map = e.target;

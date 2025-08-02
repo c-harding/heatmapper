@@ -34,16 +34,13 @@ const groupHeight = 50;
 
 useStickyHeader(computed(() => statsHeight + (activityStore.groupLevel ? groupHeight : 0)));
 
-watch(
-  () => selectionStore.selected,
-  async (selected) => {
-    if (selectionStore.updateSource === 'map') {
-      if (selected.size !== 0) emit('focusSidebar');
-      await nextTick();
-      emit('scrollToSelected');
-    }
-  },
-);
+watch(selectionStore.selected, async (selected) => {
+  if (selectionStore.updateSource === 'map') {
+    if (selected.size !== 0) emit('focusSidebar');
+    await nextTick();
+    emit('scrollToSelected');
+  }
+});
 </script>
 
 <template>
