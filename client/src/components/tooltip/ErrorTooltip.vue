@@ -54,8 +54,8 @@ function adjustMargins() {
 }
 
 watch(
-  () => errorMessage,
-  (errorMessage) => {
+  [() => errorMessage],
+  ([errorMessage]) => {
     if (errorMessage) {
       errorPosition.value = calculateTooltipPosition(errorMessage);
 
