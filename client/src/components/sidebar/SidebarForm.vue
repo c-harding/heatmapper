@@ -22,6 +22,7 @@ import SidebarDateFilter from './SidebarDateFilter.vue';
 import SidebarDisplayOptions from './SidebarDisplayOptions.vue';
 import SidebarFilter from './SidebarFilter.vue';
 import SidebarGroupControl from './SidebarGroupControl.vue';
+import SidebarSelectionControls from './SidebarSelectionControls.vue';
 import UserLogin from './UserLogin.vue';
 import UserSettings from './UserSettings.vue';
 
@@ -135,6 +136,7 @@ watch([start, end, () => activityStore.useRoutes], () => {
       <SidebarFilter :tab="makeTab('filter')" />
       <SidebarDisplayOptions :tab="makeTab('display')" />
       <SidebarGroupControl :tab="makeTab('group')" />
+      <SidebarSelectionControls :tab="makeTab('selection')" />
     </UIVerticalTabContainer>
   </aside>
 

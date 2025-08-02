@@ -4,6 +4,7 @@ import { type FilterField } from '@/types/FilterModel';
 
 import UIIcon from '../ui/UIIcon.vue';
 import UIModal from '../ui/UIModal.vue';
+import helpStyle from './help.module.scss';
 
 const showHelp = defineModel<boolean>({ default: true });
 
@@ -16,7 +17,7 @@ function toggleFilter(field: FilterField) {
 </script>
 
 <template>
-  <UIModal v-model="showHelp" heading="Filters" :class="$style.helpModal">
+  <UIModal v-model="showHelp" heading="Filters" :class="helpStyle.helpModal">
     <p>
       The following filters are available in {{ appName }}. Use the checkboxes to show/hide the
       filters in the filter panel.
