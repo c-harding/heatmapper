@@ -36,7 +36,7 @@ const summary = computed(() =>
 );
 
 function reset() {
-  selectionStore.selectionMode = false;
+  selectionStore.multiSelectionMode = false;
   selectionStore.releaseSelection();
   selectionStore.clearSelection();
 }
@@ -53,7 +53,7 @@ const showHelp = ref(false);
     summaryEmpty="None selected"
     showSummaryWhenExpanded
     :resetDisabled="
-      selectionStore.selectionMode === false &&
+      selectionStore.multiSelectionMode === false &&
       !selectionStore.lockedSelection &&
       !selectionStore.selected.size
     "
@@ -61,7 +61,7 @@ const showHelp = ref(false);
     @help="showHelp = true"
   >
     <template #expanded>
-      <UICheckbox v-model="selectionStore.selectionMode">Multiple selection mode</UICheckbox>
+      <UICheckbox v-model="selectionStore.multiSelectionMode">Multiple selection mode</UICheckbox>
       <UIButtonGroup>
         <UIButton
           :disabled="selectionStore.selected.size === 0"
