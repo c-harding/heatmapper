@@ -13,7 +13,20 @@ export const useSelectionStore = defineStore('selection', () => {
   const selectionMode = ref(false);
 
   const selected = reactive<Set<string>>(new Set());
-  const lockedSelection = ref<ReadonlySet<string>>();
+
+  // The locked selection is kept separate for routes and non-routes, to allow customisation of the ghost mode
+  const lockedSelections = reactive<Map<typeof activityStore.useRoutes, ReadonlySet<string>>>(
+    new Map(),
+  );
+  const lockedSelection = computed({
+    get() {
+      return lockedSelections.get(activityStore.useRoutes);
+    },
+    set(value: ReadonlySet<string> | undefined) {
+      if (value) lockedSelections.set(activityStore.useRoutes, value);
+      else lockedSelections.delete(activityStore.useRoutes);
+    },
+  });
 
   const visibleItems = computed(() => {
     const value = lockedSelection.value;
@@ -122,6 +135,7 @@ export const useSelectionStore = defineStore('selection', () => {
     selected,
     selectedItems,
     updateSource,
+    lockedSelections,
     lockedSelection,
     visibleItems,
     visibleGroupedItems,
