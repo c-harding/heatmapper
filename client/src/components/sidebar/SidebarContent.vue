@@ -45,7 +45,7 @@ useStickyHeader(
 );
 
 watch(selectionStore.selected, async (selected) => {
-  if (selectionStore.updateSource === 'map') {
+  if (selectionStore.updateSource === 'map' && !selectionStore.multiSelectionMode) {
     if (selected.size !== 0) emit('focusSidebar');
     await nextTick();
     emit('scrollToSelected');
@@ -86,7 +86,6 @@ watch(selectionStore.selected, async (selected) => {
         v-else
         :items="selectionStore.visibleItems"
         @zoom-to-selected="emit('zoomToSelected')"
-        @scroll-to-selected="emit('scrollToSelected')"
       />
     </div>
 
