@@ -38,7 +38,7 @@ const summaryItems = computed(() =>
 function reset() {
   selectionStore.selectionMode = false;
   selectionStore.releaseSelection();
-  selectionStore.selectItem(undefined, 'options');
+  selectionStore.clearSelection();
 }
 
 const showHelp = ref(false);
@@ -65,7 +65,7 @@ const showHelp = ref(false);
         <UIButton
           :disabled="selectionStore.selected.size === 0"
           icon="delete"
-          @click="selectionStore.lockSelection"
+          @click="selectionStore.clearSelection"
           >Clear</UIButton
         >
         <UIButton
