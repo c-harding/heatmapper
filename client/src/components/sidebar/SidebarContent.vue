@@ -25,7 +25,7 @@ const activityStore = useActivityStore();
 const selectionStore = useSelectionStore();
 
 const expandableGroups = provideExpandableGroups();
-const areSomeExpanded = expandableGroups.areSomeExpanded;
+const areAllExpanded = expandableGroups.areAllExpanded;
 
 const totals = computed(() => combineStats(activityStore.mapItems, selectionStore.selectedItems));
 
@@ -62,9 +62,9 @@ watch(selectionStore.selected, async (selected) => {
         v-if="expandableGroups.hasGroups.value"
         :class="$style.controlIconButton"
         @click.stop.prevent="
-          expandableGroups.setAllExpanded(!expandableGroups.areSomeExpanded.value)
+          expandableGroups.setAllExpanded(!expandableGroups.areAllExpanded.value)
         "
-        ><UIIcon icon="keyboard_double_arrow_right" :rotation="areSomeExpanded ? 90 : 0"
+        ><UIIcon icon="keyboard_double_arrow_right" :rotation="areAllExpanded ? 90 : 0"
       /></a>
       <div :class="$style.sidebarTotals">
         <SidebarItemCount :counts="totals" />
