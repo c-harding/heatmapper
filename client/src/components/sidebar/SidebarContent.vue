@@ -26,16 +26,13 @@ const totals = computed(() =>
 
 const sidebarItemListRef = ref<HTMLElement>();
 
-watch(
-  () => selectionStore.selected,
-  async (selected) => {
-    if (selectionStore.updateSource === 'map' && !selectionStore.multiSelectionMode) {
-      if (selected.size !== 0) emit('focusSidebar');
-      await nextTick();
-      emit('scrollToSelected');
-    }
-  },
-);
+watch(selectionStore.selected, async (selected) => {
+  if (selectionStore.updateSource === 'map' && !selectionStore.multiSelectionMode) {
+    if (selected.size !== 0) emit('focusSidebar');
+    await nextTick();
+    emit('scrollToSelected');
+  }
+});
 </script>
 
 <template>
