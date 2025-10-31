@@ -1,6 +1,5 @@
+import { type LoadingStats } from '@/stores/ActivityStore';
 import { countActivities, countRoutes } from '@/utils/strings';
-
-import { type LoadingStats } from '../services/ActivityService';
 
 export function loadingStatus(stats: LoadingStats, useRoutes = false) {
   const {

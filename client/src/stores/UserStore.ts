@@ -1,7 +1,8 @@
 import { type UserInfo } from '@strava-heatmapper/shared/interfaces';
-import { type DeepReadonly, readonly, type Ref, ref, shallowReadonly } from 'vue';
+import { defineStore } from 'pinia';
+import { type DeepReadonly, type Ref, ref, toRef } from 'vue';
 
-import { type ContinueLogin, useContinueLogin } from './useContinueLogin';
+import { type ContinueLogin, useContinueLoginStore } from './ContinueLoginStore';
 
 export interface UseUser {
   user: Ref<UserInfo | undefined>;
@@ -9,8 +10,8 @@ export interface UseUser {
   getUser(): Promise<void>;
 }
 
-export default function useUser(): UseUser {
-  const { continueLogin, waitForLogin } = useContinueLogin();
+export const useUserStore = defineStore('user', (): UseUser => {
+  const continueLoginStore = useContinueLoginStore();
 
   const user = ref<UserInfo>();
 
@@ -23,7 +24,10 @@ export default function useUser(): UseUser {
       user.value = await userResponse.json();
     } else if (!token && userResponse.status === 403) {
       const data = (await userResponse.json()) as { token: string };
-      const token = await waitForLogin(data.token, userResponse.headers.get('Location')!);
+      const token = await continueLoginStore.waitForLogin(
+        data.token,
+        userResponse.headers.get('Location')!,
+      );
       await getUser(token);
     } else {
       console.error(
@@ -37,8 +41,8 @@ export default function useUser(): UseUser {
   }
 
   return {
-    user: shallowReadonly(user),
-    continueLogin: readonly(continueLogin),
+    user,
+    continueLogin: toRef(continueLoginStore, 'continueLogin'),
     getUser,
   };
-}
+});

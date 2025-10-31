@@ -1,19 +1,32 @@
 <script setup lang="ts">
 import { type MapItem } from '@strava-heatmapper/shared/interfaces';
 
+import { useSelectionStore } from '@/stores/SelectionStore';
+import { cancelTextSelection } from '@/utils/ui';
+
 import SidebarItem from './SidebarItem.vue';
 
 defineProps<{ items: readonly MapItem[] }>();
 
-const selected = defineModel<readonly string[]>('selected', { required: true });
+const selectionStore = useSelectionStore();
 
 const emit = defineEmits<{
-  select: [item: string, e: MouseEvent];
-  forceSelect: [];
+  zoomToSelected: [];
+  focusSidebar: [];
+  scrollToSelected: [];
 }>();
 
+function forceSelect(): void {
+  cancelTextSelection();
+  emit('zoomToSelected');
+}
+
 function click(id: string, e: MouseEvent): void {
-  if (e.detail === 1) emit('select', id, e);
+  if (e.detail !== 1) return;
+
+  if (e.shiftKey) cancelTextSelection();
+
+  selectionStore.selectItem(id, 'list', e.ctrlKey || e.metaKey, e.shiftKey);
 }
 </script>
 
@@ -23,9 +36,9 @@ function click(id: string, e: MouseEvent): void {
       v-for="item of items"
       :key="item.id"
       :item
-      :selected="selected.includes(item.id)"
+      :selected="selectionStore.selected.has(item.id)"
       @click="click(item.id, $event)"
-      @dblclick="emit('forceSelect')"
+      @dblclick="forceSelect()"
     />
   </div>
 </template>

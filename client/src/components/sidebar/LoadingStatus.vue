@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 
-import { type LoadingStats } from '@/services/ActivityService';
+import { type LoadingStats } from '@/stores/ActivityStore';
 import { loadingStatus } from '@/utils/loadingStatus';
 
 const {
