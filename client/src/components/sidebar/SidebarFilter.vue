@@ -113,6 +113,13 @@ function formatRange(
   return undefined;
 }
 
+function formatGear(id: string | undefined) {
+  if (!id) return undefined;
+  const chosenGear = activityStore.gear.get(id);
+  if (!chosenGear) return undefined;
+  return `using ${chosenGear.name}`;
+}
+
 const filterSummary = computed(() =>
   [
     activityStore.filterFields.has('sportType') && chosenSportLabel.value,
@@ -124,6 +131,7 @@ const filterSummary = computed(() =>
       activityStore.useRoutes &&
       activityStore.filterModel.starred !== undefined &&
       (activityStore.filterModel.starred ? 'only starred' : 'only unstarred'),
+    activityStore.filterFields.has('gear') && formatGear(activityStore.filterModel.gear),
   ].filter((string): string is string => !!string),
 );
 
