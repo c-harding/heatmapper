@@ -27,5 +27,6 @@ export default interface Activity extends ActivityMap, ActivityStats {
   localEnd: number;
   end: number;
   type: SportType;
+  device?: string;
   gear?: string;
 }

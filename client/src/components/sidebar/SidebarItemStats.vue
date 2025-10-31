@@ -11,8 +11,9 @@ import { formatDuration, formatKilometers, formatMeters } from '@/utils/numberFo
 
 import StatsList from './StatsList.vue';
 
-const { item } = defineProps<{
+const { item, additionalStats } = defineProps<{
   item: MapItemStats;
+  additionalStats?: (string | false | undefined | null)[];
 }>();
 
 const distanceString = computed(() => formatKilometers(item.distance));
@@ -42,8 +43,14 @@ const elevationString = computed(() => {
     return elevationGainString ?? elevationLossString;
   }
 });
+
+const stats = computed(() => {
+  const baseStats = [distanceString.value, elevationString.value, movingTime.value];
+
+  return [...baseStats, ...(additionalStats ?? [])]?.filter(Boolean) as string[];
+});
 </script>
 
 <template>
-  <StatsList :stats="[distanceString, elevationString, movingTime]" />
+  <StatsList :stats />
 </template>

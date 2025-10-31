@@ -27,6 +27,7 @@ export interface SummaryActivity {
   /** The number of Instagram photos for this activity */ photo_count: number;
   /** The number of Instagram and Strava photos for this activity */ total_photo_count: number;
   /** An instance of PolylineMap. */ map: { summary_polyline: string };
+  /** The name of the device used to record the activity */ device_name?: string;
   /** Whether this activity was recorded on a training machine */ trainer: boolean;
   /** Whether this activity is a commute */ commute: boolean;
   /** Whether this activity was created manually */ manual: boolean;

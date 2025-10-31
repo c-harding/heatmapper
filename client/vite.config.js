@@ -3,6 +3,7 @@ import {
   MAPBOX_TOKEN,
   SERVER_PORT,
   USE_STRAVA_ICONS,
+  ATTRIBUTION,
   VALIDATE_USER_BEFORE_CACHE,
   VITE_APP_NAME,
   VITE_DEV_PORT,
@@ -49,6 +50,7 @@ export default defineConfig(({ mode }) => {
       MAPBOX_STYLE: JSON.stringify(MAPBOX_STYLE),
       USE_STRAVA_ICONS: JSON.stringify(USE_STRAVA_ICONS),
       VALIDATE_USER_BEFORE_CACHE: JSON.stringify(VALIDATE_USER_BEFORE_CACHE),
+      ATTRIBUTION: JSON.stringify(ATTRIBUTION),
       GIT_HASH:
         mode === 'production' ? JSON.stringify(gitDescribe.gitDescribeSync().hash) : undefined,
     },

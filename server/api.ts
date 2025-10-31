@@ -6,7 +6,14 @@ import { HookHandler } from './routes/hook';
 import { getToken } from './routes/token';
 import { UserHandler } from './routes/user';
 
-const MODEL_VERSION = 4;
+/**
+ * The current model version. Increment this when making breaking changes to the API,
+ * or changes that require a full re-download of user data.
+ *
+ * Change log:
+ * - 5: Added device field to activities to comply with Garmin Connect rules.
+ */
+const MODEL_VERSION = 5;
 
 export default function apiRouter(domain: string): express.Router {
   const router = express.Router() as Router;

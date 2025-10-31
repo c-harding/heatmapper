@@ -39,6 +39,20 @@ const startDate = computed(() => (!item.route && item.localDate) || item.date);
 const dateString = computed(() => formatSplitDate(startDate.value));
 
 const fullDate = computed(() => formatFullDateTime(startDate.value));
+
+if (!item.route) {
+  console.log('ATTRIBUTION:', config.ATTRIBUTION, item.device, item.device?.startsWith('Garmin'));
+}
+
+// Only show device if not a route and device is in the required attribution list
+const device = computed(() => {
+  if (item.route) return undefined;
+  if (config.ATTRIBUTION.some((brand) => item.device?.startsWith(brand))) {
+    return item.device;
+  } else {
+    return undefined;
+  }
+});
 </script>
 
 <template>
@@ -47,6 +61,7 @@ const fullDate = computed(() => formatFullDateTime(startDate.value));
       $style.sidebarItem,
       selected && SELECTED_SIDEBAR_ITEM_SELECTOR,
       selected && $style.selected,
+      device && $style.hasDevice,
     ]"
     @click="emit('click', $event)"
     @touchstart="emit('touchstart')"
@@ -55,7 +70,10 @@ const fullDate = computed(() => formatFullDateTime(startDate.value));
     <StravaActivitySymbol v-if="expanded" :class="$style.stravaIcon" :sportType="item.type" />
     <div :class="$style.sidebarItemInfo">
       <div :class="$style.sidebarItemName" v-text="item.name" />
-      <SidebarItemStats v-if="expanded" :item />
+      <div v-if="device" :class="$style.sidebarItemDevice" v-text="device" />
+      <div style="display: flex">
+        <SidebarItemStats v-if="expanded" :item />
+      </div>
     </div>
     <div v-if="!item.map" :class="$style.spinner">
       <UISpinner size="tiny" />
@@ -75,6 +93,11 @@ const fullDate = computed(() => formatFullDateTime(startDate.value));
   gap: 0 4px;
   min-height: 36px;
 
+  &.hasDevice {
+    // Increase the height to accommodate the device information
+    min-height: 49px;
+  }
+
   &:hover {
     background: var(--background-strong);
   }
@@ -93,6 +116,11 @@ const fullDate = computed(() => formatFullDateTime(startDate.value));
 
   .sidebarItemName {
     overflow-wrap: anywhere;
+  }
+
+  .sidebarItemDevice {
+    font-size: 0.75em;
+    color: var(--color-mid);
   }
 
   .sidebarItemInfo {

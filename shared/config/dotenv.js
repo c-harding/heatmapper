@@ -10,6 +10,12 @@ const VITE_DEV_PORT = process.env.VITE_DEV_PORT || 8081;
 const VITE_APP_NAME = process.env.VITE_APP_NAME || 'Heatmapper';
 const MAPBOX_TOKEN = process.env.MAPBOX_TOKEN || '';
 const MAPBOX_STYLE = process.env.MAPBOX_STYLE;
+// Attribution can be a comma-separated list of brands, or * to allow all brands. Leave blank for none.
+const ATTRIBUTION = (process.env.ATTRIBUTION || 'Garmin')
+  .replace(/^\*$/, ' ')
+  .split(',')
+  .filter(Boolean)
+  .map((a) => a.trim());
 const USE_STRAVA_ICONS = process.env.USE_STRAVA_ICONS && process.env.USE_STRAVA_ICONS !== 'false';
 const VALIDATE_USER_BEFORE_CACHE =
   process.env.VALIDATE_USER_BEFORE_CACHE && process.env.VALIDATE_USER_BEFORE_CACHE !== 'false';
@@ -21,6 +27,7 @@ module.exports = {
   VITE_APP_NAME,
   SERVER_DOMAIN,
   MAPBOX_TOKEN,
+  ATTRIBUTION,
   USE_STRAVA_ICONS,
   VALIDATE_USER_BEFORE_CACHE,
   MAPBOX_STYLE,
