@@ -83,7 +83,8 @@ function compareFilters(filterA: FilterModel, filterB: FilterModel) {
     (filterA.sportType ?? '') === (filterB.sportType ?? '') &&
     filterA.starred === filterB.starred &&
     compareRanges(filterA.distance, filterB.distance) &&
-    compareRanges(filterA.elevation, filterB.elevation)
+    compareRanges(filterA.elevation, filterB.elevation) &&
+    (filterA.gear ?? '') === (filterB.gear ?? '')
   );
 }
 
