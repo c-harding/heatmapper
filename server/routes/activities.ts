@@ -42,6 +42,7 @@ function convertActivitySummary({
   total_elevation_gain,
   elev_high,
   elev_low,
+  private: isPrivate,
 }: SummaryActivity): Activity {
   const date = +new Date(startDate);
   const localDate = +new Date(localStartDate);
@@ -59,6 +60,7 @@ function convertActivitySummary({
     distance,
     type: sport_type,
     gear,
+    isPrivate,
     elevation: allDefined(total_elevation_gain, elev_high, elev_low) && {
       max: elev_high,
       min: elev_low,
@@ -78,6 +80,7 @@ function convertRouteSummary({
   starred,
   distance,
   elevation_gain,
+  private: isPrivate,
 }: SummaryRoute): Route {
   return {
     route: true,
@@ -89,6 +92,7 @@ function convertRouteSummary({
     map,
     starred,
     type: routeTypeMap[type] ?? type,
+    isPrivate,
   };
 }
 

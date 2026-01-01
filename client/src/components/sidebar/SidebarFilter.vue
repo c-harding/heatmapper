@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { type Gear } from '@strava-heatmapper/shared/interfaces';
+import { bikeSportGroup, footSportGroup } from '@strava-heatmapper/shared/interfaces/SportType';
 import { computed, ref } from 'vue';
 
 import { useActivityStore } from '@/stores/ActivityStore';
@@ -8,11 +9,14 @@ import { type FilterModel, type RangeFilter } from '@/types/FilterModel';
 import { formatKilometers, formatMeters } from '@/utils/numberFormat';
 import { loadFilterModel, saveFilterModel } from '@/utils/storage';
 
+import SegmentedControl from '../segmented-control/SegmentedControl.vue';
+import SegmentedControlItem from '../segmented-control/SegmentedControlItem.vue';
 import UIVerticalTab from '../ui/tabs/UIVerticalTab.vue';
 import { type Tab } from '../ui/tabs/UIVerticalTabContainer.vue';
 import UIButton from '../ui/UIButton.vue';
 import UIButtonGroup from '../ui/UIButtonGroup.vue';
 import UIDropdown, { type DropdownOption } from '../ui/UIDropdown.vue';
+import UIIcon from '../ui/UIIcon.vue';
 import UIMultiText from '../ui/UIMultiText.vue';
 import UIRange from '../ui/UIRange.vue';
 import controlsStyle from './controls.module.scss';
@@ -35,14 +39,29 @@ const chosenSportLabel = computed(() => {
   return undefined;
 });
 
+const offerGearByIsBike = computed(() => {
+  const offers = new Set<boolean>([true, false]);
+
+  const filterModel = activityStore.filterModel.sportType;
+  if (!filterModel) return offers;
+  const chosenFilters = filterModel.split(',');
+  if (bikeSportGroup.split(',').every((sport) => !chosenFilters.includes(sport))) {
+    offers.delete(true);
+  }
+  if (footSportGroup.split(',').every((sport) => !chosenFilters.includes(sport))) {
+    offers.delete(false);
+  }
+  return offers;
+});
+
 const gearOptions = computed<DropdownOption[][]>(() => {
   const pairs = Array.from(activityStore.gear.entries()).filter(
     (entry): entry is [string, Gear] => !!entry[1],
   );
   const partitions = [
-    pairs.filter(([, piece]) => !piece.isBike),
-    pairs.filter(([, piece]) => piece.isBike),
-  ];
+    offerGearByIsBike.value.has(false) && pairs.filter(([, piece]) => !piece.isBike),
+    offerGearByIsBike.value.has(true) && pairs.filter(([, piece]) => piece.isBike),
+  ].filter((partition) => !!partition);
   return partitions.map((partition) =>
     partition.map(([id, piece]): DropdownOption => ({ label: piece.name, value: id })),
   );
@@ -132,6 +151,9 @@ const filterSummary = computed(() =>
       activityStore.filterModel.starred !== undefined &&
       (activityStore.filterModel.starred ? 'only starred' : 'only unstarred'),
     activityStore.filterFields.has('gear') && formatGear(activityStore.filterModel.gear),
+    activityStore.filterFields.has('isPrivate') &&
+      activityStore.filterModel.isPrivate !== undefined &&
+      (activityStore.filterModel.isPrivate ? 'only private' : 'only non-private'),
   ].filter((string): string is string => !!string),
 );
 
@@ -176,7 +198,7 @@ const showHelp = ref(false);
         </label>
 
         <label
-          v-if="activityStore.useRoutes"
+          v-if="activityStore.useRoutes && activityStore.filterFields.has('starred')"
           title="Only show starred routes (double-click for unstarred routes)"
           :class="$style.noPointer"
         >
@@ -201,6 +223,27 @@ const showHelp = ref(false);
             blankValue=""
             blankLabel="All gear"
           />
+        </label>
+
+        <label
+          v-if="activityStore.filterFields.has('isPrivate')"
+          :title="`Only show private ${activityStore.useRoutes ? 'routes' : 'activities'} (double-click for non-private ${activityStore.useRoutes ? 'routes' : 'activities'})`"
+          :class="$style.noPointer"
+        >
+          <span>Visibility</span>
+          <SegmentedControl
+            v-slot="{ option }"
+            v-model="activityStore.filterModel.isPrivate"
+            :class="controlsStyle.segmentedControl"
+            :deselectValue="[undefined]"
+          >
+            <SegmentedControlItem :option="option(false)">
+              <UIIcon icon="lock_open" inline />
+            </SegmentedControlItem>
+            <SegmentedControlItem :option="option(true)">
+              <UIIcon icon="lock" inline />
+            </SegmentedControlItem>
+          </SegmentedControl>
         </label>
 
         <div :class="controlsStyle.buttons">

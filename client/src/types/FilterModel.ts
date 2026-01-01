@@ -15,4 +15,7 @@ export interface FilterModel {
   distance?: RangeFilter;
   elevation?: RangeFilter;
   gear?: string;
+
+  /** Set to true to only show private items, or false to only show non-private items */
+  isPrivate?: boolean;
 }
