@@ -29,4 +29,5 @@ export default interface Activity extends ActivityMap, ActivityStats {
   type: SportType;
   device?: string;
   gear?: string;
+  isPrivate?: boolean;
 }

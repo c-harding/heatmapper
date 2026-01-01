@@ -53,12 +53,19 @@ export enum SportType {
 
 export default SportType;
 
+export const footSportGroup = 'Hike,Snowshoe,Run,TrailRun,Walk';
+export const runningSportGroup = 'Run,TrailRun';
+export const walkingSportGroup = 'Hike,Walk';
+export const bikeSportGroup =
+  'EBikeRide,GravelRide,Handcycle,MountainBikeRide,Ride,Velomobile,VirtualRide';
+export const winterSportGroup = 'AlpineSki,BackcountrySki,IceSkate,Snowboard,Snowshoe,NordicSki';
+
 export const sportGroups = Object.freeze<Record<string, string>>({
-  'Hike,Snowshoe,Run,TrailRun,Walk': 'All on foot',
-  'Run,TrailRun': 'All running',
-  'Hike,Walk': 'All walking',
-  'EBikeRide,GravelRide,Handcycle,MountainBikeRide,Ride,Velomobile,VirtualRide': 'All biking',
-  'AlpineSki,BackcountrySki,IceSkate,Snowboard,Snowshoe,NordicSki': 'All winter sports',
+  [footSportGroup]: 'All on foot',
+  [runningSportGroup]: 'All running',
+  [walkingSportGroup]: 'All walking',
+  [bikeSportGroup]: 'All biking',
+  [winterSportGroup]: 'All winter sports',
 });
 
 export const sportTypes = Object.freeze<Record<SportType, string>>({

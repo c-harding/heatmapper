@@ -3,7 +3,6 @@ import { computed, ref, watch } from 'vue';
 
 import { useExpandableGroups } from '@/services/useExpandableGroups';
 import { GroupLevel, useActivityStore } from '@/stores/ActivityStore';
-import { useSportTypeStore } from '@/stores/SportTypeStore';
 import { useUserStore } from '@/stores/UserStore';
 import { combineCallbacks } from '@/utils/functions';
 import { useResettingRef } from '@/utils/resetting-ref';
@@ -37,8 +36,6 @@ const continueLogin = computed(() =>
 );
 
 const settingsOpen = ref(false);
-
-const sportTypeStore = useSportTypeStore();
 
 const groupLevels: DropdownOption[] = [
   { value: GroupLevel.OFF, label: 'None' },
