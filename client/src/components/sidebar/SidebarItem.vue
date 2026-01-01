@@ -6,6 +6,7 @@ export const SELECTED_SIDEBAR_ITEM_SELECTOR = 'sidebar-item-selected';
 import { type MapItem } from '@strava-heatmapper/shared/interfaces';
 import { computed } from 'vue';
 
+import { useActivityStore } from '@/stores/ActivityStore';
 import config from '@/utils/config';
 import { formatFullDateTime, formatSplitDate } from '@/utils/numberFormat';
 
@@ -14,6 +15,8 @@ import StravaIcon from '../strava-symbol/StravaIcon.vue';
 import UISpinner from '../ui/UISpinner.vue';
 import SidebarItemLink from './SidebarItemLink.vue';
 import SidebarItemStats from './SidebarItemStats.vue';
+
+const activityStore = useActivityStore();
 
 // This conditional must be in the component rather than the template, so that tree-shaking works
 const StravaActivitySymbol = config.USE_STRAVA_ICONS ? StravaIcon : StravaEmoji;
@@ -42,8 +45,11 @@ const fullDate = computed(() => formatFullDateTime(startDate.value));
 
 // Only show device if not a route and device is in the required attribution list
 const device = computed(() => {
-  if (item.route) return undefined;
-  if (config.ATTRIBUTION.some((brand) => item.device?.startsWith(brand))) {
+  if (item.route) {
+    return undefined;
+  } else if (activityStore.filterFields.has('device')) {
+    return item.device;
+  } else if (config.ATTRIBUTION.some((brand) => item.device?.startsWith(brand))) {
     return item.device;
   } else {
     return undefined;

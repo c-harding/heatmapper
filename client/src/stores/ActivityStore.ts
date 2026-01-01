@@ -16,7 +16,7 @@ import { defineStore } from 'pinia';
 import { computed, reactive, type Ref, ref, shallowRef, toRef, watch } from 'vue';
 
 import Socket from '@/socket';
-import { type FilterField, type FilterModel } from '@/types/FilterModel';
+import { type FilterField, type FilterModel, parseDeviceFilter } from '@/types/FilterModel';
 import config from '@/utils/config';
 import { groupMapItems } from '@/utils/groupMapItems';
 import {
@@ -99,6 +99,16 @@ export const useActivityStore = defineStore('activity', () => {
     useRoutes.value ? allRoutes.value : allActivities.value,
   );
 
+  const devices = computed(() =>
+    Array.from(
+      new Set(
+        allActivities.value
+          .map((activity) => activity.device)
+          .filter((device): device is string => !!device),
+      ),
+    ).sort((a, b) => a.localeCompare(b, 'en', { sensitivity: 'base' })),
+  );
+
   const availableSports = computed<SportTypesAndGroups | undefined>(() => {
     if (allMapItems.value.length === 0) return undefined;
     const presentSportTypes = [...new Set(allMapItems.value.map((item) => item.type))];
@@ -113,43 +123,61 @@ export const useActivityStore = defineStore('activity', () => {
 
   const stats = computed(() => (useRoutes.value ? routeStats.value : activityStats.value));
 
-  const visibleMapItems = computed<readonly MapItem[]>(() => {
+  const parsedDeviceFilter = computed(() => parseDeviceFilter(filterModel.device));
+
+  const mapItemFilters = computed(() => {
     const sportType = filterModel.sportType;
-    const filters: ((value: MapItem) => boolean)[] = [
-      filterFields.has('sportType') &&
-        sportType &&
-        ((item: MapItem) => doesSportTypeMatch(sportType, item.type)),
+    return (
+      [
+        filterFields.has('sportType') &&
+          sportType &&
+          ((item: MapItem) => doesSportTypeMatch(sportType, item.type)),
 
-      filterFields.has('starred') &&
-        filterModel.starred !== undefined &&
-        ((item: MapItem) => !item.route || item.starred === filterModel.starred),
+        filterFields.has('starred') &&
+          filterModel.starred !== undefined &&
+          ((item: MapItem) => !item.route || item.starred === filterModel.starred),
 
-      filterFields.has('isPrivate') &&
-        filterModel.isPrivate !== undefined &&
-        ((item: MapItem) => item.isPrivate === filterModel.isPrivate),
+        filterFields.has('isPrivate') &&
+          filterModel.isPrivate !== undefined &&
+          ((item: MapItem) => item.isPrivate === filterModel.isPrivate),
 
-      filterFields.has('distance') &&
-        filterModel.distance?.min !== undefined &&
-        ((item: MapItem) => item.distance >= (filterModel.distance?.min ?? -Infinity)),
-      filterFields.has('distance') &&
-        filterModel.distance?.max !== undefined &&
-        ((item: MapItem) => item.distance <= (filterModel.distance?.max ?? Infinity)),
+        filterFields.has('distance') &&
+          filterModel.distance?.min !== undefined &&
+          ((item: MapItem) => item.distance >= (filterModel.distance?.min ?? -Infinity)),
+        filterFields.has('distance') &&
+          filterModel.distance?.max !== undefined &&
+          ((item: MapItem) => item.distance <= (filterModel.distance?.max ?? Infinity)),
 
-      filterFields.has('elevation') &&
-        filterModel.elevation?.min !== undefined &&
-        ((item: MapItem) =>
-          item.elevation?.gain && item.elevation.gain >= (filterModel.elevation?.min ?? -Infinity)),
-      filterFields.has('elevation') &&
-        filterModel.elevation?.max !== undefined &&
-        ((item: MapItem) =>
-          item.elevation?.gain && item.elevation.gain <= (filterModel.elevation?.max ?? Infinity)),
+        filterFields.has('elevation') &&
+          filterModel.elevation?.min !== undefined &&
+          ((item: MapItem) =>
+            item.elevation?.gain &&
+            item.elevation.gain >= (filterModel.elevation?.min ?? -Infinity)),
+        filterFields.has('elevation') &&
+          filterModel.elevation?.max !== undefined &&
+          ((item: MapItem) =>
+            item.elevation?.gain &&
+            item.elevation.gain <= (filterModel.elevation?.max ?? Infinity)),
 
-      filterFields.has('gear') &&
-        filterModel.gear &&
-        ((item: MapItem) => item.route || item.gear === filterModel.gear),
-    ]
-      // Remove falsy filters
-      .filter((f): f is (value: MapItem) => boolean => !!f);
+        filterFields.has('gear') &&
+          filterModel.gear &&
+          ((item: MapItem) => item.route || item.gear === filterModel.gear),
+
+        filterFields.has('device') &&
+          parsedDeviceFilter.value.enabled &&
+          ((item: MapItem) =>
+            item.route ||
+            (parsedDeviceFilter.value.exact
+              ? item.device?.toLowerCase() === parsedDeviceFilter.value.name
+              : item.device?.toLowerCase().includes(parsedDeviceFilter.value.name))),
+      ]
+        // Remove falsy filters
+        .filter((f): f is (value: MapItem) => boolean => !!f)
+    );
+  });
+
+  const visibleMapItems = computed<readonly MapItem[]>(() => {
+    const filters = mapItemFilters.value;
 
     return filters.length
       ? allMapItems.value.filter((item) => filters.every((filter) => filter(item)))
@@ -463,6 +491,7 @@ export const useActivityStore = defineStore('activity', () => {
     groupLevel,
     error,
     gear,
+    devices,
 
     mapItems: visibleMapItems,
     groupedMapItems,
