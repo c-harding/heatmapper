@@ -84,7 +84,8 @@ function compareFilters(filterA: FilterModel, filterB: FilterModel) {
     filterA.starred === filterB.starred &&
     compareRanges(filterA.distance, filterB.distance) &&
     compareRanges(filterA.elevation, filterB.elevation) &&
-    (filterA.gear ?? '') === (filterB.gear ?? '')
+    (filterA.gear ?? '') === (filterB.gear ?? '') &&
+    (filterA.isPrivate ?? null) === (filterB.isPrivate ?? null)
   );
 }
 
