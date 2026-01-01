@@ -98,6 +98,22 @@ function toggleFilter(field: FilterField) {
         Show only the activities recorded with the chosen gear (shoes/bike).
       </dd>
 
+      <dt v-if="!activityStore.useRoutes">
+        <label
+          >Device
+          <input
+            type="checkbox"
+            :checked="activityStore.filterFields.has('device')"
+            @change="toggleFilter('device')"
+          />
+        </label>
+      </dt>
+      <dd>
+        Enter a device name (or part of a name) to show only activities recorded with that device.
+        To only match exact names, surround the name with quotation marks, e.g. "Garmin Forerunner
+        945".
+      </dd>
+
       <dt>
         <label
           >Visibility

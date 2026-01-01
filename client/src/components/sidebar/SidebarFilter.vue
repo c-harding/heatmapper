@@ -5,7 +5,13 @@ import { computed, ref } from 'vue';
 
 import { useActivityStore } from '@/stores/ActivityStore';
 import { useSportTypeStore } from '@/stores/SportTypeStore';
-import { type FilterModel, type RangeFilter } from '@/types/FilterModel';
+import {
+  exactDeviceQuotes,
+  type FilterModel,
+  parseDeviceFilter,
+  quotePairs,
+  type RangeFilter,
+} from '@/types/FilterModel';
 import { formatKilometers, formatMeters } from '@/utils/numberFormat';
 import { loadFilterModel, saveFilterModel } from '@/utils/storage';
 
@@ -19,6 +25,7 @@ import UIDropdown, { type DropdownOption } from '../ui/UIDropdown.vue';
 import UIIcon from '../ui/UIIcon.vue';
 import UIMultiText from '../ui/UIMultiText.vue';
 import UIRange from '../ui/UIRange.vue';
+import UITextField from '../ui/UITextField.vue';
 import controlsStyle from './controls.module.scss';
 import FilterHelp from './FilterHelp.vue';
 
@@ -67,6 +74,52 @@ const gearOptions = computed<DropdownOption[][]>(() => {
   );
 });
 
+const deviceOptionsWithSharedStrings = computed(() => {
+  const prefixes = new Map<string, { name: string; occurrences: number; leaf: boolean }>();
+
+  for (const device of activityStore.devices) {
+    device.split(' ').forEach((_, index, array) => {
+      const key = array.slice(0, index + 1).join(' ');
+      let prefix = prefixes.get(key.toLowerCase());
+      if (!prefix) {
+        prefix = { name: key, occurrences: 0, leaf: false };
+        prefixes.set(key.toLowerCase(), prefix);
+      }
+      prefix.occurrences += 1;
+      prefix.leaf ||= index === array.length - 1;
+    });
+  }
+  for (const prefix of prefixes.values()) {
+    const ancestors = prefix.name
+      .split(' ')
+      .map((_, index, array) => array.slice(0, index).join(' '))
+      .reverse();
+    for (const ancestorName of ancestors) {
+      const ancestor = prefixes.get(ancestorName.toLowerCase());
+      if (ancestor && ancestor.occurrences <= prefix.occurrences) {
+        prefixes.delete(ancestorName.toLowerCase());
+      }
+    }
+  }
+  return Array.from(prefixes.values(), (prefix) => prefix.name);
+});
+
+const deviceOptions = computed<string[]>(() => {
+  const devices = activityStore.devices;
+  const openQuote =
+    !!activityStore.filterModel.device &&
+    exactDeviceQuotes.includes(activityStore.filterModel.device[0] ?? '')
+      ? activityStore.filterModel.device[0]
+      : '';
+  if (openQuote) {
+    const closeQuote = quotePairs[openQuote] ?? openQuote;
+
+    return Array.from(devices).map((device) => openQuote + device + closeQuote);
+  } else {
+    return deviceOptionsWithSharedStrings.value;
+  }
+});
+
 const blankFilter = Object.freeze<FilterModel>({
   distance: undefined,
   elevation: undefined,
@@ -85,7 +138,8 @@ function compareFilters(filterA: FilterModel, filterB: FilterModel) {
     compareRanges(filterA.distance, filterB.distance) &&
     compareRanges(filterA.elevation, filterB.elevation) &&
     (filterA.gear ?? '') === (filterB.gear ?? '') &&
-    (filterA.isPrivate ?? null) === (filterB.isPrivate ?? null)
+    (filterA.isPrivate ?? null) === (filterB.isPrivate ?? null) &&
+    (filterA.device ?? '') === (filterB.device ?? '')
   );
 }
 
@@ -156,6 +210,9 @@ const filterSummary = computed(() =>
     activityStore.filterFields.has('isPrivate') &&
       activityStore.filterModel.isPrivate !== undefined &&
       (activityStore.filterModel.isPrivate ? 'only private' : 'only non-private'),
+    activityStore.filterFields.has('device') &&
+      activityStore.filterModel.device &&
+      `only with device “${parseDeviceFilter(activityStore.filterModel.device).name}”`,
   ].filter((string): string is string => !!string),
 );
 
@@ -224,6 +281,15 @@ const showHelp = ref(false);
             :options="gearOptions"
             blankValue=""
             blankLabel="All gear"
+          />
+        </label>
+
+        <label v-if="!activityStore.useRoutes && activityStore.filterFields.has('device')">
+          <span>Device</span>
+          <UITextField
+            v-model.lazy="activityStore.filterModel.device"
+            :pickList="deviceOptions"
+            placeholder="All devices"
           />
         </label>
 
