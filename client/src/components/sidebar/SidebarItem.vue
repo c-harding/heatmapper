@@ -40,10 +40,6 @@ const dateString = computed(() => formatSplitDate(startDate.value));
 
 const fullDate = computed(() => formatFullDateTime(startDate.value));
 
-if (!item.route) {
-  console.log('ATTRIBUTION:', config.ATTRIBUTION, item.device, item.device?.startsWith('Garmin'));
-}
-
 // Only show device if not a route and device is in the required attribution list
 const device = computed(() => {
   if (item.route) return undefined;
