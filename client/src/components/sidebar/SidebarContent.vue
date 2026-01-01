@@ -25,7 +25,9 @@ const selectionStore = useSelectionStore();
 
 provideExpandableGroups();
 
-const totals = computed(() => combineStats(activityStore.mapItems, selectionStore.selectedItems));
+const totals = computed(() =>
+  combineStats(selectionStore.visibleItems, selectionStore.selectedItems),
+);
 
 const sidebarItemListRef = ref<HTMLElement>();
 
@@ -34,23 +36,20 @@ const groupHeight = 50;
 
 useStickyHeader(computed(() => statsHeight + (activityStore.groupLevel ? groupHeight : 0)));
 
-watch(
-  () => selectionStore.selected,
-  async (selected) => {
-    if (selectionStore.updateSource === 'map') {
-      if (selected.size !== 0) emit('focusSidebar');
-      await nextTick();
-      emit('scrollToSelected');
-    }
-  },
-);
+watch(selectionStore.selected, async (selected) => {
+  if (selectionStore.updateSource === 'map' && !selectionStore.multiSelectionMode) {
+    if (selected.size !== 0) emit('focusSidebar');
+    await nextTick();
+    emit('scrollToSelected');
+  }
+});
 </script>
 
 <template>
   <div :class="$style.sidebarContent">
     <SidebarForm />
     <div
-      v-if="activityStore.mapItems?.length"
+      v-if="selectionStore.visibleItems?.length"
       :class="[$style.sidebarTotals, totals.showSelected && $style.stickyTotals]"
     >
       <SidebarItemCount :counts="totals" />
@@ -67,9 +66,8 @@ watch(
       </template>
       <SidebarItemList
         v-else
-        :items="activityStore.mapItems"
+        :items="selectionStore.visibleItems"
         @zoom-to-selected="emit('zoomToSelected')"
-        @scroll-to-selected="emit('scrollToSelected')"
       />
     </div>
 

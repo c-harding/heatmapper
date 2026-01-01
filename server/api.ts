@@ -11,9 +11,10 @@ import { UserHandler } from './routes/user';
  * or changes that require a full re-download of user data.
  *
  * Change log:
+ * - 6: Added isBike to gear.
  * - 5: Added device field to activities to comply with Garmin Connect rules.
  */
-const MODEL_VERSION = 5;
+const MODEL_VERSION = 6;
 
 export default function apiRouter(domain: string): express.Router {
   const router = express.Router() as Router;
