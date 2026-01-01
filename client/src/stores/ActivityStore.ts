@@ -124,6 +124,10 @@ export const useActivityStore = defineStore('activity', () => {
         filterModel.starred !== undefined &&
         ((item: MapItem) => !item.route || item.starred === filterModel.starred),
 
+      filterFields.has('isPrivate') &&
+        filterModel.isPrivate !== undefined &&
+        ((item: MapItem) => item.isPrivate === filterModel.isPrivate),
+
       filterFields.has('distance') &&
         filterModel.distance?.min !== undefined &&
         ((item: MapItem) => item.distance >= (filterModel.distance?.min ?? -Infinity)),
