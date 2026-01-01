@@ -42,6 +42,7 @@ function toggleFilter(field: FilterField) {
         {{ activityStore.useRoutes ? 'routes' : 'activities' }}, regardless of type. The options
         such as <em>All biking</em> show multiple sport types at once.
       </dd>
+
       <dt>
         <label
           >Distance
@@ -67,6 +68,7 @@ function toggleFilter(field: FilterField) {
         distance/elevation greater than or equal to the min value, and less than or equal to the max
         value. Leave a field blank to avoid filtering.
       </dd>
+
       <dt v-if="activityStore.useRoutes">
         <label>
           Starred
@@ -77,6 +79,7 @@ function toggleFilter(field: FilterField) {
           />
         </label>
       </dt>
+
       <dd v-if="activityStore.useRoutes">
         Show only routes that you have starred in Strava. Double-click on the button to invert the
         filter, i.e. to show only non-starred routes.
@@ -93,6 +96,24 @@ function toggleFilter(field: FilterField) {
       </dt>
       <dd v-if="!activityStore.useRoutes">
         Show only the activities recorded with the chosen gear (shoes/bike).
+      </dd>
+
+      <dt>
+        <label
+          >Visibility
+          <input
+            type="checkbox"
+            :checked="activityStore.filterFields.has('isPrivate')"
+            @change="toggleFilter('isPrivate')"
+          />
+        </label>
+      </dt>
+      <dd>
+        Select
+        <UIIcon inline icon="lock_open" /> to show only non-private
+        {{ activityStore.useRoutes ? 'routes' : 'activities' }}, or <UIIcon inline icon="lock" /> to
+        show only private {{ activityStore.useRoutes ? 'routes' : 'activities' }}. Click again to
+        disable this filter.
       </dd>
     </dl>
     <hr />
