@@ -18,4 +18,36 @@ export interface FilterModel {
 
   /** Set to true to only show private items, or false to only show non-private items */
   isPrivate?: boolean;
+
+  device?: string;
 }
+
+// Check for surrounding quotes to indicate exact match.
+export const exactDeviceQuotes = ['"', "'", '“', '”', '‘', '’', '„', '‚', '`', '«', '»', '‹', '›'];
+export const quotePairs :Record<string, string> = {
+  '“': '”',
+  '‘': '’',
+  '„': '“',
+  '‚': '‘',
+  '«': '»',
+  '»': '«',
+  '‹': '›',
+  '›': '‹',
+};
+
+export const parseDeviceFilter = (
+  deviceFilter: string | undefined,
+): { enabled: boolean; exact: boolean; name: string } => {
+  if (!deviceFilter) return { enabled: false, exact: false, name: '' };
+
+  if (exactDeviceQuotes.includes(deviceFilter.at(0) ?? '')) {
+    if (deviceFilter.length > 1 && exactDeviceQuotes.includes(deviceFilter.at(-1) ?? '')) {
+      return { enabled: true, exact: true, name: deviceFilter.slice(1, -1).toLowerCase().trim() };
+    } else {
+      // If only the start quote is present, treat it as a normal filter, as the user is still typing
+      return { enabled: true, exact: false, name: deviceFilter.slice(1).toLowerCase().trim() };
+    }
+  } else {
+    return { enabled: true, exact: false, name: deviceFilter.toLowerCase().trim() };
+  }
+};
