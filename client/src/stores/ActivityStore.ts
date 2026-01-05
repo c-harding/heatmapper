@@ -134,18 +134,18 @@ export const useActivityStore = defineStore('activity', () => {
   }
 
   // TODO: keep alive. Verify that every gear request resolves
-  function requestGear(ids: (string | undefined)[], socket?: Socket) {
+  async function requestGear(ids: (string | undefined)[], socket?: Socket) {
     const validIds = ids.filter((id?: string): id is string => !!id);
 
     for (const gearId of validIds) {
       if (gear.has(gearId)) continue;
       if (socket) {
         gear.set(gearId, null);
-        void socket.sendRequest({
+        await socket.sendRequest({
           gear: gearId,
         });
       } else {
-        gear.set(gearId, getCachedGear(gearId) ?? null);
+        gear.set(gearId, (await getCachedGear(gearId)) ?? null);
       }
     }
   }
@@ -170,14 +170,18 @@ export const useActivityStore = defineStore('activity', () => {
   ): void {
     const filteredActivities = filterActivities(activities, start, end);
     addMapItems(allActivities, filteredActivities);
-    requestGear(
+    void requestGear(
       filteredActivities.map(({ gear }) => gear),
       socket,
     );
   }
 
-  function loadFromActivityCache(partial = false, start?: Date, end?: Date): TimeRange[] {
-    const { covered, activities } = getActivityStore();
+  async function loadFromActivityCache(
+    partial = false,
+    start?: Date,
+    end?: Date,
+  ): Promise<TimeRange[]> {
+    const { covered, activities } = await getActivityStore();
     if (activities.length) {
       if (!partial) {
         activityStats.value = {
@@ -190,8 +194,8 @@ export const useActivityStore = defineStore('activity', () => {
     return covered;
   }
 
-  function loadFromRouteCache(): void {
-    const routes = getCachedRoutes();
+  async function loadFromRouteCache(): Promise<void> {
+    const routes = await getCachedRoutes();
     if (routes.length) {
       routeStats.value = {
         inCache: true,
@@ -233,23 +237,23 @@ export const useActivityStore = defineStore('activity', () => {
     );
   }
 
-  function clearMapItems(
+  async function clearMapItems(
     { activities = false, routes = false }: MapItemTypes,
     clearStorage = false,
     start?: Date,
     end?: Date,
-  ): void {
+  ): Promise<void> {
     if (activities) {
-      if (clearStorage) {
-        clearCachedActivities(start, end);
-      }
       activityStats.value = { cleared: true, inCache: false };
       allActivities.value = [];
+      if (clearStorage) {
+        await clearCachedActivities(start, end);
+      }
     }
     if (routes) {
-      clearCachedRoutes();
       routeStats.value = { cleared: true, inCache: false };
       allRoutes.value = [];
+      await clearCachedRoutes();
     }
   }
 
@@ -307,7 +311,7 @@ export const useActivityStore = defineStore('activity', () => {
               activityStats.value = { inCache: false, finding: data.finding };
 
               if (!wasFinished && data.finding.finished) {
-                appendCachedActivities([], latestActivityDate, startTimestamp);
+                void appendCachedActivities([], latestActivityDate, startTimestamp);
               }
             } else if (data.for === 'routes') {
               routeStats.value = { inCache: false, finding: data.finding };
@@ -326,7 +330,7 @@ export const useActivityStore = defineStore('activity', () => {
             const latestDate = new Date(data.activities[0].date).getTime() / 1000;
             const earliestDate = new Date(data.activities[activityCount - 1].date).getTime() / 1000;
             latestActivityDate = Math.max(latestActivityDate, latestDate);
-            appendCachedActivities(data.activities, latestDate, earliestDate);
+            void appendCachedActivities(data.activities, latestDate, earliestDate);
             break;
           }
           case 'routes': {
@@ -334,12 +338,12 @@ export const useActivityStore = defineStore('activity', () => {
             if (routeCount === 0) break;
             receiveRoutes(data.routes, start, end);
             checkFinished(socket);
-            appendCachedRoutes(data.routes);
+            void appendCachedRoutes(data.routes);
             break;
           }
           case 'gear': {
             gear.set(data.id, data.gear);
-            saveCachedGear(data.id, data.gear);
+            void saveCachedGear(data.id, data.gear);
             break;
           }
           case 'login': {
@@ -370,14 +374,14 @@ export const useActivityStore = defineStore('activity', () => {
     if (store.version !== serverVersion || store.user !== user) {
       allActivities.value = [];
       allRoutes.value = [];
-      resetStore(serverVersion, user);
+      await resetStore(serverVersion, user);
     }
 
     let activityRanges: TimeRange[] | undefined;
     if (!activities) {
       activityRanges = undefined;
     } else if (partial) {
-      const covered = loadFromActivityCache(partial, start, end);
+      const covered = await loadFromActivityCache(partial, start, end);
       activityRanges = TimeRange.cap(TimeRange.invert(covered), startTimestamp ?? 0, endTimestamp);
     } else {
       activityRanges = [{ start: startTimestamp, end: endTimestamp }];

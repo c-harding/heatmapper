@@ -4,6 +4,7 @@ import {
   type Route,
   TimeRange,
 } from '@strava-heatmapper/shared/interfaces';
+import localforage from 'localforage';
 
 export interface StoreMeta {
   version: number;
@@ -19,13 +20,29 @@ export interface RouteStore {
   routes: Route[];
 }
 
-export function saveCachedGear(id: string, gear: Gear) {
-  localStorage.setItem(`gear:${id}`, JSON.stringify(gear));
+localforage.config({
+  name: 'heatmapper',
+});
+
+const gearStore = localforage.createInstance({
+  storeName: 'gear',
+});
+
+const activityStore = localforage.createInstance({
+  storeName: 'activities',
+});
+
+const routeStore = localforage.createInstance({
+  storeName: 'routes',
+});
+
+export async function saveCachedGear(id: string, gear: Gear) {
+  await gearStore.setItem(id, gear);
 }
 
-export function getCachedGear(id: string): Gear | undefined {
-  const json = localStorage.getItem(`gear:${id}`);
-  if (json) return JSON.parse(json) as Gear;
+export async function getCachedGear(id: string): Promise<Gear | undefined> {
+  const gear = await gearStore.getItem<Gear>(id);
+  return gear ?? undefined;
 }
 
 export function getStoreMeta(): StoreMeta {
@@ -37,42 +54,46 @@ export function getStoreMeta(): StoreMeta {
   };
 }
 
-export function getActivityStore(): ActivityStore {
-  const rawCache = localStorage.getItem('activities');
-  const cache = rawCache ? (JSON.parse(rawCache) as Partial<ActivityStore>) : undefined;
+export async function getActivityStore(): Promise<ActivityStore> {
+  const cache = (await activityStore.getItem<Partial<ActivityStore>>('activities')) ?? undefined;
   return {
     covered: cache?.covered ?? [],
     activities: cache?.activities ?? [],
   };
 }
 
-export function getRouteStore(): RouteStore {
-  const rawCache = localStorage.getItem('routes');
-  const cache = rawCache ? (JSON.parse(rawCache) as Partial<RouteStore>) : undefined;
+async function setActivityStore(covered: TimeRange[], activities: Activity[]) {
+  await activityStore.setItem<ActivityStore>('activities', { covered, activities });
+}
+
+export async function getRouteStore(): Promise<RouteStore> {
+  const cache = (await routeStore.getItem<Partial<RouteStore>>('routes')) ?? undefined;
   return {
     routes: cache?.routes ?? [],
   };
 }
 
-export function resetStore(version: number, user: number) {
+export async function resetStore(version: number, user: number) {
+  // Remove legacy localStorage items
+  localStorage.removeItem('activities');
+  localStorage.removeItem('routes');
+
   localStorage.setItem('meta', JSON.stringify({ version, user } satisfies StoreMeta));
-  localStorage.setItem(
-    'activities',
-    JSON.stringify({ activities: [], covered: [] } satisfies ActivityStore),
-  );
-  localStorage.setItem('routes', JSON.stringify({ routes: [] } satisfies RouteStore));
+  await Promise.all([gearStore.clear(), activityStore.clear(), routeStore.clear()]);
 }
 
-export function getCachedActivities(): Activity[] {
-  return getActivityStore().activities;
+export async function getCachedActivities(): Promise<Activity[]> {
+  const store = await getActivityStore();
+  return store.activities;
 }
 
-export function getCachedRoutes(): Route[] {
-  return getRouteStore().routes;
+export async function getCachedRoutes(): Promise<Route[]> {
+  const store = await getRouteStore();
+  return store.routes;
 }
 
-export function appendCachedActivities(activities: Activity[], end: number, start?: number) {
-  const existingStore = getActivityStore();
+export async function appendCachedActivities(activities: Activity[], end: number, start?: number) {
+  const existingStore = await getActivityStore();
   const ids = new Set(activities.map((activity) => activity.id));
   const newStore: ActivityStore = {
     covered: TimeRange.merge(existingStore.covered.concat({ start, end })),
@@ -81,11 +102,11 @@ export function appendCachedActivities(activities: Activity[], end: number, star
       .concat(activities)
       .sort((a, b) => b.date - a.date),
   };
-  localStorage.setItem('activities', JSON.stringify(newStore));
+  await setActivityStore(newStore.covered, newStore.activities);
 }
 
-export function appendCachedRoutes(routes: Route[]) {
-  const existingStore = getRouteStore();
+export async function appendCachedRoutes(routes: Route[]) {
+  const existingStore = await getRouteStore();
   const ids = new Set(routes.map((route) => route.id));
   const newStore: RouteStore = {
     routes: existingStore.routes
@@ -93,11 +114,11 @@ export function appendCachedRoutes(routes: Route[]) {
       .concat(routes)
       .sort((a, b) => b.date - a.date),
   };
-  localStorage.setItem('routes', JSON.stringify(newStore));
+  await routeStore.setItem('routes', newStore);
 }
 
-export function clearCachedActivities(start?: Date, end?: Date) {
-  const store = getActivityStore();
+export async function clearCachedActivities(start?: Date, end?: Date) {
+  const store = await getActivityStore();
   if (!start && !end) {
     store.activities = [];
     store.covered = [];
@@ -111,19 +132,19 @@ export function clearCachedActivities(start?: Date, end?: Date) {
     );
     store.covered = TimeRange.subtract(store.activities, [timeRange]);
   }
-  localStorage.setItem('activities', JSON.stringify(store));
+  await setActivityStore(store.covered, store.activities);
 }
 
-export function clearCachedRoutes() {
-  localStorage.removeItem('routes');
+export async function clearCachedRoutes() {
+  await routeStore.clear();
 }
 
-export function getCachedGears(ids: string[]) {
+export async function getCachedGears(ids: string[]) {
   const notCached: string[] = [];
 
   const cached: Record<string, Gear> = {};
   for (const id of ids) {
-    const fromCache = getCachedGear(id);
+    const fromCache = await getCachedGear(id);
     if (fromCache) cached[id] = fromCache;
     else notCached.push(id);
   }
