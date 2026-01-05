@@ -9,7 +9,7 @@ import fetch, { type Response } from 'node-fetch';
 import { join } from 'path';
 import { v4 as uuid, validate as validateUUID } from 'uuid';
 
-import LoginError, { CannotLogin, NeedsLogin } from '../login-error';
+import LoginError, { CannotLogin, InvalidLogin, NeedsLogin } from '../login-error';
 import { deleteFile, updateFile } from './file';
 import { type SummaryAthlete } from './model';
 import { addCallback } from './token';
@@ -17,12 +17,18 @@ import { addCallback } from './token';
 const sessionCacheFile = (token: string) => join(SESSIONS_DIR, `${token}.json`);
 const userCacheFile = (userId: number) => join(SESSIONS_DIR, `user-${userId}.json`);
 
+export enum SessionType {
+  DEFAULT = 'DEFAULT',
+  CALENDAR = 'CALENDAR',
+}
+
 interface Cache {
   stravaRefreshToken: string;
   stravaAthlete: number;
   stravaAccessToken?: string;
   stravaExpiry?: number;
   stravaScope?: string[];
+  sessionType?: SessionType;
 }
 
 export default class RawStravaApi {
@@ -33,6 +39,7 @@ export default class RawStravaApi {
     requestToken: string | undefined,
     private readonly loginCallback: ((token: string, url: string) => Promise<boolean>) | null,
     private readonly abortSignal?: AbortSignal,
+    private readonly sessionType = SessionType.DEFAULT,
   ) {
     this.token = requestToken && validateUUID(requestToken) ? requestToken : uuid();
   }
@@ -41,6 +48,9 @@ export default class RawStravaApi {
     try {
       const jsonStr = await readFile(sessionCacheFile(this.token), 'utf-8');
       const cache: Cache = JSON.parse(jsonStr);
+      if (this.sessionType !== (cache.sessionType ?? SessionType.DEFAULT)) {
+        throw new InvalidLogin('Token not valid');
+      }
       if (!cache.stravaAthlete || !cache.stravaRefreshToken) {
         throw new NeedsLogin('Loaded from cache, but athlete or refresh token is missing');
       }
@@ -157,7 +167,7 @@ export default class RawStravaApi {
     );
   }
 
-  private athleteToUser(athlete: SummaryAthlete, existingSessions?: string[]) {
+  private athleteToUser(athlete: SummaryAthlete, existingSessions?: string[]): UserCache {
     return {
       id: athlete.id,
       firstName: athlete.firstname,
@@ -292,5 +302,15 @@ export default class RawStravaApi {
     const json = await data.json();
 
     return json as T;
+  }
+
+  async getCalendar(): Promise<string | undefined> {
+    let cache: UserCache;
+    try {
+      cache = await this.getUserCache();
+    } catch (e) {
+      return undefined;
+    }
+    return cache.calendarSession;
   }
 }

@@ -1,18 +1,19 @@
 import { userCacheToUserInfo, type UserInfo } from '@strava-heatmapper/shared/interfaces';
 
 import { type DetailedGear, type SummaryActivity, type SummaryRoute } from './model';
-import RawStravaApi from './raw-api';
+import RawStravaApi, { type SessionType } from './raw-api';
 
 export class Strava {
   private rawApi: RawStravaApi;
 
   constructor(
-    domain: string,
+    private readonly domain: string,
     requestToken: string | undefined,
     loginCallback: ((token: string, url: string) => Promise<boolean>) | null,
     abortSignal?: AbortSignal,
+    sessionType?: SessionType,
   ) {
-    this.rawApi = new RawStravaApi(domain, requestToken, loginCallback, abortSignal);
+    this.rawApi = new RawStravaApi(domain, requestToken, loginCallback, abortSignal, sessionType);
   }
 
   private async getActivitiesPage(
@@ -101,6 +102,14 @@ export class Strava {
 
   hasToken(): Promise<boolean> {
     return this.rawApi.hasToken();
+  }
+
+  async getCalendarUrl() {
+    const calendarSession = await this.rawApi.getCalendar();
+    if (calendarSession) {
+      const webcalDomain = this.domain.replace(/\w+(?=:\/\/)/, 'webcal');
+      return `${webcalDomain}/calendar/${calendarSession}.ics`;
+    }
   }
 
   async logout(global?: boolean);

@@ -18,13 +18,13 @@ import UIModal from '../ui/UIModal.vue';
 import UIMultiText from '../ui/UIMultiText.vue';
 import controlsStyle from './controls.module.scss';
 import LoadingStatus from './LoadingStatus.vue';
+import SettingsContainer from './SettingsContainer.vue';
 import SidebarDateFilter from './SidebarDateFilter.vue';
 import SidebarDisplayOptions from './SidebarDisplayOptions.vue';
 import SidebarFilter from './SidebarFilter.vue';
 import SidebarGroupControl from './SidebarGroupControl.vue';
 import SidebarSelectionControls from './SidebarSelectionControls.vue';
 import UserLogin from './UserLogin.vue';
-import UserSettings from './UserSettings.vue';
 
 const start = ref<Date>();
 const end = ref<Date>();
@@ -126,7 +126,7 @@ watch([start, end, () => activityStore.useRoutes], () => {
             </UIMultiText>
           </UIButton>
         </UIButtonGroup>
-        <UIButton icon="settings" @click="settingsButton"> User </UIButton>
+        <UIButton icon="settings" @click="settingsButton"> Settings </UIButton>
       </div>
     </div>
     <UserLogin v-if="continueLogin" @login="continueLogin($event)" />
@@ -140,13 +140,8 @@ watch([start, end, () => activityStore.useRoutes], () => {
     </UIVerticalTabContainer>
   </aside>
 
-  <UIModal
-    v-if="userStore.user"
-    v-model="settingsOpen"
-    :class="$style.modal"
-    heading="User settings"
-  >
-    <UserSettings :user="userStore.user" @logout="onLogout" />
+  <UIModal v-if="userStore.user" v-model="settingsOpen" :class="$style.modal" heading="Settings">
+    <SettingsContainer :user="userStore.user" @logout="onLogout" />
   </UIModal>
 </template>
 
