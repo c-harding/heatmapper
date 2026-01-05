@@ -17,6 +17,41 @@ const {
 
 const [model, modifiers] = defineModel<string, 'trim' | 'lazy'>({ default: undefined });
 
+function updateInput(value: string) {
+  if (modifiers.trim) {
+    value = value.trim();
+  }
+  model.value = value;
+}
+
+function onInput(e: Event) {
+  if (modifiers.lazy) {
+    const inputEvent = e as InputEvent;
+    if (inputEvent.inputType && inputEvent.inputType !== 'insertReplacementText') {
+      // Ignore input events except for those from pick list selection
+      return;
+    }
+  }
+  let value = (e.target as HTMLInputElement).value;
+  updateInput(value);
+}
+
+function onChange(e: Event) {
+  if (!modifiers.lazy) {
+    return;
+  }
+  let value = (e.target as HTMLInputElement).value;
+  updateInput(value);
+}
+
+function onBlur(e: Event) {
+  if (!modifiers.lazy) {
+    return;
+  }
+  let value = (e.target as HTMLInputElement).value;
+  updateInput(value);
+}
+
 const pickListValues = computed(() =>
   typeof pickList === 'function' ? pickList(model.value) : pickList,
 );
@@ -33,14 +68,16 @@ const pickListId = computed(() =>
   <div :class="$style.textField">
     <input
       ref="input"
-      v-model.lazy="model"
-      :model-modifiers="modifiers"
+      :value="model"
       autocomplete="off"
       :name
       :list="pickListId"
       :placeholder
       :disabled
       :type
+      @input="onInput"
+      @change="onChange"
+      @blur="onBlur"
     />
     <datalist v-if="pickList" :id="pickListId">
       <option v-for="option in pickListValues" :key="option" :value="option" />
