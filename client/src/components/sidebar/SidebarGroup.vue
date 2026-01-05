@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 
 import { useExpandableGroup } from '@/services/useExpandableGroups';
 import useStickyHeader from '@/services/useStickyHeader';
@@ -38,6 +38,26 @@ const checkboxIcon = computed(() => {
     return 'remove_circle_outline';
   } else {
     return 'radio_button_unchecked';
+  }
+});
+
+let automaticallyOpened = false;
+
+watch(someSelected, () => {
+  if (selectionStore.updateSource === 'map') {
+    if (someSelected.value && !isExpanded.value) {
+      automaticallyOpened = true;
+      isExpanded.value = true;
+    } else if (!someSelected.value && isExpanded.value && automaticallyOpened) {
+      automaticallyOpened = false;
+      isExpanded.value = false;
+    }
+  }
+});
+
+watch([() => selectionStore.updateSource !== 'map'], ([notMap]) => {
+  if (notMap) {
+    automaticallyOpened = false;
   }
 });
 
