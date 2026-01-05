@@ -4,10 +4,12 @@ interface BaseUser {
   lastName: string;
   image62?: string;
   image124?: string;
+  privateCalendar?: boolean;
 }
 
 export default interface UserInfo extends BaseUser {
   sessionCount: number;
+  calendarUrl?: string;
 }
 
 export interface UserCache extends BaseUser {
@@ -23,5 +25,6 @@ export function userCacheToUserInfo(user: UserCache): UserInfo {
     image62: user.image62,
     image124: user.image124,
     sessionCount: user.sessions.length + (user.calendarSession ? 1 : 0),
+    privateCalendar: !!user.privateCalendar,
   };
 }
