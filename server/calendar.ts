@@ -1,5 +1,3 @@
-import 'moment-timezone';
-
 import express from 'express';
 import ical from 'ical-generator';
 import moment from 'moment-timezone';
@@ -7,6 +5,7 @@ import moment from 'moment-timezone';
 import eagerIterator from './eager-iterator';
 import { getSportIcon } from './sport-icons';
 import { Strava } from './strava';
+import { SessionType } from './strava/raw-api';
 
 export default function calendarRouter(domain: string): express.Router {
   const router = express.Router();
@@ -15,6 +14,24 @@ export default function calendarRouter(domain: string): express.Router {
     res.status(403).send('Not logged in');
     return false;
   };
+
+  router.post('/', async (req: express.Request, res: express.Response) => {
+    const token = req.cookies.token;
+
+    const requestLogin = async (token: string, url: string): Promise<boolean> => {
+      // TODO
+      return false;
+    };
+
+    const strava = new Strava(domain, token, requestLogin, undefined, SessionType.CALENDAR);
+
+    if (await strava.hasToken()) {
+      res.status(200).send({});
+      return;
+    } else {
+      //
+    }
+  });
 
   router.get('/', async (req: express.Request, res: express.Response) => {
     const token = req.cookies.token;
