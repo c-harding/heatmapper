@@ -7,6 +7,7 @@ import { useActivityStore } from '@/stores/ActivityStore';
 import { useSelectionStore } from '@/stores/SelectionStore';
 import { combineStats } from '@/utils/stats';
 
+import UIIcon from '../ui/UIIcon.vue';
 import SidebarCredits from './SidebarCredits.vue';
 import SidebarForm from './SidebarForm.vue';
 import SidebarGroup from './SidebarGroup.vue';
@@ -23,7 +24,12 @@ const emit = defineEmits<{
 const activityStore = useActivityStore();
 const selectionStore = useSelectionStore();
 
-provideExpandableGroups();
+const expandableGroups = provideExpandableGroups();
+const groupingArrow = computed(() =>
+  expandableGroups.areSomeExpanded.value
+    ? 'keyboard_double_arrow_down'
+    : 'keyboard_double_arrow_right',
+);
 
 const totals = computed(() => combineStats(activityStore.mapItems, selectionStore.selectedItems));
 
@@ -48,10 +54,20 @@ watch(selectionStore.selected, async (selected) => {
     <SidebarForm />
     <div
       v-if="activityStore.mapItems?.length"
-      :class="[$style.sidebarTotals, totals.showSelected && $style.stickyTotals]"
+      :class="[$style.sidebarTotalsContainer, totals.showSelected && $style.stickyTotals]"
     >
-      <SidebarItemCount :counts="totals" />
-      <SidebarItemStats :item="totals" />
+      <a
+        v-if="expandableGroups.hasGroups.value"
+        :class="$style.controlIconButton"
+        @click.stop.prevent="
+          expandableGroups.setAllExpanded(!expandableGroups.areSomeExpanded.value)
+        "
+        ><UIIcon :icon="groupingArrow"
+      /></a>
+      <div :class="$style.sidebarTotals">
+        <SidebarItemCount :counts="totals" />
+        <SidebarItemStats :item="totals" />
+      </div>
     </div>
     <div ref="sidebarItemListRef">
       <template v-if="activityStore.groupLevel">
@@ -85,17 +101,26 @@ watch(selectionStore.selected, async (selected) => {
   --group-height: calc(v-bind(groupHeight) * 1px);
 }
 
+.sidebarTotalsContainer {
+  display: flex;
+  flex-direction: row;
+  padding-inline: 1em;
+  height: calc(v-bind(statsHeight) * 1px);
+  margin-block: -1em;
+  top: 0;
+  background-color: var(--background-full);
+  z-index: 2;
+}
+
 .sidebarTotals {
   display: flex;
   flex-direction: column;
   justify-content: center;
   gap: 0.25em;
-  padding-inline: 1em;
-  height: calc(v-bind(statsHeight) * 1px);
-  margin-block: -1em;
-  position: sticky;
-  top: 0;
-  background-color: var(--background-full);
-  z-index: 2;
+}
+
+.controlIconButton {
+  margin-block: auto;
+  margin-left: -1em;
 }
 </style>

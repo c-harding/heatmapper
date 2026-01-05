@@ -15,7 +15,6 @@ import UIButton from '../ui/UIButton.vue';
 import UIButtonGroup from '../ui/UIButtonGroup.vue';
 import UIDateInput from '../ui/UIDateInput.vue';
 import UIDropdown, { type DropdownOption } from '../ui/UIDropdown.vue';
-import UIIcon from '../ui/UIIcon.vue';
 import UILabelledIcon from '../ui/UILabelledIcon.vue';
 import UIModal from '../ui/UIModal.vue';
 import UIMultiText from '../ui/UIMultiText.vue';
@@ -178,14 +177,6 @@ watch([start, end, () => activityStore.useRoutes], () => {
       </label>
     </div>
     <div :class="[$style.controls, $style.row]">
-      <label :class="!expandableGroups.hasGroups.value && $style.hidden">
-        <span />
-        <a
-          :class="$style.controlIconButton"
-          @click.stop.prevent="expandableGroups.setAllExpanded(!areSomeExpanded)"
-          ><UIIcon :icon="groupingArrow"
-        /></a>
-      </label>
       <label>
         <span>Group by</span>
         <UIDropdown v-model="activityStore.groupLevel" :options="groupLevels" />
