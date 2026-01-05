@@ -11,7 +11,7 @@ import fetch, { AbortError, type Response } from 'node-fetch';
 import { join } from 'path';
 import { v4 as uuid, validate as validateUUID } from 'uuid';
 
-import LoginError, { CannotLogin, NeedsLogin } from '../login-error';
+import LoginError, { CannotLogin, InvalidLogin, NeedsLogin } from '../login-error';
 import { deleteFile, updateFile } from './file';
 import { type SummaryAthlete } from './model';
 import { addCallback } from './token';
@@ -40,12 +40,18 @@ function untilAborted<T>(promise: Promise<T>, signal?: AbortSignal): Promise<T> 
   });
 }
 
+export enum SessionType {
+  DEFAULT = 'DEFAULT',
+  CALENDAR = 'CALENDAR',
+}
+
 interface Cache {
   stravaRefreshToken: string;
   stravaAthlete: number;
   stravaAccessToken?: string;
   stravaExpiry?: number;
   stravaScope?: string[];
+  sessionType?: SessionType;
 }
 
 /** A reply from Strava that is not a success */
@@ -83,25 +89,29 @@ export default class RawStravaApi {
     requestToken: string | undefined,
     private readonly loginCallback: ((token: string, url: string) => Promise<boolean>) | null,
     private readonly abortSignal?: AbortSignal,
+    private readonly sessionType = SessionType.DEFAULT,
   ) {
     this.token = requestToken && validateUUID(requestToken) ? requestToken : uuid();
   }
 
   private async loadCache(): Promise<Cache> {
+    let cache: Cache;
     try {
-      const jsonStr = await readFile(sessionCacheFile(this.token), 'utf-8');
-      const cache: Cache = JSON.parse(jsonStr);
-      if (!cache.stravaAthlete || !cache.stravaRefreshToken) {
-        throw new NeedsLogin('Loaded from cache, but athlete or refresh token is missing');
-      }
-      const currentEpochSeconds = Date.now() / 1e3;
-      if (cache.stravaExpiry && cache.stravaExpiry < currentEpochSeconds + EXPIRY_MARGIN) {
-        delete cache.stravaAccessToken;
-      }
-      return cache;
+      cache = JSON.parse(await readFile(sessionCacheFile(this.token), 'utf-8'));
     } catch (e) {
       throw new NeedsLogin('Could not load from cache', { cause: e });
     }
+    if (this.sessionType !== (cache.sessionType ?? SessionType.DEFAULT)) {
+      throw new InvalidLogin('Token not valid');
+    }
+    if (!cache.stravaAthlete || !cache.stravaRefreshToken) {
+      throw new NeedsLogin('Loaded from cache, but athlete or refresh token is missing');
+    }
+    const currentEpochSeconds = Date.now() / 1e3;
+    if (cache.stravaExpiry && cache.stravaExpiry < currentEpochSeconds + EXPIRY_MARGIN) {
+      delete cache.stravaAccessToken;
+    }
+    return cache;
   }
 
   /**
@@ -185,7 +195,8 @@ export default class RawStravaApi {
     let cache: Cache;
     try {
       cache = await this.loadCache();
-    } catch {
+    } catch (e) {
+      if (e instanceof InvalidLogin) throw e;
       await this.getAccessTokenFromBrowser();
       cache = await this.loadCache();
     }
@@ -216,7 +227,7 @@ export default class RawStravaApi {
     );
   }
 
-  private athleteToUser(athlete: SummaryAthlete, existingSessions?: string[]) {
+  private athleteToUser(athlete: SummaryAthlete, existingSessions?: string[]): UserCache {
     return {
       id: athlete.id,
       firstName: athlete.firstname,
@@ -390,5 +401,15 @@ export default class RawStravaApi {
     const json = await data.json();
 
     return json as T;
+  }
+
+  async getCalendar(): Promise<string | undefined> {
+    try {
+      const { stravaAthlete } = await this.loadCache();
+      const user: UserCache = JSON.parse(await readFile(userCacheFile(stravaAthlete), 'utf-8'));
+      return user.calendarSession;
+    } catch {
+      return undefined;
+    }
   }
 }

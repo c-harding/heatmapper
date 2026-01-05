@@ -12,7 +12,7 @@ export default interface UserInfo extends BaseUser {
 
 export interface UserCache extends BaseUser {
   sessions: string[];
-  calendarLink?: string;
+  calendarSession?: string;
 }
 
 export function userCacheToUserInfo(user: UserCache): UserInfo {
