@@ -10,25 +10,26 @@
 .buttonGroup {
   display: flex;
   margin: 0.5rem;
-  display: relative;
 
   > button {
     margin: 0;
 
-    display: relative;
+    position: relative;
 
-    &:focus {
+    &:not(:disabled) {
       z-index: 1;
+
+      &:focus {
+        z-index: 2;
+      }
     }
 
     &:not(:first-child) {
-      border-start-start-radius: 0;
-      border-end-start-radius: 0;
+      --button-border-radius-left: 0;
       margin-left: -1px;
     }
     &:not(:last-child) {
-      border-start-end-radius: 0;
-      border-end-end-radius: 0;
+      --button-border-radius-right: 0;
     }
   }
 }
