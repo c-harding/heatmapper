@@ -18,7 +18,7 @@
     grid-template-columns: max-content max-content;
   }
 
-  > label {
+  > :is(label, .label) {
     grid-template-columns: subgrid;
     display: grid;
     grid-column: span 2;
@@ -33,7 +33,7 @@
 
 .row,
 .grid {
-  > label > span {
+  > :is(label, .label) > span {
     min-height: 1.2em;
     font-size: 0.9em;
     font-weight: 600;
