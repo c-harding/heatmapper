@@ -77,7 +77,9 @@ export async function resetStore(version: number, user: number) {
   // Remove legacy localStorage items
   localStorage.removeItem('activities');
   localStorage.removeItem('routes');
-
+  Object.keys(localStorage)
+    .filter((key) => key.startsWith('gear:') || key.startsWith('map:'))
+    .forEach((key) => localStorage.removeItem(key));
   localStorage.setItem('meta', JSON.stringify({ version, user } satisfies StoreMeta));
   await Promise.all([gearStore.clear(), activityStore.clear(), routeStore.clear()]);
 }
