@@ -19,6 +19,8 @@ while (($#)); do
       shift
       ;;
     --)
+      shift
+      REST_ARGS+=("$@")
       break
       ;;
     *)
@@ -27,7 +29,6 @@ while (($#)); do
       ;;
   esac
 done
-REST_ARGS+=("$@")
 
 set -a
 if [ "$ENV" = "-" ]; then
