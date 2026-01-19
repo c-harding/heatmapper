@@ -256,23 +256,26 @@ const showHelp = ref(false);
           <UIRange v-model="activityStore.filterModel.elevation" :step="0.1" suffix="m" />
         </label>
 
-        <label
+        <div
           v-if="activityStore.useRoutes && activityStore.filterFields.has('starred')"
-          title="Only show starred routes (double-click for unstarred routes)"
-          :class="$style.noPointer"
+          :class="[controlsStyle.label, $style.noPointer]"
         >
           <span>Starred</span>
-          <UIButton
-            light
-            :invertColor="activityStore.filterModel.starred === false"
-            :icon="activityStore.filterModel.starred === undefined ? 'star_border' : 'star'"
-            @click="
-              activityStore.filterModel.starred =
-                activityStore.filterModel.starred !== undefined ? undefined : true
-            "
-            @dbl-click="activityStore.filterModel.starred = false"
-          />
-        </label>
+
+          <SegmentedControl
+            v-slot="{ option }"
+            v-model="activityStore.filterModel.starred"
+            :class="controlsStyle.segmentedControl"
+            :deselectValue="[undefined]"
+          >
+            <SegmentedControlItem :option="option(false)" title="Only unstarred activities">
+              <UIIcon icon="star_border" inline />
+            </SegmentedControlItem>
+            <SegmentedControlItem :option="option(true)" title="Only starred activities">
+              <UIIcon icon="star" inline />
+            </SegmentedControlItem>
+          </SegmentedControl>
+        </div>
 
         <label v-if="!activityStore.useRoutes && activityStore.filterFields.has('gear')">
           <span>Gear</span>
@@ -293,10 +296,9 @@ const showHelp = ref(false);
           />
         </label>
 
-        <label
+        <div
           v-if="activityStore.filterFields.has('isPrivate')"
-          :title="`Only show private ${activityStore.useRoutes ? 'routes' : 'activities'} (double-click for non-private ${activityStore.useRoutes ? 'routes' : 'activities'})`"
-          :class="$style.noPointer"
+          :class="[$style.noPointer, controlsStyle.label]"
         >
           <span>Visibility</span>
           <SegmentedControl
@@ -305,14 +307,14 @@ const showHelp = ref(false);
             :class="controlsStyle.segmentedControl"
             :deselectValue="[undefined]"
           >
-            <SegmentedControlItem :option="option(false)">
+            <SegmentedControlItem :option="option(false)" title="Only public activities">
               <UIIcon icon="lock_open" inline />
             </SegmentedControlItem>
-            <SegmentedControlItem :option="option(true)">
+            <SegmentedControlItem :option="option(true)" title="Only private activities">
               <UIIcon icon="lock" inline />
             </SegmentedControlItem>
           </SegmentedControl>
-        </label>
+        </div>
 
         <div :class="controlsStyle.buttons">
           <em v-if="activityStore.filterFields.size === 0">All filters are hidden</em>
