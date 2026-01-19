@@ -81,8 +81,9 @@ function toggleFilter(field: FilterField) {
       </dt>
 
       <dd v-if="activityStore.useRoutes">
-        Show only routes that you have starred in Strava. Double-click on the button to invert the
-        filter, i.e. to show only non-starred routes.
+        Select <kbd><UIIcon inline icon="star" /></kbd> to show only starred routes, or
+        <kbd><UIIcon inline icon="star_border" /></kbd> to show only non-starred routes. Click again
+        to disable this filter.
       </dd>
       <dt v-if="!activityStore.useRoutes">
         <label>
