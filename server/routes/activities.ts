@@ -14,7 +14,6 @@ import { AbortError } from 'node-fetch';
 
 import eagerIterator from '../eager-iterator';
 import { extractRequestToken } from '../request-utils';
-import { completeInOrder } from '../stateful-functions';
 import { Strava } from '../strava';
 import { type DetailedGear, type SummaryActivity, type SummaryRoute } from '../strava/model';
 
@@ -187,25 +186,6 @@ export class ActivitiesHandler {
       }
     }
 
-    /** @deprecated maps are now sent as part of the request, this method now only serves high-res maps */
-    const handleMaps = completeInOrder(async (activities: string[]) => {
-      console.warn('deprecated: maps should not be fetched');
-      const activityMaps = sortPromises(
-        activities.map(async (id) => {
-          const map = convertActivity(await strava.getActivity(id), true).map;
-          return [id, map];
-        }),
-      );
-      // mutex section
-      return async () => {
-        for await (const chunk of chunkAsync(activityMaps, 50)) {
-          if (!isLive()) return;
-          const maps = Object.fromEntries(chunk);
-          send({ type: 'maps', chunk: maps });
-        }
-      };
-    });
-
     const handleHandshake = async () => {
       send({
         type: 'handshake',
@@ -280,7 +260,6 @@ export class ActivitiesHandler {
           message.handshake && handleHandshake(),
           message.activities && handleActivities(message.activities),
           message.routes && handleRoutes(),
-          message.maps && handleMaps(message.maps),
           message.gear && handleGear(message.gear),
         ]);
       } catch (e: unknown) {

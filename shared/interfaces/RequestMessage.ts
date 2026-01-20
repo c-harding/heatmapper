@@ -5,8 +5,5 @@ export default interface RequestMessage {
   activities?: TimeRange[];
   routes?: boolean;
 
-  /** @deprecated maps are now sent with the request */
-  maps?: string[];
-
   gear?: string;
 }

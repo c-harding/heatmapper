@@ -18,12 +18,6 @@ interface RoutesMessage {
   routes: Route[];
 }
 
-/** @deprecated maps are now sent as part of the original route */
-interface MapsMessage {
-  type: 'maps';
-  chunk: Record<string, string>;
-}
-
 interface LoginMessage {
   type: 'login';
   cookie: string;
@@ -51,7 +45,6 @@ export interface GearMessage {
 type ResponseMessage =
   | HandshakeMessage
   | ActivitiesMessage
-  | MapsMessage
   | StatsMessage
   | RoutesMessage
   | LoginMessage
