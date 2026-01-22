@@ -32,6 +32,11 @@ export const countSelectedActivities = (n: number | null) =>
 export const countSelectedRoutes = (n: number | null) =>
   count(n, 'route selected', 'routes selected');
 
+export const countFocusedActivities = (n: number | null) =>
+  count(n, 'activity focused', 'activities focused');
+
+export const countFocusedRoutes = (n: number | null) => count(n, 'route focused', 'routes focused');
+
 export const countOtherSessions = (n: number | null) => count(n, 'other session');
 
 export const capitalise = (string: string) => string.slice(0, 1).toUpperCase() + string.slice(1);

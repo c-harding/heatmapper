@@ -3,11 +3,15 @@ export interface SegmentedControlItemContext {
   selected: boolean;
   select: () => void;
   disabled: boolean;
+  deselect?: () => void;
 }
 
-const { disabled = false } = defineProps<{ disabled?: boolean }>();
+const { disabled = false, deselectValue } = defineProps<{
+  disabled?: boolean;
+  deselectValue?: [T];
+}>();
 
-const model = defineModel<T>();
+const model = defineModel<T>({ required: true });
 
 defineSlots<{
   default(props: { option: (value: T) => SegmentedControlItemContext }): unknown;
@@ -18,6 +22,9 @@ function option(value: T): SegmentedControlItemContext {
     selected: model.value === value,
     select: () => (model.value = value),
     disabled,
+
+    // This conversion is sound because allowDeselect can only be true if T includes undefined
+    deselect: deselectValue ? () => (model.value = deselectValue[0]) : undefined,
   };
 }
 </script>
