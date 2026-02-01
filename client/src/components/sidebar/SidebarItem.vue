@@ -7,6 +7,7 @@ import { type MapItem } from '@strava-heatmapper/shared/interfaces';
 import { computed } from 'vue';
 
 import { useActivityStore } from '@/stores/ActivityStore';
+import { type FilterModel } from '@/types/FilterModel';
 import config from '@/utils/config';
 import { formatFullDateTime, formatSplitDate } from '@/utils/numberFormat';
 
@@ -55,6 +56,35 @@ const device = computed(() => {
     return undefined;
   }
 });
+
+type TypedKeyOf<T extends object, V> = Exclude<
+  {
+    [K in keyof T]: T[K] extends V ? K : never;
+  }[keyof T],
+  undefined
+>;
+
+// Show an icon for boolean filter fields if the filter is enabled but not set
+function booleanIcon<T extends MapItem>(
+  item: T,
+  key: TypedKeyOf<FilterModel, boolean | undefined> & keyof T,
+  trueIcon: string | undefined,
+  falseIcon: string | undefined,
+): string | undefined {
+  const iconNeeded =
+    activityStore.filterFields.has(key) &&
+    item[key] !== undefined &&
+    activityStore.filterModel[key] === undefined;
+  if (!iconNeeded) return undefined;
+  return item[key] ? trueIcon : falseIcon;
+}
+
+const statsIcons = computed(() =>
+  [
+    !item.route && booleanIcon(item, 'isCommute', 'work', undefined),
+    booleanIcon(item, 'isPrivate', 'lock', undefined),
+  ].filter((icon): icon is string => !!icon),
+);
 </script>
 
 <template>
@@ -74,7 +104,7 @@ const device = computed(() => {
       <div :class="$style.sidebarItemName" v-text="item.name" />
       <div v-if="device" :class="$style.sidebarItemDevice" v-text="device" />
       <div style="display: flex">
-        <SidebarItemStats v-if="expanded" :item />
+        <SidebarItemStats v-if="expanded" :item :icons="statsIcons" />
       </div>
     </div>
     <div v-if="!item.map" :class="$style.spinner">

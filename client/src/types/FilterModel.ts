@@ -19,12 +19,15 @@ export interface FilterModel {
   /** Set to true to only show private items, or false to only show non-private items */
   isPrivate?: boolean;
 
+  /** Set to true to only show commutes, or false to only show non-commutes */
+  isCommute?: boolean;
+
   device?: string;
 }
 
 // Check for surrounding quotes to indicate exact match.
 export const exactDeviceQuotes = ['"', "'", '“', '”', '‘', '’', '„', '‚', '`', '«', '»', '‹', '›'];
-export const quotePairs :Record<string, string> = {
+export const quotePairs: Record<string, string> = {
   '“': '”',
   '‘': '’',
   '„': '“',
