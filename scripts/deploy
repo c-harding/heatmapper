@@ -9,10 +9,10 @@ cd "$(dirname "$0")/.."
 
 if [ ! -z "$ENV" ]; then
   ENV_CMD="$(printf 'rm -rf .env && mv -T %q.env .env' "$ENV")"
-  EXCLUDE_FLAG="--exclude=.env"
+  ENV_EXCLUDE_FLAG="--exclude=.env"
 else
   ENV_CMD="true"
-  EXCLUDE_FLAG=""
+  ENV_EXCLUDE_FLAG=""
 fi
 
 # On the server, start the docker process, clear old docker images and then set up port forwarding
@@ -23,11 +23,11 @@ fi
   RAW_DOMAIN="${SERVER_DOMAIN/#*\/\//}"
   DEPLOY_COMMAND="$(printf '
     (cd %q && %s && rm ?*.env) &&
-    docker-compose -f%q/docker-compose.yml up --build -d &&
+    docker compose -f%q/docker-compose.yml up --build -d &&
     docker system prune -f &&
     (command -v add-site > /dev/null && add-site %q %d; true)
   ' "${DEPLOY_DIR:-.}" "$ENV_CMD" "${DEPLOY_DIR:-.}" "$RAW_DOMAIN" "$SERVER_PORT")"
 
-  rsync -re"ssh $DEPLOY_FLAG" $EXCLUDE_FLAG dist/ "$DEPLOY_TARGET":"${DEPLOY_DIR:-.}"
+  rsync -re"ssh $DEPLOY_FLAG" $ENV_EXCLUDE_FLAG --exclude-from=dist/.rsyncignore dist/ "$DEPLOY_TARGET":"${DEPLOY_DIR:-.}"
   ssh $DEPLOY_FLAG "$DEPLOY_TARGET" "$DEPLOY_COMMAND"
 )
