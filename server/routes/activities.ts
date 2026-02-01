@@ -43,6 +43,7 @@ function convertActivitySummary({
   elev_high,
   elev_low,
   private: isPrivate,
+  commute: isCommute,
 }: SummaryActivity): Activity {
   const date = +new Date(startDate);
   const localDate = +new Date(localStartDate);
@@ -61,6 +62,7 @@ function convertActivitySummary({
     type: sport_type,
     gear,
     isPrivate,
+    isCommute,
     elevation: allDefined(total_elevation_gain, elev_high, elev_low) && {
       max: elev_high,
       min: elev_low,

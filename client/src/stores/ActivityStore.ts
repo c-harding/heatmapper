@@ -137,6 +137,10 @@ export const useActivityStore = defineStore('activity', () => {
           filterModel.starred !== undefined &&
           ((item: MapItem) => !item.route || item.starred === filterModel.starred),
 
+        filterFields.has('isCommute') &&
+          filterModel.isCommute !== undefined &&
+          ((item: MapItem) => item.route || item.isCommute === filterModel.isCommute),
+
         filterFields.has('isPrivate') &&
           filterModel.isPrivate !== undefined &&
           ((item: MapItem) => item.isPrivate === filterModel.isPrivate),

@@ -85,6 +85,7 @@ function toggleFilter(field: FilterField) {
         <kbd><UIIcon inline icon="star_border" /></kbd> to show only non-starred routes. Click again
         to disable this filter.
       </dd>
+
       <dt v-if="!activityStore.useRoutes">
         <label>
           Gear
@@ -113,6 +114,22 @@ function toggleFilter(field: FilterField) {
         Enter a device name (or part of a name) to show only activities recorded with that device.
         To only match exact names, surround the name with quotation marks, e.g. "Garmin Forerunner
         945".
+      </dd>
+
+      <dt v-if="!activityStore.useRoutes">
+        <label
+          >Commutes
+          <input
+            type="checkbox"
+            :checked="activityStore.filterFields.has('isCommute')"
+            @change="toggleFilter('isCommute')"
+          />
+        </label>
+      </dt>
+      <dd v-if="!activityStore.useRoutes">
+        Select
+        <UIIcon inline icon="work" /> to show only commutes, or <UIIcon inline icon="work_off" /> to
+        exclude commutes. Click again to disable this filter.
       </dd>
 
       <dt>
