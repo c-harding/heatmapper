@@ -30,4 +30,5 @@ export default interface Activity extends ActivityMap, ActivityStats {
   device?: string;
   gear?: string;
   isPrivate?: boolean;
+  isCommute?: boolean;
 }

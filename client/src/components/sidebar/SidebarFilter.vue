@@ -125,6 +125,10 @@ const blankFilter = Object.freeze<FilterModel>({
   elevation: undefined,
   sportType: undefined,
   starred: undefined,
+  gear: undefined,
+  isPrivate: undefined,
+  isCommute: undefined,
+  device: undefined,
 });
 
 function compareRanges(rangeA: RangeFilter | undefined, rangeB: RangeFilter | undefined) {
@@ -139,6 +143,7 @@ function compareFilters(filterA: FilterModel, filterB: FilterModel) {
     compareRanges(filterA.elevation, filterB.elevation) &&
     (filterA.gear ?? '') === (filterB.gear ?? '') &&
     (filterA.isPrivate ?? null) === (filterB.isPrivate ?? null) &&
+    (filterA.isCommute ?? null) === (filterB.isCommute ?? null) &&
     (filterA.device ?? '') === (filterB.device ?? '')
   );
 }
@@ -207,6 +212,10 @@ const filterSummary = computed(() =>
       activityStore.filterModel.starred !== undefined &&
       (activityStore.filterModel.starred ? 'only starred' : 'only unstarred'),
     activityStore.filterFields.has('gear') && formatGear(activityStore.filterModel.gear),
+    activityStore.filterFields.has('isCommute') &&
+      !activityStore.useRoutes &&
+      activityStore.filterModel.isCommute !== undefined &&
+      (activityStore.filterModel.isCommute ? 'only commutes' : 'excluding commutes'),
     activityStore.filterFields.has('isPrivate') &&
       activityStore.filterModel.isPrivate !== undefined &&
       (activityStore.filterModel.isPrivate ? 'only private' : 'only non-private'),
@@ -312,6 +321,26 @@ const showHelp = ref(false);
             </SegmentedControlItem>
             <SegmentedControlItem :option="option(true)" title="Only private activities">
               <UIIcon icon="lock" inline />
+            </SegmentedControlItem>
+          </SegmentedControl>
+        </div>
+
+        <div
+          v-if="activityStore.filterFields.has('isCommute') && !activityStore.useRoutes"
+          :class="[$style.noPointer, controlsStyle.label]"
+        >
+          <span>Commute</span>
+          <SegmentedControl
+            v-slot="{ option }"
+            v-model="activityStore.filterModel.isCommute"
+            :class="controlsStyle.segmentedControl"
+            :deselectValue="[undefined]"
+          >
+            <SegmentedControlItem :option="option(true)" title="Only commutes">
+              <UIIcon icon="work" inline />
+            </SegmentedControlItem>
+            <SegmentedControlItem :option="option(false)" title="Exclude commutes">
+              <UIIcon icon="work_off" inline />
             </SegmentedControlItem>
           </SegmentedControl>
         </div>
