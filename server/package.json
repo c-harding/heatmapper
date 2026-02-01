@@ -33,9 +33,9 @@
     "@types/node": "^20.17.7",
     "@types/node-fetch": "^2.6.12",
     "@types/uuid": "^9.0.8",
-    "@typescript-eslint/eslint-plugin": "^8.15.0",
-    "@typescript-eslint/parser": "^8.15.0",
-    "eslint": "9.15.0",
+    "@typescript-eslint/eslint-plugin": "^8.54.0",
+    "@typescript-eslint/parser": "^8.54.0",
+    "eslint": "^9.15.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-gitignore": "^0.1.0",
     "eslint-plugin-prettier": "^5.2.1",
@@ -44,8 +44,8 @@
     "nodemon": "^3.1.7",
     "prettier": "^3.3.3",
     "ts-node": "^10.9.2",
-    "typescript": "~5.7.2",
-    "typescript-eslint": "^8.28.0"
+    "typescript": "~5.9.3",
+    "typescript-eslint": "^8.54.0"
   },
   "prettier": {
     "printWidth": 120,
