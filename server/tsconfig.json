@@ -11,5 +11,6 @@
     "allowSyntheticDefaultImports": true,
     "outDir": "../dist/server",
     "strictNullChecks": true
-  }
+  },
+  "exclude": ["*.config.mjs"]
 }
