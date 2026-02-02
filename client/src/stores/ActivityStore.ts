@@ -13,11 +13,11 @@ import {
 } from '@strava-heatmapper/shared/interfaces';
 import { type SportTypesAndGroups } from '@strava-heatmapper/shared/interfaces/SportType';
 import { defineStore } from 'pinia';
-import { computed, reactive, type Ref, ref, shallowRef, toRef } from 'vue';
+import { computed, reactive, type Ref, ref, shallowRef, toRef, watch } from 'vue';
 
 import Socket from '@/socket';
+import { type FilterField, type FilterModel, parseDeviceFilter } from '@/types/FilterModel';
 import config from '@/utils/config';
-import { groupMapItems } from '@/utils/groupMapItems';
 import {
   appendCachedActivities,
   appendCachedRoutes,
@@ -27,8 +27,11 @@ import {
   getCachedGear,
   getCachedRoutes,
   getStoreMeta,
+  loadFilterFields,
+  loadFilterModel,
   resetStore,
   saveCachedGear,
+  saveFilterFields,
 } from '@/utils/storage';
 
 import { useContinueLoginStore } from './ContinueLoginStore';
@@ -40,14 +43,10 @@ export interface LoadingStats {
   inCache: boolean;
 }
 
-export interface FilterModel {
-  sportType?: string;
-
-  /** Set to true to only show starred routes, or false to only show unfiltered routes */
-  starred?: boolean;
+export interface DisplayOptions {
+  showActivities: boolean;
 }
 
-export type MapItemTypes = Partial<Record<MapItemType, boolean>>;
 export enum GroupLevel {
   OFF = '',
   WEEKLY_MO = 'WEEKLY_MO',
@@ -56,6 +55,8 @@ export enum GroupLevel {
   MONTHLY = 'MONTHLY',
   YEARLY = 'YEARLY',
 }
+
+export type MapItemTypes = Partial<Record<MapItemType, boolean>>;
 
 export interface MapItemGroup {
   items: MapItem[];
@@ -87,9 +88,14 @@ export const useActivityStore = defineStore('activity', () => {
   const routeStats = ref<LoadingStats>({ inCache: false });
   const activityStats = ref<LoadingStats>({ inCache: true });
 
-  const filterModel: FilterModel = reactive({
-    sportType: '',
-    starred: undefined,
+  const filterModel: FilterModel = reactive(loadFilterModel() ?? {});
+  const filterFields: Set<FilterField> = reactive(
+    loadFilterFields() ?? new Set(['sportType', 'starred']),
+  );
+  watch(filterFields, saveFilterFields);
+
+  const displayOptions: DisplayOptions = reactive({
+    showActivities: false,
   });
 
   const error = ref<string>();
@@ -98,6 +104,16 @@ export const useActivityStore = defineStore('activity', () => {
 
   const allMapItems = computed<readonly MapItem[]>(() =>
     useRoutes.value ? allRoutes.value : allActivities.value,
+  );
+
+  const devices = computed(() =>
+    Array.from(
+      new Set(
+        allActivities.value
+          .map((activity) => activity.device)
+          .filter((device): device is string => !!device),
+      ),
+    ).sort((a, b) => a.localeCompare(b, 'en', { sensitivity: 'base' })),
   );
 
   const availableSports = computed<SportTypesAndGroups | undefined>(() => {
@@ -114,24 +130,73 @@ export const useActivityStore = defineStore('activity', () => {
 
   const stats = computed(() => (useRoutes.value ? routeStats.value : activityStats.value));
 
-  const visibleMapItems = computed<readonly MapItem[]>(() => {
+  const parsedDeviceFilter = computed(() => parseDeviceFilter(filterModel.device));
+
+  const mapItemFilters = computed<((value: MapItem) => boolean)[]>(() => {
     const sportType = filterModel.sportType;
-    const filters: ((value: MapItem) => boolean)[] = [
-      sportType && ((item: MapItem) => doesSportTypeMatch(sportType, item.type)),
 
-      filterModel.starred !== undefined &&
-        ((item: MapItem) => !item.route || item.starred === filterModel.starred),
-    ]
-      // Remove falsy filters
-      .filter((f): f is (value: MapItem) => boolean => !!f);
+    return (
+      [
+        filterFields.has('sportType') &&
+          sportType &&
+          ((item: MapItem) => doesSportTypeMatch(sportType, item.type)),
 
-    return filters.length
-      ? allMapItems.value.filter((item) => filters.every((filter) => filter(item)))
-      : allMapItems.value;
+        filterFields.has('starred') &&
+          filterModel.starred !== undefined &&
+          ((item: MapItem) => !item.route || item.starred === filterModel.starred),
+
+        filterFields.has('isCommute') &&
+          filterModel.isCommute !== undefined &&
+          ((item: MapItem) => item.route || item.isCommute === filterModel.isCommute),
+
+        filterFields.has('isPrivate') &&
+          filterModel.isPrivate !== undefined &&
+          ((item: MapItem) => item.isPrivate === filterModel.isPrivate),
+
+        filterFields.has('distance') &&
+          filterModel.distance?.min !== undefined &&
+          ((item: MapItem) => item.distance >= (filterModel.distance?.min ?? -Infinity)),
+        filterFields.has('distance') &&
+          filterModel.distance?.max !== undefined &&
+          ((item: MapItem) => item.distance <= (filterModel.distance?.max ?? Infinity)),
+
+        filterFields.has('elevation') &&
+          filterModel.elevation?.min !== undefined &&
+          ((item: MapItem) =>
+            item.elevation?.gain &&
+            item.elevation.gain >= (filterModel.elevation?.min ?? -Infinity)),
+        filterFields.has('elevation') &&
+          filterModel.elevation?.max !== undefined &&
+          ((item: MapItem) =>
+            item.elevation?.gain &&
+            item.elevation.gain <= (filterModel.elevation?.max ?? Infinity)),
+
+        filterFields.has('gear') &&
+          filterModel.gear &&
+          ((item: MapItem) => item.route || item.gear === filterModel.gear),
+
+        filterFields.has('device') &&
+          parsedDeviceFilter.value.enabled &&
+          ((item: MapItem) =>
+            item.route ||
+            (parsedDeviceFilter.value.exact
+              ? item.device?.toLowerCase() === parsedDeviceFilter.value.name
+              : item.device?.toLowerCase().includes(parsedDeviceFilter.value.name))),
+      ]
+        // Remove falsy filters
+        .filter((f): f is (value: MapItem) => boolean => !!f)
+    );
   });
 
-  const groupedMapItems = computed<readonly MapItemGroup[]>(() =>
-    groupMapItems(visibleMapItems.value, groupLevel.value),
+  const filterMapItems = <T extends MapItem>(mapItems: readonly T[]): readonly T[] =>
+    mapItemFilters.value.length
+      ? mapItems.filter((item) => mapItemFilters.value.every((filter) => filter(item)))
+      : mapItems;
+
+  const visibleMapItems = computed<readonly MapItem[]>(() => filterMapItems(allMapItems.value));
+
+  const backgroundMapItems = computed(() =>
+    useRoutes.value && displayOptions.showActivities ? filterMapItems(allActivities.value) : [],
   );
 
   /** A map of all gear, where null represents gear that is not yet fetched */
@@ -154,7 +219,6 @@ export const useActivityStore = defineStore('activity', () => {
     );
   }
 
-  // TODO: keep alive. Verify that every gear request resolves
   async function requestGear(ids: (string | undefined)[], socket?: Socket) {
     const validIds = ids.filter((id?: string): id is string => !!id);
 
@@ -166,7 +230,10 @@ export const useActivityStore = defineStore('activity', () => {
           gear: gearId,
         });
       } else {
-        gear.set(gearId, (await getCachedGear(gearId)) ?? null);
+        const cachedGear = await getCachedGear(gearId);
+        if (cachedGear) {
+          gear.set(gearId, cachedGear);
+        }
       }
     }
   }
@@ -314,7 +381,8 @@ export const useActivityStore = defineStore('activity', () => {
       const finished =
         !continueLoginStore.continueLogin &&
         (!activities || activityStats.value.finding?.finished === true) &&
-        (!routes || routeStats.value.finding?.finished === true);
+        (!routes || routeStats.value.finding?.finished === true) &&
+        Iterator.from(gear.values()).every(Boolean);
       if (finished) {
         socket?.close();
       }
@@ -395,6 +463,7 @@ export const useActivityStore = defineStore('activity', () => {
     if (store.version !== serverVersion || store.user !== user) {
       allActivities.value = [];
       allRoutes.value = [];
+      gear.clear();
       await resetStore(serverVersion, user);
     }
 
@@ -428,13 +497,16 @@ export const useActivityStore = defineStore('activity', () => {
     routeStats,
     activityStats,
     filterModel,
+    filterFields,
+    displayOptions,
     useRoutes,
     groupLevel,
     error,
     gear,
+    devices,
 
     mapItems: visibleMapItems,
-    groupedMapItems,
+    backgroundMapItems,
     availableSports,
 
     cancelLoading,

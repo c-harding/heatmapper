@@ -88,18 +88,22 @@ const dateFormat = new Intl.DateTimeFormat(locales, {
   day: 'numeric',
 });
 
+export function formatDate(date: number | Date) {
+  return dateFormat.format(date);
+}
+
 const parts = dateFormat.formatToParts(0);
 const yearFirst =
   parts.findIndex((part) => part.type === 'year') <
   parts.findIndex((part) => part.type === 'month');
 
-export function formatSplitDate(date: number) {
+export function formatSplitDate(date: number | Date) {
   const yearString = yearFormat.format(date);
   const dayString = dayMonthFormat.format(date);
   return yearFirst ? [yearString, dayString] : [dayString, yearString];
 }
 
-export function formatFullDateTime(date: number) {
+export function formatFullDateTime(date: number | Date) {
   return fullDateTimeFormat.format(date);
 }
 

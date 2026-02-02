@@ -42,6 +42,8 @@ function convertActivitySummary({
   total_elevation_gain,
   elev_high,
   elev_low,
+  private: isPrivate,
+  commute: isCommute,
 }: SummaryActivity): Activity {
   const date = +new Date(startDate);
   const localDate = +new Date(localStartDate);
@@ -59,6 +61,8 @@ function convertActivitySummary({
     distance,
     type: sport_type,
     gear,
+    isPrivate,
+    isCommute,
     elevation: allDefined(total_elevation_gain, elev_high, elev_low) && {
       max: elev_high,
       min: elev_low,
@@ -78,6 +82,7 @@ function convertRouteSummary({
   starred,
   distance,
   elevation_gain,
+  private: isPrivate,
 }: SummaryRoute): Route {
   return {
     route: true,
@@ -89,6 +94,7 @@ function convertRouteSummary({
     map,
     starred,
     type: routeTypeMap[type] ?? type,
+    isPrivate,
   };
 }
 
@@ -99,8 +105,9 @@ function convertGear({
   primary,
   brand_name: brand,
   model_name: model,
+  frame_type: frameType,
 }: DetailedGear): Gear {
-  return { name, description, distance, primary, brand, model };
+  return { name, description, distance, primary, brand, model, isBike: frameType !== undefined };
 }
 
 function convertActivity({ id, map }, highDetail = false): ActivityMap {

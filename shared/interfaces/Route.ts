@@ -14,4 +14,5 @@ export default interface Route extends RouteStats {
   map: string;
   type: SportType;
   starred: boolean;
+  isPrivate?: boolean;
 }
