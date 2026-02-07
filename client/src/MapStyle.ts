@@ -19,7 +19,7 @@ const mapboxStyleUrls: Record<MapStyle, string> = {
   [MapStyle.LIGHT]: 'mapbox://styles/mapbox/light-v11',
   [MapStyle.DARK]: 'mapbox://styles/mapbox/dark-v11',
   [MapStyle.OUTDOOR]: 'mapbox://styles/mapbox/outdoors-v12',
-  [MapStyle.STRAVA]: 'mapbox://styles/charding/ckbfof39h4b2t1ildduhwlm15',
+  [MapStyle.STRAVA]: '/styles/strava.json',
   [MapStyle.HYBRID]: 'mapbox://styles/mapbox/satellite-streets-v11',
   [MapStyle.SATELLITE]: 'mapbox://styles/mapbox/satellite-v9',
 };
