@@ -18,7 +18,7 @@
     "@unhead/vue": "^2.1.4",
     "geojson": "^0.5.0",
     "localforage": "^1.10.0",
-    "mapbox-gl": "~3.8.0",
+    "mapbox-gl": "~3.18.1",
     "pinia": "^3.0.4",
     "vue": "^3.5.28",
     "vue-router": "^5.0.3"
