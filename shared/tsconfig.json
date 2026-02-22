@@ -8,7 +8,7 @@
     "downlevelIteration": true,
     "moduleResolution": "node",
     "outDir": "../dist/shared",
-    "declaration": true
+    "declaration": false
   },
   "exclude": ["eslint.config.mjs"]
 }

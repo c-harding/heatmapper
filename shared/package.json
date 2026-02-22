@@ -8,12 +8,15 @@
   "scripts": {
     "lint": "eslint --fix .",
     "prettier": "prettier -w .",
-    "clear-built": "[[ -d ../dist/shared ]] && rm -r ../dist/shared; true",
+    "clear-built": "rm -rf ../dist/shared; true",
     "copy-for-deployment": "cp package.json ../dist/shared/",
     "build": "yarn clear-built; tsc --build && yarn copy-for-deployment"
   },
   "devDependencies": {
+    "@types/node": "^20.17.7",
     "eslint": "^9.15.0",
+    "globals": "^17.3.0",
+    "typescript": "^5.9.3",
     "typescript-eslint": "^8.54.0"
   },
   "prettier": {

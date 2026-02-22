@@ -1,9 +1,9 @@
 import {
+  ATTRIBUTION,
   MAPBOX_STYLE,
   MAPBOX_TOKEN,
   SERVER_PORT,
   USE_STRAVA_ICONS,
-  ATTRIBUTION,
   VALIDATE_USER_BEFORE_CACHE,
   VITE_APP_NAME,
   VITE_DEV_PORT,
@@ -35,7 +35,7 @@ export default defineConfig(({ mode }) => {
       viteStaticCopy({
         targets: [
           {
-            src: '../node_modules/@mapbox/mapbox-gl-rtl-text/dist/mapbox-gl-rtl-text.js',
+            src: 'node_modules/@mapbox/mapbox-gl-rtl-text/dist/mapbox-gl-rtl-text.js',
             dest: '.',
           },
         ],
