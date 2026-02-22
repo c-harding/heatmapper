@@ -6,7 +6,7 @@
     "serve": "nodemon app.ts",
     "lint": "eslint --fix .",
     "prettier": "prettier -w .",
-    "clear-built": "[[ -d ../dist/server ]] && rm -r ../dist/server; true",
+    "clear-built": "rm -r ../dist/server; true",
     "copy-for-deployment": "cp -r package.json static ../dist/server/",
     "build": "yarn clear-built; tsc --build && yarn copy-for-deployment"
   },
