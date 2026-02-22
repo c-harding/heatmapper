@@ -62,15 +62,29 @@ export interface DetailedGear {
 }
 
 export interface SummaryRoute {
-  id_str: string;
-  name: string;
-  created_at: string;
-  map: { summary_polyline: string };
-  type: 1 | 2 | 3;
-  sub_type: 1 | 2 | 3 | 4 | 5;
-  distance: number;
-  elevation_gain: number;
-  starred: boolean;
+  /** An instance of SummaryAthlete. */ athlete?: SummaryAthlete;
+  /** The description of the route */ description?: string;
+  /** The route's distance, in meters */ distance: number;
+  /** The route's elevation gain. */ elevation_gain: number;
+  /** The unique identifier of this route @deprecated */ id: number;
+  /** The unique identifier of the route in string format */ id_str: string;
+  /** An instance of PolylineMap. */ map: { summary_polyline: string };
+  /** The name of this route */ name: string;
+  /** Whether this route is private */ private?: boolean;
+  /** Whether this route is starred by the logged-in athlete */ starred: boolean;
+  /** An epoch timestamp of when the route was created */ timestamp?: number;
+  /** This route's type */ type: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
+  /** This route's sub-type (1 for road, 2 for mountain bike, 3 for cross, 4 for trail, 5 for mixed) */ sub_type:
+    | 1
+    | 2
+    | 3
+    | 4
+    | 5;
+  /** The time at which the route was created */ created_at: string;
+  /** The time at which the route was last updated */ updated_at?: string;
+  /** Estimated time in seconds for the authenticated athlete to complete route */ estimated_moving_time?: number;
+  /** The segments traversed by this route */ segments?: unknown[];
+  /** The custom waypoints along this route */ waypoints?: unknown[];
 }
 
 export interface SummaryAthlete {

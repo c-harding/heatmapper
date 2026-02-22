@@ -21,7 +21,16 @@ const {
   clearButton?: boolean;
 }>();
 
-const model = defineModel<string | undefined>({ default: undefined });
+const rawModel = defineModel<string | undefined>({ default: undefined });
+
+const model = computed<string | undefined>({
+  get() {
+    return rawModel.value ?? blankValue;
+  },
+  set(value: string | undefined) {
+    rawModel.value = value;
+  },
+});
 
 const blankLabels = computed<Partial<DropdownOption>[]>(() => {
   if (blankLabel) return [{ label: blankLabel, value: blankValue }];

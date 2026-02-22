@@ -1,0 +1,87 @@
+.filterGrid {
+  display: grid;
+  grid-template-columns: [tab] max-content [content] 1fr;
+}
+
+.uiVerticalTab {
+  display: grid;
+  grid-template-columns: subgrid;
+  grid-column: span 2;
+
+  .topRightButton {
+    float: inline-end;
+    margin-inline-start: 0.25rem !important;
+    cursor: pointer;
+  }
+
+  .helpButton {
+    cursor: help;
+  }
+}
+
+.tab {
+  grid-column: tab;
+  border-right: 1px solid var(--color-weak);
+  color: var(--color-weak);
+  display: flex;
+  flex-direction: column;
+
+  .button {
+    all: unset;
+    display: flex;
+    height: 100%;
+    flex-direction: column;
+
+    .buttonContent {
+      padding-block: 0.125rem;
+      display: flex;
+      align-items: center;
+    }
+
+    &:focus-visible {
+      color: AccentColor;
+    }
+  }
+}
+
+.uiVerticalTab.selected .tab {
+  color: var(--color-full);
+
+  .buttonContent {
+    margin: -1px;
+    border: 1px solid var(--color-weak);
+    border-right: none;
+    padding-right: 1px;
+    background: var(--background-full);
+  }
+
+  &:not(:first-child) .content {
+    border-top: 1px solid var(--color-weak);
+  }
+
+  &:not(:last-child) .content {
+    border-bottom: 1px solid var(--color-weak);
+  }
+}
+
+.content {
+  grid-column: content;
+  padding-left: 0.25rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.heading {
+  all: unset;
+  font-weight: bold;
+  cursor: default;
+}
+
+.summary {
+  font-size: 0.9em;
+  font-style: italic;
+}
+
+.summaryRow {
+  list-style: none;
+}

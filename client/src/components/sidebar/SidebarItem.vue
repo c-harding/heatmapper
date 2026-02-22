@@ -6,14 +6,19 @@ export const SELECTED_SIDEBAR_ITEM_SELECTOR = 'sidebar-item-selected';
 import { type MapItem } from '@strava-heatmapper/shared/interfaces';
 import { computed } from 'vue';
 
+import { useActivityStore } from '@/stores/ActivityStore';
+import { type FilterModel } from '@/types/FilterModel';
 import config from '@/utils/config';
 import { formatFullDateTime, formatSplitDate } from '@/utils/numberFormat';
 
 import StravaEmoji from '../strava-symbol/StravaEmoji.vue';
 import StravaIcon from '../strava-symbol/StravaIcon.vue';
+import UIIcon from '../ui/UIIcon.vue';
 import UISpinner from '../ui/UISpinner.vue';
 import SidebarItemLink from './SidebarItemLink.vue';
 import SidebarItemStats from './SidebarItemStats.vue';
+
+const activityStore = useActivityStore();
 
 // This conditional must be in the component rather than the template, so that tree-shaking works
 const StravaActivitySymbol = config.USE_STRAVA_ICONS ? StravaIcon : StravaEmoji;
@@ -22,10 +27,12 @@ const {
   item,
   selected = false,
   expanded = true,
+  showCheckbox = false,
 } = defineProps<{
   item: MapItem;
   selected?: boolean;
   expanded?: boolean;
+  showCheckbox?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -42,13 +49,45 @@ const fullDate = computed(() => formatFullDateTime(startDate.value));
 
 // Only show device if not a route and device is in the required attribution list
 const device = computed(() => {
-  if (item.route) return undefined;
-  if (config.ATTRIBUTION.some((brand) => item.device?.startsWith(brand))) {
+  if (item.route) {
+    return undefined;
+  } else if (activityStore.filterFields.has('device')) {
+    return item.device;
+  } else if (config.ATTRIBUTION.some((brand) => item.device?.startsWith(brand))) {
     return item.device;
   } else {
     return undefined;
   }
 });
+
+type TypedKeyOf<T extends object, V> = Exclude<
+  {
+    [K in keyof T]: T[K] extends V ? K : never;
+  }[keyof T],
+  undefined
+>;
+
+// Show an icon for boolean filter fields if the filter is enabled but not set
+function booleanIcon<T extends MapItem>(
+  item: T,
+  key: TypedKeyOf<FilterModel, boolean | undefined> & keyof T,
+  trueIcon: string | undefined,
+  falseIcon: string | undefined,
+): string | undefined {
+  const iconNeeded =
+    activityStore.filterFields.has(key) &&
+    item[key] !== undefined &&
+    activityStore.filterModel[key] === undefined;
+  if (!iconNeeded) return undefined;
+  return item[key] ? trueIcon : falseIcon;
+}
+
+const statsIcons = computed(() =>
+  [
+    !item.route && booleanIcon(item, 'isCommute', 'work', undefined),
+    booleanIcon(item, 'isPrivate', 'lock', undefined),
+  ].filter((icon): icon is string => !!icon),
+);
 </script>
 
 <template>
@@ -63,12 +102,19 @@ const device = computed(() => {
     @touchstart="emit('touchstart')"
     @dblclick="emit('dblclick', $event)"
   >
+    <UIIcon
+      v-if="showCheckbox"
+      :class="$style.checkbox"
+      :icon="selected ? 'check_circle_outline' : 'radio_button_unchecked'"
+      inline
+      large
+    />
     <StravaActivitySymbol v-if="expanded" :class="$style.stravaIcon" :sportType="item.type" />
     <div :class="$style.sidebarItemInfo">
       <div :class="$style.sidebarItemName" v-text="item.name" />
       <div v-if="device" :class="$style.sidebarItemDevice" v-text="device" />
       <div style="display: flex">
-        <SidebarItemStats v-if="expanded" :item />
+        <SidebarItemStats v-if="expanded" :item :icons="statsIcons" />
       </div>
     </div>
     <div v-if="!item.map" :class="$style.spinner">
@@ -83,7 +129,7 @@ const device = computed(() => {
 .sidebarItem {
   cursor: pointer;
   font-size: 14px;
-  padding-left: 8px;
+  padding-inline-start: 8px;
   display: flex;
   align-items: center;
   gap: 0 4px;
@@ -96,6 +142,14 @@ const device = computed(() => {
 
   &:hover {
     background: var(--background-strong);
+  }
+
+  &:has(.checkbox) {
+    padding-inline-start: 0;
+  }
+
+  .checkbox {
+    margin-inline: 4px;
   }
 
   &.selected {

@@ -9,6 +9,14 @@ const { option, disabled: disabledProp = false } = defineProps<{
 }>();
 
 const disabled = computed(() => option.disabled || disabledProp);
+
+function select() {
+  if (!option.selected) {
+    option.select();
+  } else if (option.deselect) {
+    option.deselect();
+  }
+}
 </script>
 
 <template>
@@ -19,7 +27,7 @@ const disabled = computed(() => option.disabled || disabledProp);
       disabled && $style.disabled,
     ]"
   >
-    <button :disabled @click.prevent="option.select()">
+    <button :disabled @click.prevent="select()">
       <div :class="[$style.buttonContents, $style.normal]">
         <slot />
       </div>

@@ -14,6 +14,7 @@ import StatsList from './StatsList.vue';
 const { item, additionalStats } = defineProps<{
   item: MapItemStats;
   additionalStats?: (string | false | undefined | null)[];
+  icons?: string[];
 }>();
 
 const distanceString = computed(() => formatKilometers(item.distance));
@@ -52,5 +53,5 @@ const stats = computed(() => {
 </script>
 
 <template>
-  <StatsList :stats />
+  <StatsList :stats :icons />
 </template>

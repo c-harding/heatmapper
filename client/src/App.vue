@@ -62,13 +62,7 @@ defineExpose({ mapItems: activityStore.mapItems });
       />
     </CollapsibleSidebar>
     <Suspense>
-      <MapView
-        ref="map"
-        v-model:center="center"
-        v-model:zoom="zoom"
-        :bounds="geolocation"
-        :mapItems="activityStore.mapItems"
-      />
+      <MapView ref="map" v-model:center="center" v-model:zoom="zoom" :bounds="geolocation" />
     </Suspense>
   </div>
 </template>
@@ -130,6 +124,7 @@ a[href] {
     --background-error: hsl(0 90% 30%);
     --bold-color: #fc4c02;
     --link-color: lightblue;
+    color-scheme: dark;
   }
 }
 

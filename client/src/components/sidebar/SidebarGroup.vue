@@ -29,6 +29,18 @@ const someSelected = computed(() =>
   group.items.some((item) => selectionStore.selected.has(item.id)),
 );
 
+const checkboxIcon = computed(() => {
+  if (!selectionStore.multiSelectionMode) {
+    return undefined;
+  } else if (allSelected.value) {
+    return 'check_circle_outline';
+  } else if (someSelected.value) {
+    return 'remove_circle_outline';
+  } else {
+    return 'radio_button_unchecked';
+  }
+});
+
 const groupRef = ref<HTMLDivElement>();
 const headerRef = ref<HTMLDivElement>();
 
@@ -75,6 +87,7 @@ function clickGroup(e: MouseEvent) {
       @click="clickGroup($event)"
       @dblclick="forceSelect()"
     >
+      <UIIcon v-if="checkboxIcon" :class="$style.checkbox" :icon="checkboxIcon" inline />
       <a @click.stop.prevent="toggleExpanded" @dblclick.stop
         ><UIIcon icon="keyboard_arrow_right" :rotation="isExpanded ? 90 : 0"
       /></a>
@@ -127,6 +140,11 @@ function clickGroup(e: MouseEvent) {
     flex: 1;
     display: flex;
     flex-direction: column;
+  }
+
+  .checkbox {
+    font-size: 21px;
+    margin-inline-start: 4px;
   }
 }
 

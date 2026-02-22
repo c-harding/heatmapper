@@ -167,6 +167,15 @@ export default class RawStravaApi {
     };
   }
 
+  async hasToken(): Promise<boolean> {
+    try {
+      await this.loadCache();
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
   private async rawStravaAPI(endpoint: string, query: Record<string, string | number | undefined> = {}) {
     const API_BASE = 'https://www.strava.com/api/v3';
     const queryString = (Object.entries(query).filter(([, value]) => value) as [string, string | number][])
