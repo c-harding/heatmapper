@@ -14,10 +14,10 @@
   },
   "devDependencies": {
     "@types/node": "^20.17.7",
-    "eslint": "^9.15.0",
+    "eslint": "^9.39.3",
     "globals": "^17.3.0",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.54.0"
+    "typescript-eslint": "^8.56.0"
   },
   "prettier": {
     "printWidth": 100,

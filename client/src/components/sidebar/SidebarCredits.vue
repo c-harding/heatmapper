@@ -73,8 +73,8 @@ const gitBranch = config.GIT_BRANCH ?? null;
   }
 
   code {
-    font-family: 'SF Mono', SFMono-Regular, ui-monospace, 'DejaVu Sans Mono', Menlo, Consolas,
-      monospace;
+    font-family:
+      'SF Mono', SFMono-Regular, ui-monospace, 'DejaVu Sans Mono', Menlo, Consolas, monospace;
   }
 }
 
