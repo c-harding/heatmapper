@@ -13,8 +13,8 @@ wrapper() {
     exit_code=$?
     trap - INT
 
-    # If wasn’t sigint, stay open
-    [ $exit_code -ne 130 ] && (
+    # If wasn’t sigint or sighup, stay open
+    [ $exit_code -ne 130 ] && [ $exit_code -ne 129 ] && (
         if [ $exit_code -eq 0 ]
         then echo "[Process completed successfully, press enter to close]"
         else echo "[Process exited with code $exit_code, press enter to quit]"
