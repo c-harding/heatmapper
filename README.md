@@ -15,6 +15,65 @@ Recommended: an IDE such as [Visual Studio Code](https://code.visualstudio.com/)
 Please complete in full the [`.env`](.env) file, by copying [`sample.env`](sample.env).
 When you are ready to deploy, please also complete [`dist/.env`](dist/.env), by copying [`dist/sample.env`](dist/sample.env).
 
+## Worktrees
+
+Several branches can be checked out at once using [git worktrees](https://git-scm.com/docs/git-worktree), each with its own pair of dev servers running side by side.
+`yarn worktree` does the setup that git itself does not: allocating ports, sharing the credentials, and sharing your Strava login.
+
+##### yarn worktree add
+
+Create a worktree for a branch under `.worktrees/`, and install its dependencies.
+
+```sh
+yarn worktree add my-branch          # .worktrees/my-branch, on the next free ports
+yarn worktree add my-branch --serve  # ...and start its dev servers in the background
+```
+
+The directory takes its name from the branch, lowercased and with anything unusual turned into
+hyphens, so `JIRA-123/Fix` lands in `.worktrees/jira-123-fix`.
+Pass a directory of your own as a second argument to put it elsewhere.
+
+Each worktree gets a `.env` holding only its own ports, and inherits everything else from the main checkout — the Strava and Mapbox credentials included — through an `EXTENDS` line:
+
+```sh
+# Written by scripts/worktree
+EXTENDS=../../.env
+SERVER_PORT=8082
+VITE_DEV_PORT=8083
+SERVER_DOMAIN=http://localhost:8083
+SESSIONS_DIR=../../server/sessions
+```
+
+There is therefore only ever one copy of the secrets to keep up to date, and because the paths are relative to the checkout rather than named after it, renaming the checkout does not break them.
+Ports are handed out in pairs from 8080 upwards, skipping any that another worktree has claimed or that something is already listening on.
+Strava always allows `localhost`, whatever callback domain is configured at https://www.strava.com/settings/api, so a new worktree needs nothing set up there.
+
+`EXTENDS` is understood only by [`shared/config/dotenv.js`](shared/config/dotenv.js).
+The deploy files in `dist/` are also read by bash and by Docker Compose, neither of which knows about it, so they are not layered that way.
+Instead a worktree simply has none, and [`scripts/get-env`](scripts/get-env) falls back to the main checkout's, so `yarn deploy` and `yarn connect` work from a worktree.
+`yarn container` is the exception: it builds the image from the worktree's own `dist/`, and [`dist/Dockerfile`](dist/Dockerfile) bakes the env file into the image, so run it from the main checkout or give the worktree its own `dist/<env>.env`.
+Either way, a worktree's own `dist/<env>.env` takes precedence over the main checkout's.
+
+##### yarn worktree bootstrap
+
+Do that same setup for a worktree that already exists, such as one created with plain `git worktree add`.
+It is safe to re-run, and does nothing if the worktree is already set up; pass `--force` to rewrite its `.env` and reallocate its ports.
+
+##### yarn worktree serve, list and remove
+
+- `serve` starts a worktree's dev servers in the background, or with `--attach` brings them to the foreground — attaching to servers that are already running rather than restarting them.
+- `list` shows every worktree with its ports and whether its servers are up.
+- `remove` stops the servers and deletes the worktree, refusing if there are uncommitted changes unless given `--force`; the branch itself is left alone.
+
+Every command takes `--help`, and `yarn worktree help <command>` does the same.
+
+##### Sharing a login between worktrees
+
+`SESSIONS_DIR` points each worktree at the main checkout's `server/sessions`, so you log in to Strava once and stay logged in everywhere.
+That works across ports because the session token is a cookie, and cookies are scoped by host with no regard for the port.
+
+In-browser caches are not shared.
+
 ## Scripts for running
 
 ### Development
@@ -31,6 +90,8 @@ Install all dependencies needed for developing and running the code locally.
 
 Run both servers together, using `tmux`.
 Ctrl-C in either one will kill both.
+
+Pass `--detach` to leave them running in the background instead of attaching.
 
 See [`yarn serve`](#yarn-serve-1) below for more information about how these servers work.
 

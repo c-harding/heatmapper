@@ -1,8 +1,8 @@
-import '@strava-heatmapper/shared/config/dotenv';
-
+import { SESSIONS_DIR } from '@strava-heatmapper/shared/config/dotenv';
 import { type UserCache } from '@strava-heatmapper/shared/interfaces';
 import { readFile } from 'fs/promises';
 import fetch, { type Response } from 'node-fetch';
+import { join } from 'path';
 import { v4 as uuid, validate as validateUUID } from 'uuid';
 
 import LoginError, { CannotLogin, NeedsLogin } from '../login-error';
@@ -12,9 +12,8 @@ import { addCallback } from './token';
 
 const { STRAVA_CLIENT_ID: stravaClientId, STRAVA_CLIENT_SECRET: stravaClientSecret } = process.env;
 
-const SESSIONS_DIR = 'sessions';
-const sessionCacheFile = (token: string) => `${SESSIONS_DIR}/${token}.json`;
-const userCacheFile = (userId: number) => `${SESSIONS_DIR}/user-${userId}.json`;
+const sessionCacheFile = (token: string) => join(SESSIONS_DIR, `${token}.json`);
+const userCacheFile = (userId: number) => join(SESSIONS_DIR, `user-${userId}.json`);
 
 interface Cache {
   stravaRefreshToken: string;

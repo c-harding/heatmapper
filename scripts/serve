@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -e
+
 close_all() {
     close_one='tmux send-keys -t "$1" C-c'
     tmux lsp -F "#D" | grep -v "$TMUX_PANE" | xargs -L1 bash -c $close_one close_one
@@ -30,19 +32,59 @@ wrap() {
     escape wrapper "$@"
 }
 
+cd "$(dirname "$0")/.."
+
+. scripts/lib
+
+DETACH_FLAG=''
+
+while (($#)); do
+    case $1 in
+        -d | --detach)
+            DETACH_FLAG='-d'
+            shift
+            ;;
+        -h | --help)
+            cat <<'EOF'
+Usage: yarn serve [--detach]
+
+Run the frontend and backend dev servers side by side in a tmux session. Ctrl-C in either pane
+stops both. Detach from the session with ^b d, and come back to it with "tmux attach".
+
+Options:
+  -d, --detach  leave the servers running in the background instead of attaching to them
+EOF
+            exit 0
+            ;;
+        *)
+            echo "Unknown option $1" >&2
+            exit 1
+            ;;
+    esac
+done
+
+# Checked after the arguments, so that --help works whether or not tmux is installed.
 if ! command -v tmux &> /dev/null
 then
     echo "Please install tmux to continue" >&2
     exit 1
 fi
 
-cd "$(dirname "$0")/.." &&
+# Say which checkout these servers belong to: with several worktrees running at once, the ports
+# are the only thing telling them apart in the browser.
+VITE_DEV_PORT="$(env_value .env VITE_DEV_PORT)"
 
-# Replace any special characters with hyphens
-SESSION_NAME="serve@${PWD//[^[:alnum:]\/]/-}" &&
+printf 'Serving %s' "$(branch_label)"
+if is_linked_worktree; then
+    printf ' (worktree %s)' "$(relpath "$(primary_root)" "$PWD")"
+fi
+printf ' at http://localhost:%s/\n' "${VITE_DEV_PORT:-8081}"
+
+SESSION_NAME="$(session_name)"
+SESSION_TARGET="$(session_target)"
 (
-    tmux kill-session -t "$SESSION_NAME" 2>/dev/null;
+    tmux kill-session -t "$SESSION_TARGET" 2>/dev/null || true
 
-    tmux new-session -s "$SESSION_NAME" -c "$PWD/client" "$(wrap yarn serve)" \;\
-         split-window -v                -c "$PWD/server" "$(wrap yarn serve)"
+    tmux new-session $DETACH_FLAG -s "$SESSION_NAME" -c "$PWD/client" "$(wrap yarn serve)" \;\
+         split-window -v                             -c "$PWD/server" "$(wrap yarn serve)"
 )

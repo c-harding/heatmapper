@@ -9,7 +9,7 @@
     "build": "vite build",
     "lint": "eslint --fix src",
     "prettier": "prettier -w src",
-    "develop": "../serve"
+    "develop": "../scripts/serve"
   },
   "dependencies": {
     "@mapbox/mapbox-gl-rtl-text": "^0.3.0",

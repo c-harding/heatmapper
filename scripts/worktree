@@ -1,0 +1,453 @@
+#!/usr/bin/env bash
+
+set -e
+
+# Where the user actually was, captured before the cd below moves us to the checkout root: yarn
+# leaves it in INIT_CWD, and without yarn $PWD is still the caller's until that cd runs. Relative
+# paths on the command line are resolved against this.
+CALLER_DIR="${INIT_CWD:-$PWD}"
+
+cd "$(dirname "$0")/.."
+
+. scripts/lib
+
+COMMAND=''
+PORT=''
+INSTALL=1
+SERVE=0
+ATTACH=0
+DETACH=0
+FORCE=0
+NEW_BRANCH=0
+ARGS=()
+
+die() {
+    printf '%s\n' "$*" >&2
+    exit 1
+}
+
+usage() {
+    case ${1:-} in
+        add)
+            cat <<'EOF'
+Usage: yarn worktree add <branch> [dir] [options]
+
+Create a worktree for <branch>, give it its own dev-server ports and install its dependencies.
+Without [dir] the worktree is placed next to the main checkout, named after the branch.
+
+Options:
+  -p, --port <n>    use <n> for the backend and <n>+1 for the frontend,
+                    instead of the first free pair
+  -n, --no-install  skip "yarn install-all"
+  -s, --serve       start the dev servers once it is set up
+  -a, --attach      with --serve, attach to them instead of leaving them in the background
+  -b, --new-branch  create <branch> even if a branch of that name already exists elsewhere
+EOF
+            ;;
+        bootstrap)
+            cat <<'EOF'
+Usage: yarn worktree bootstrap [dir] [options]
+
+Set up a worktree that already exists, for instance one made with plain "git worktree add":
+write its .env and install its dependencies. Defaults to the current worktree, and does nothing
+if it is already set up.
+
+Options:
+  -p, --port <n>    use <n> for the backend and <n>+1 for the frontend,
+                    instead of the first free pair
+  -n, --no-install  skip "yarn install-all"
+  -f, --force       rewrite an existing .env, reallocating the ports
+EOF
+            ;;
+        serve)
+            cat <<'EOF'
+Usage: yarn worktree serve [dir] [options]
+
+Start the dev servers for a worktree, in the background by default. Defaults to the current one.
+
+Options:
+  -a, --attach      attach to the servers; if they are already running, attach without restarting
+  -d, --detach      stay in the background even when --attach is given
+EOF
+            ;;
+        list)
+            cat <<'EOF'
+Usage: yarn worktree list
+
+Show every worktree with its branch, its dev-server ports and whether those servers are running.
+EOF
+            ;;
+        remove)
+            cat <<'EOF'
+Usage: yarn worktree remove [dir] [options]
+
+Stop a worktree's dev servers and delete it. Defaults to the current worktree. The branch itself
+is left alone. Refuses to run if there are uncommitted changes to tracked files.
+
+Options:
+  -f, --force       delete despite uncommitted changes; pass twice to unlock a locked worktree
+EOF
+            ;;
+        *)
+            cat <<'EOF'
+Manage git worktrees of this project, each running its dev servers on its own ports and sharing
+one copy of the credentials in the main checkout's .env.
+
+Usage: yarn worktree <command> [options]
+
+Commands:
+  add, a         <branch> [dir]  create a worktree, set it up, optionally start it
+  bootstrap, b   [dir]           set up a worktree that already exists
+  serve, s       [dir]           start, or attach to, a worktree's dev servers
+  list, l, ls                    show every worktree, its ports and whether it is running
+  remove, r, rm  [dir]           stop the dev servers and delete a worktree
+  help, h        [command]       show this, or the options of one command
+EOF
+            ;;
+    esac
+}
+
+# Fail unless the current command takes this option, rather than quietly ignoring it. $1 names
+# the option in the command's list above, $2 is how the user spelled it.
+require_option() {
+    case " $ALLOWED " in
+        *" $1 "*) return 0 ;;
+    esac
+    die "\"$COMMAND\" does not take $2. Try \"yarn worktree help $COMMAND\"."
+}
+
+# Take a port only if it really is one, so that --port= or --port=abc fails loudly instead of
+# quietly falling back to automatic allocation. $2 is how the user spelled the option.
+set_port() {
+    case $1 in
+        '') die "$2 needs a port number. Try \"yarn worktree help $COMMAND\"." ;;
+        *[!0-9]*) die "Not a port number: \"$1\"" ;;
+    esac
+    PORT="$1"
+}
+
+parse_args() {
+    ALLOWED="$1"
+    shift
+    while (($#)); do
+        case $1 in
+            -h | --help)
+                usage "$COMMAND"
+                exit 0
+                ;;
+            -p | --port)
+                require_option port "$1"
+                set_port "$2" "$1"
+                shift 2
+                ;;
+            -p?*)
+                require_option port "--port"
+                set_port "${1:2}" "-p"
+                shift
+                ;;
+            --port=*)
+                require_option port "--port"
+                set_port "${1#*=}" "--port"
+                shift
+                ;;
+            -[!-]?*)
+                # Whatever is still bundled here takes no value, since the arms above have
+                # already claimed anything that would have swallowed the rest as one. Peel the
+                # first option off and push the remainder back for the next pass: -snp8082
+                # becomes -s, then -n, then -p8082.
+                set -- "${1:0:2}" "-${1:2}" "${@:2}"
+                continue
+                ;;
+            -n | --no-install)
+                require_option install "$1"
+                INSTALL=0
+                shift
+                ;;
+            -s | --serve)
+                require_option serve "$1"
+                SERVE=1
+                shift
+                ;;
+            -a | --attach)
+                require_option attach "$1"
+                ATTACH=1
+                shift
+                ;;
+            -d | --detach)
+                require_option detach "$1"
+                DETACH=1
+                shift
+                ;;
+            -f | --force)
+                require_option force "$1"
+                FORCE=$((FORCE + 1))
+                shift
+                ;;
+            -b | --new-branch)
+                require_option branch "$1"
+                NEW_BRANCH=1
+                shift
+                ;;
+            --)
+                shift
+                ARGS=("${ARGS[@]}" "$@")
+                break
+                ;;
+            -*)
+                die "Unknown option $1. Try \"yarn worktree help $COMMAND\"."
+                ;;
+            *)
+                ARGS=("${ARGS[@]}" "$1")
+                shift
+                ;;
+        esac
+    done
+}
+
+# A path as the user meant it: relative to where they ran the command.
+resolve_dir() {
+    case $1 in
+        /*) printf '%s\n' "$1" ;;
+        *) printf '%s\n' "${CALLER_DIR%/}/$1" ;;
+    esac
+}
+
+# The root of the worktree containing a directory.
+worktree_root() {
+    git -C "$1" rev-parse --show-toplevel 2>/dev/null \
+        || die "$1 is not inside a git worktree."
+}
+
+target_root() {
+    local dir
+    dir="$(resolve_dir "${1:-.}")"
+    [ -d "$dir" ] || die "No such directory: $dir"
+    worktree_root "$dir"
+}
+
+require_free_ports() {
+    local base="$1" skip="${2:-}" claimed port
+    claimed="$(claimed_ports "$skip")"
+    for port in "$base" "$((base + 1))"; do
+        if printf '%s\n' "$claimed" | grep -qx "$port"; then
+            die "Port $port is already assigned to another worktree."
+        fi
+        if port_listening "$port"; then
+            die "Port $port is already in use."
+        fi
+    done
+}
+
+write_worktree_env() {
+    local root="$1" primary="$2" base="$3"
+    cat > "$root/.env" <<EOF
+# Written by scripts/worktree
+EXTENDS=$(relpath "$root" "$primary/.env")
+SERVER_PORT=$base
+VITE_DEV_PORT=$((base + 1))
+SERVER_DOMAIN=http://localhost:$((base + 1))
+SESSIONS_DIR=$(relpath "$root" "$primary/server/sessions")
+EOF
+}
+
+do_bootstrap() {
+    local root primary base
+    root="$(target_root "$1")"
+    primary="$(primary_root)"
+
+    if [ "$root" = "$primary" ]; then
+        # The main checkout holds the credentials, so it has nothing to extend.
+        if [ -e "$root/.env" ]; then
+            echo "This is the main checkout and it already has a .env; nothing to do."
+        else
+            cp "$root/sample.env" "$root/.env"
+            echo "Created .env from sample.env."
+            echo "Fill in STRAVA_CLIENT_ID, STRAVA_CLIENT_SECRET and MAPBOX_TOKEN before serving."
+        fi
+        return
+    fi
+
+    if [ -e "$root/.env" ] && [ "$FORCE" -eq 0 ]; then
+        echo "$(relpath "$primary" "$root")/.env already exists; pass --force to rewrite it."
+    else
+        [ -f "$primary/.env" ] \
+            || die "$primary/.env does not exist; set up the main checkout first."
+        if [ -n "$PORT" ]; then
+            require_free_ports "$PORT" "$root"
+            base="$PORT"
+        else
+            base="$(alloc_ports '' "$root")"
+        fi
+        write_worktree_env "$root" "$primary" "$base"
+        echo "Wrote $(relpath "$primary" "$root")/.env: backend $base, frontend $((base + 1))."
+    fi
+
+    if [ "$INSTALL" -eq 1 ]; then
+        (cd "$root" && scripts/install)
+    else
+        echo "Skipped the install; run \"yarn install-all\" there before serving."
+    fi
+}
+
+do_serve() {
+    local root session
+    root="$(target_root "$1")"
+    session="$(session_target "$root")"
+
+    if [ "$ATTACH" -eq 1 ] && [ "$DETACH" -eq 0 ]; then
+        if tmux has-session -t "$session" 2> /dev/null; then
+            # Already running: join it rather than letting scripts/serve restart it.
+            if [ -n "${TMUX:-}" ]; then
+                tmux switch-client -t "$session" # tmux refuses to nest sessions
+            else
+                tmux attach-session -t "$session"
+            fi
+            return
+        fi
+        (cd "$root" && scripts/serve)
+        return
+    fi
+
+    # scripts/serve prints the branch, worktree and URL itself, so only add what it cannot know.
+    (cd "$root" && scripts/serve --detach)
+    echo "Left running in the background; attach with" \
+        "\"yarn worktree serve $(relpath "$CALLER_DIR" "$root") --attach\"."
+}
+
+LIST_FORMAT='%-26s %-22s %-9s %-9s %s\n'
+
+list_row() {
+    local primary="$1" path="$2" branch="$3" server vite
+    server="$(env_value "$path/.env" SERVER_PORT)"
+    vite="$(env_value "$path/.env" VITE_DEV_PORT)"
+    printf "$LIST_FORMAT" "$(relpath "$primary" "$path")" "$branch" "${server:-?}" "${vite:-?}" \
+        "$(tmux has-session -t "$(session_target "$path")" 2> /dev/null \
+            && echo running || echo '-')"
+}
+
+do_list() {
+    local primary line path='' branch=''
+    primary="$(primary_root)"
+
+    printf "$LIST_FORMAT" WORKTREE BRANCH BACKEND FRONTEND SERVERS
+    while IFS= read -r line; do
+        case $line in
+            'worktree '*) path="${line#worktree }" ;;
+            'branch '*) branch="${line#branch refs/heads/}" ;;
+            detached) branch='(detached)' ;;
+            '')
+                [ -z "$path" ] || list_row "$primary" "$path" "$branch"
+                path=''
+                branch=''
+                ;;
+        esac
+    # The porcelain output already ends with a blank line, which is what flushes the last record.
+    done < <(git worktree list --porcelain)
+}
+
+do_remove() {
+    local root session dirty
+    root="$(target_root "$1")"
+    [ "$root" != "$(primary_root)" ] || die "Refusing to remove the main checkout."
+
+    if [ "$FORCE" -eq 0 ]; then
+        dirty="$(git -C "$root" status --porcelain)"
+        if [ -n "$dirty" ]; then
+            printf 'Uncommitted changes in %s:\n%s\n' \
+                "$(relpath "$CALLER_DIR" "$root")" "$dirty" >&2
+            die 'Commit them, or pass --force to delete the worktree anyway.'
+        fi
+    fi
+
+    session="$(session_target "$root")"
+    if tmux has-session -t "$session" 2> /dev/null; then
+        tmux kill-session -t "$session"
+        echo "Stopped the dev servers."
+    fi
+
+    # Always --force, so that the check above is the only thing deciding whether removing this
+    # worktree is safe. Git tolerates the ignored files that setting one up leaves behind (.env
+    # and node_modules), but it should not get a second opinion on files we put there
+    # deliberately.
+    if [ "$FORCE" -ge 2 ]; then
+        git worktree remove --force --force "$root" # twice, to unlock a locked worktree
+    else
+        git worktree remove --force "$root"
+    fi
+    git worktree prune
+    echo "Removed $(relpath "$CALLER_DIR" "$root")."
+    echo 'Its branch is untouched; "git branch -d <branch>" if you are done with it.'
+}
+
+do_add() {
+    local branch="$1" dir primary
+    primary="$(primary_root)"
+
+    # Check the ports before creating anything, so that a port clash does not leave a half
+    # set-up worktree behind.
+    if [ -n "$PORT" ]; then
+        require_free_ports "$PORT"
+    fi
+
+    if [ -n "$2" ]; then
+        dir="$(resolve_dir "$2")"
+    else
+        # Kept inside the checkout so that the EXTENDS and SESSIONS_DIR paths written into the
+        # worktree's .env do not depend on what the main checkout's directory is called.
+        dir="$primary/.worktrees/$(slugify "$branch")"
+    fi
+    [ -e "$dir" ] && die "$dir already exists."
+
+    if [ "$NEW_BRANCH" -eq 1 ] || ! git show-ref --verify --quiet "refs/heads/$branch"; then
+        git worktree add -b "$branch" "$dir"
+    else
+        git worktree add "$dir" "$branch"
+    fi
+
+    do_bootstrap "$dir"
+    if [ "$SERVE" -eq 1 ]; then
+        do_serve "$dir"
+    else
+        echo "Start it with \"yarn worktree serve $(relpath "$CALLER_DIR" "$dir")\"."
+    fi
+}
+
+COMMAND="${1:-help}"
+[ $# -gt 0 ] && shift
+
+case $COMMAND in
+    add | a)
+        COMMAND=add
+        parse_args "port install serve attach branch" "$@"
+        [ "${#ARGS[@]}" -gt 0 ] || { usage add >&2; exit 1; }
+        do_add "${ARGS[0]}" "${ARGS[1]}"
+        ;;
+    bootstrap | b)
+        COMMAND=bootstrap
+        parse_args "port install force" "$@"
+        do_bootstrap "${ARGS[0]}"
+        ;;
+    serve | s)
+        COMMAND=serve
+        parse_args "attach detach" "$@"
+        do_serve "${ARGS[0]}"
+        ;;
+    list | l | ls)
+        COMMAND=list
+        parse_args "" "$@"
+        do_list
+        ;;
+    remove | r | rm)
+        COMMAND=remove
+        parse_args "force" "$@"
+        do_remove "${ARGS[0]}"
+        ;;
+    help | h | -h | --help)
+        usage "${1:-}"
+        ;;
+    *)
+        printf 'Unknown command "%s".\n\n' "$COMMAND" >&2
+        usage >&2
+        exit 1
+        ;;
+esac

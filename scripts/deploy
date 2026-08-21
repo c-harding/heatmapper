@@ -7,12 +7,11 @@ cd "$(dirname "$0")/.."
 
 . scripts/connect "$@"
 
-if [ ! -z "$ENV" ]; then
-  ENV_CMD="$(printf 'rm -rf .env && mv -T %q.env .env' "$ENV")"
-  ENV_EXCLUDE_FLAG="--exclude=.env"
-else
-  ENV_CMD="true"
-  ENV_EXCLUDE_FLAG=""
+if [ -z "$DOTENV_FILE" ]; then
+  echo 'No env file was found, so there is nothing to deploy with.' >&2
+  echo 'Create dist/.env by copying dist/sample.env, or name one with -e / --env.' >&2
+  echo >&2
+  exit 1
 fi
 
 # On the server, start the docker process, clear old docker images and then set up port forwarding
@@ -22,12 +21,17 @@ fi
 (
   RAW_DOMAIN="${SERVER_DOMAIN/#*\/\//}"
   DEPLOY_COMMAND="$(printf '
-    (cd %q && %s && rm ?*.env) &&
+    (cd %q && rm -f ?*.env) &&
     docker compose -f%q/docker-compose.yml up --build -d &&
     docker system prune -f &&
     (command -v add-site > /dev/null && add-site %q %d; true)
-  ' "${DEPLOY_DIR:-.}" "$ENV_CMD" "${DEPLOY_DIR:-.}" "$RAW_DOMAIN" "$SERVER_PORT")"
+  ' "${DEPLOY_DIR:-.}" "${DEPLOY_DIR:-.}" "$RAW_DOMAIN" "$SERVER_PORT")"
 
-  rsync -re"ssh $DEPLOY_FLAG" $ENV_EXCLUDE_FLAG --exclude-from=dist/.rsyncignore dist/ "$DEPLOY_TARGET":"${DEPLOY_DIR:-.}"
+  rsync -re"ssh $DEPLOY_FLAG" --exclude='*.env' --exclude-from=dist/.rsyncignore \
+    dist/ "$DEPLOY_TARGET":"${DEPLOY_DIR:-.}"
+
+  # Send the env file separately, so the correct file for the branch and worktree is used
+  rsync -e"ssh $DEPLOY_FLAG" "$DOTENV_FILE" "$DEPLOY_TARGET":"${DEPLOY_DIR:-.}/.env"
+
   ssh $DEPLOY_FLAG "$DEPLOY_TARGET" "$DEPLOY_COMMAND"
 )

@@ -6,6 +6,9 @@ node_modules
 /dist/sessions
 /server/sessions
 
+# Worktrees made by scripts/worktree
+/.worktrees/
+
 # env files and key files
 *.env
 !sample.env

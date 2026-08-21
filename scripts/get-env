@@ -1,6 +1,24 @@
+# Work out which environment the deploy and container scripts should act on.
+#
+# Sourced rather than run, because it exists to set variables for its caller:
+#
+#   ENV          the environment's name, empty for the default one
+#   DOTENV_FILE  absolute path of the env file to use, empty if there is none
+#   REST_ARGS    whatever arguments were left once --env had been taken out
+#
+# It only *finds* the file, and never reads it. Callers that need the values inside do that
+# themselves: scripts/connect sources it, scripts/container passes the path to
+# `docker compose --env-file`, and scripts/deploy copies it to the server.
+#
+# The environment is given as -e/--env/--env=, where "-" stands for the current branch name, and
+# selects dist/<ENV>.env, or dist/.env when no environment is named. A worktree keeps no deploy
+# env files of its own, so the main checkout's are used instead.
+
 set -e
 
 cd "$(dirname "$0")/.."
+
+. scripts/lib
 
 REST_ARGS=()
 
@@ -33,8 +51,8 @@ done
 set -a
 if [ "$ENV" = "-" ]; then
   ENV="$(git branch --show-current)"
-  if [ "$ENV" = "-" ]; then
-    printf 'Git currently has a detached HEAD, cannot deploy the branch.\n' "$ENV" "$ENV" >&2
+  if [ -z "$ENV" ]; then
+    printf 'Git currently has a detached HEAD, cannot deploy the branch.\n' >&2
     echo >&2
     exit 1
   fi
@@ -42,8 +60,13 @@ fi
 
 if [ -f dist/"$ENV".env ]; then
   DOTENV_FILE="$(readlink -f dist/"$ENV".env)"
+elif [ -f "$(primary_root)"/dist/"$ENV".env ]; then
+  # A worktree has no deploy env files of its own, since they are gitignored. Borrow the main
+  # checkout's rather than keeping a second copy of the deploy secrets in step with the first.
+  DOTENV_FILE="$(readlink -f "$(primary_root)"/dist/"$ENV".env)"
 elif [ ! -z "$ENV" ]; then
-  printf 'The environment %q is not supported, the file dist/%q.env does not exist.\n' "$ENV" "$ENV" >&2
+  printf 'The environment %q is not supported, the file dist/%q.env does not exist.\n' \
+    "$ENV" "$ENV" >&2
   echo >&2
   exit 1
 fi

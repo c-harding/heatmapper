@@ -1,0 +1,167 @@
+# Helpers shared by the scripts in this directory. Source it, do not run it:
+#
+#     . "$(dirname "$0")/lib"
+
+# The root of the main checkout, i.e. the one that owns .git. Every worktree agrees on this path.
+primary_root() {
+  dirname "$(git rev-parse --path-format=absolute --git-common-dir)"
+}
+
+# Succeeds in a linked worktree, fails in the main checkout. Git gives each worktree its own git
+# dir (.git/worktrees/<name>) while the common dir keeps pointing at the main checkout.
+is_linked_worktree() {
+  [ "$(git rev-parse --path-format=absolute --git-dir)" \
+    != "$(git rev-parse --path-format=absolute --git-common-dir)" ]
+}
+
+# The current branch, or a description of where a detached HEAD is sitting.
+branch_label() {
+  local branch
+  branch="$(git branch --show-current)"
+  if [ -n "$branch" ]; then
+    printf '%s\n' "$branch"
+  else
+    printf 'detached at %s\n' \
+      "$(git describe --all --always HEAD 2>/dev/null || git rev-parse --short HEAD)"
+  fi
+}
+
+# The tmux session that scripts/serve uses for a checkout, defaulting to the current one. Derived
+# from the path, so every worktree gets a session of its own without being asked to name one.
+session_name() {
+  local dir="${1:-$PWD}"
+  printf 'serve@%s\n' "${dir//[^[:alnum:]\/]/-}"
+}
+
+# The same session as a tmux target. tmux matches -t by prefix, so without the "=" a checkout
+# would also match any worktree whose path merely starts with the same characters: asking about
+# heatmapper would find heatmapper-wt, and killing one could stop the other's servers.
+session_target() {
+  printf '=%s\n' "$(session_name "$1")"
+}
+
+# The path of $2 relative to $1, both absolute. Hand-rolled because the realpath that ships with
+# macOS has no --relative-to.
+relpath() {
+  local from="${1%/}" to="${2%/}" up=''
+  [ "$from" = "$to" ] && { printf '.\n'; return; }
+  while [ -n "$from" ] && [ "$to" != "$from" ] && [ "${to#"$from"/}" = "$to" ]; do
+    from="${from%/*}"
+    up="../$up"
+  done
+  if [ "$to" = "$from" ]; then
+    printf '%s\n' "${up%/}"
+  else
+    printf '%s\n' "$up${to#"$from"/}"
+  fi
+}
+
+# A branch name flattened into something usable as a directory name: Fix/API-1 -> fix-api-1
+slugify() {
+  printf '%s' "$1" | tr '[:upper:]' '[:lower:]' | tr -cs 'a-z0-9' '-' \
+    | sed -e 's/^-*//' -e 's/-*$//'
+}
+
+# Read one key out of a single env file, ignoring commented-out lines and allowing the same
+# "export " prefix, quoting and trailing comments that dotenv does. Does not follow EXTENDS.
+env_raw() {
+  local value
+  value="$(sed -n "s/^[[:space:]]*\(export[[:space:]]\{1,\}\)\{0,1\}$2=//p" "$1" | tail -1)"
+
+  # dotenv trims the raw value before deciding whether it is quoted, so do that first.
+  value="${value#"${value%%[![:space:]]*}"}"
+
+  case $value in
+    \"*)
+      # A quote delimits the value: the matching one ends it, and a trailing comment may follow.
+      value="${value#\"}"
+      value="${value%%\"*}"
+      ;;
+    \'*)
+      value="${value#\'}"
+      value="${value%%\'*}"
+      ;;
+    \`*)
+      value="${value#\`}"
+      value="${value%%\`*}"
+      ;;
+    *)
+      # Unquoted: dotenv's value pattern is [^#\r\n]+, so the first hash starts a comment
+      # wherever it appears. Drop it and the whitespace it leaves behind.
+      value="${value%%#*}"
+      value="${value%"${value##*[![:space:]]}"}"
+      ;;
+  esac
+  printf '%s\n' "$value"
+}
+
+# Read one key out of an env file, following EXTENDS, without sourcing it: there is no need to
+# pull credentials into the shell just to look up a port.
+env_value() {
+  local file="$1" key="$2" depth="${3:-0}" value parent
+  [ "$depth" -lt 16 ] || return 0
+  [ -f "$file" ] || return 0
+
+  value="$(env_raw "$file" "$key")"
+  if [ -n "$value" ]; then
+    printf '%s\n' "$value"
+  else
+    parent="$(env_raw "$file" EXTENDS)"
+    # An if, not &&, so that "no EXTENDS to follow" is success rather than the function's exit
+    # status: callers assign this bare, and under set -e a 1 here would kill them outright.
+    if [ -n "$parent" ]; then
+      env_value "$(dirname "$file")/$parent" "$key" "$((depth + 1))"
+    fi
+  fi
+}
+
+# Every port already written into some checkout's .env, whether or not its servers are running.
+claimed_ports() {
+  local skip="${1:-}"
+  git worktree list --porcelain | sed -n 's/^worktree //p' | while IFS= read -r dir; do
+    # $1 lets a worktree be left out, so that reallocating its own ports does not clash with them.
+    if [ "$dir" != "$skip" ]; then
+      env_value "$dir/.env" SERVER_PORT
+      env_value "$dir/.env" VITE_DEV_PORT
+    fi
+  done
+}
+
+# Whether something is listening on a port right now.
+port_listening() {
+  lsof -nP -iTCP:"$1" -sTCP:LISTEN > /dev/null 2>&1
+}
+
+# The first free backend port at or after $1 (8080 by default) whose successor is also free.
+# Ports are handed out in pairs: SERVER_PORT, then VITE_DEV_PORT immediately after it.
+alloc_ports() {
+  local base="${1:-8080}" skip="${2:-}" tries=100 claimed
+  claimed="$(claimed_ports "$skip")"
+  while [ "$tries" -gt 0 ]; do
+    if
+      ! printf '%s\n' "$claimed" | grep -qx "$base" \
+      && ! printf '%s\n' "$claimed" | grep -qx "$((base + 1))" \
+      && ! port_listening "$base" \
+      && ! port_listening "$((base + 1))"
+    then
+      printf '%s\n' "$base"
+      return 0
+    fi
+    base=$((base + 2))
+    tries=$((tries - 1))
+  done
+  printf 'Could not find a free pair of ports.\n' >&2
+  return 1
+}
+
+# A docker compose project name unique to this checkout, optionally qualified by an environment.
+# Without it every worktree inherits the compose file's directory name and they fight over the
+# same containers. Compose accepts only lowercase letters, digits, dashes and underscores.
+compose_project() {
+  local primary root name
+  primary="$(primary_root)"
+  root="$(git rev-parse --show-toplevel)"
+  name="$(basename "$primary")"
+  [ "$root" = "$primary" ] || name="$name-$(basename "$root")"
+  slugify "$name${1:+-$1}"
+}
