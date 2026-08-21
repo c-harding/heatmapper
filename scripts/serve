@@ -40,19 +40,20 @@ DETACH_FLAG=''
 
 while (($#)); do
     case $1 in
-        -d | --detach)
+        -A | --no-attach)
+            # tmux calls this detaching, hence its -d; here it just means "do not attach me".
             DETACH_FLAG='-d'
             shift
             ;;
         -h | --help)
             cat <<'EOF'
-Usage: yarn serve [--detach]
+Usage: yarn serve [-A]
 
 Run the frontend and backend dev servers side by side in a tmux session. Ctrl-C in either pane
 stops both. Detach from the session with ^b d, and come back to it with "tmux attach".
 
 Options:
-  -d, --detach  leave the servers running in the background instead of attaching to them
+  -A, --no-attach  leave the servers running in the background instead of attaching to them
 EOF
             exit 0
             ;;
@@ -70,8 +71,6 @@ then
     exit 1
 fi
 
-# Say which checkout these servers belong to: with several worktrees running at once, the ports
-# are the only thing telling them apart in the browser.
 VITE_DEV_PORT="$(env_value .env VITE_DEV_PORT)"
 
 printf 'Serving %s' "$(branch_label)"
@@ -85,6 +84,10 @@ SESSION_TARGET="$(session_target)"
 (
     tmux kill-session -t "$SESSION_TARGET" 2>/dev/null || true
 
+    # split-window needs to name the session: with -d there is no current session, so an
+    # untargeted split lands in whichever session invoked this one. It takes a target-pane, where
+    # the "=" of session_target is not accepted; the bare name is still safe, because tmux
+    # resolves an exact session name before trying it as a prefix.
     tmux new-session $DETACH_FLAG -s "$SESSION_NAME" -c "$PWD/client" "$(wrap yarn serve)" \;\
-         split-window -v                             -c "$PWD/server" "$(wrap yarn serve)"
+         split-window -v -t "$SESSION_NAME"          -c "$PWD/server" "$(wrap yarn serve)"
 )

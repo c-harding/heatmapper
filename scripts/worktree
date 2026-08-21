@@ -15,10 +15,11 @@ COMMAND=''
 PORT=''
 INSTALL=1
 SERVE=0
-ATTACH=0
+ATTACH=''
 DETACH=0
 FORCE=0
-NEW_BRANCH=0
+NEW_BRANCH=''
+RESET_BRANCH=0
 ARGS=()
 
 die() {
@@ -30,18 +31,26 @@ usage() {
     case ${1:-} in
         add)
             cat <<'EOF'
-Usage: yarn worktree add <branch> [dir] [options]
+Usage: yarn worktree add <commit-ish> [dir] [options]
 
-Create a worktree for <branch>, give it its own dev-server ports and install its dependencies.
-Without [dir] the worktree is placed next to the main checkout, named after the branch.
+Create a worktree, give it its own dev-server ports and install its dependencies. Without [dir]
+it goes under .worktrees/, named after the branch or commit. A bare [dir] is a name under
+.worktrees/ too; use a path with a slash or a leading dot to put it somewhere else.
+
+<commit-ish> follows "git worktree add": a branch is checked out, a tag or commit is checked out
+detached, and a name that does not exist yet becomes a new branch off HEAD.
 
 Options:
-  -p, --port <n>    use <n> for the backend and <n>+1 for the frontend,
-                    instead of the first free pair
-  -n, --no-install  skip "yarn install-all"
-  -s, --serve       start the dev servers once it is set up
-  -a, --attach      with --serve, attach to them instead of leaving them in the background
-  -b, --new-branch  create <branch> even if a branch of that name already exists elsewhere
+  -b, --new-branch <name>    create <name> starting at <commit-ish>, and check that out instead
+  -B, --reset-branch <name>  the same, but reset <name> if it already exists
+  -d, --detach               check out <commit-ish> detached, even if it is a branch
+  -p, --port <n>             use <n> for the backend and <n>+1 for the frontend, instead of
+                             the first free pair
+  -n, --no-install           skip "yarn install-all"
+  -s, --serve                start the dev servers once it is set up
+  -a, --attach               with --serve, attach to them rather than leaving them running
+                             in the background
+  -A, --no-attach            with --serve, leave them in the background, which is the default
 EOF
             ;;
         bootstrap)
@@ -67,7 +76,7 @@ Start the dev servers for a worktree, in the background by default. Defaults to 
 
 Options:
   -a, --attach      attach to the servers; if they are already running, attach without restarting
-  -d, --detach      stay in the background even when --attach is given
+  -A, --no-attach   stay in the background, cancelling an earlier --attach
 EOF
             ;;
         list)
@@ -82,10 +91,11 @@ EOF
 Usage: yarn worktree remove [dir] [options]
 
 Stop a worktree's dev servers and delete it. Defaults to the current worktree. The branch itself
-is left alone. Refuses to run if there are uncommitted changes to tracked files.
+is left alone. Refuses to run if anything would be lost: uncommitted changes, or untracked
+files that are not ignored.
 
 Options:
-  -f, --force       delete despite uncommitted changes; pass twice to unlock a locked worktree
+  -f, --force       delete anyway; pass twice to unlock a locked worktree
 EOF
             ;;
         *)
@@ -96,12 +106,12 @@ one copy of the credentials in the main checkout's .env.
 Usage: yarn worktree <command> [options]
 
 Commands:
-  add, a         <branch> [dir]  create a worktree, set it up, optionally start it
-  bootstrap, b   [dir]           set up a worktree that already exists
-  serve, s       [dir]           start, or attach to, a worktree's dev servers
-  list, l, ls                    show every worktree, its ports and whether it is running
-  remove, r, rm  [dir]           stop the dev servers and delete a worktree
-  help, h        [command]       show this, or the options of one command
+  add, a        <commit-ish> [dir] create a worktree, set it up, optionally start it
+  bootstrap, b  [dir]              set up a worktree that already exists
+  serve, s      [dir]              start, or attach to, a worktree's dev servers
+  list, l, ls                      show every worktree, its ports and whether it is running
+  remove, r, rm [dir]              stop the dev servers and delete a worktree
+  help, h       [command]          show this, or the options of one command
 EOF
             ;;
     esac
@@ -126,6 +136,20 @@ set_port() {
     PORT="$1"
 }
 
+# Take a branch name only if there is one, and record which of git's flags to use. "git worktree
+# add" spells these -b and -B; the long forms are ours, for consistency with the other options.
+set_branch() {
+    case $1 in
+        '') die "$2 needs a branch name. Try \"yarn worktree help $COMMAND\"." ;;
+    esac
+    NEW_BRANCH="$1"
+    # Cleared as well as set, so that the last of -b and -B wins, as a repeat of either does.
+    case $2 in
+        -B | --reset-branch) RESET_BRANCH=1 ;;
+        *) RESET_BRANCH=0 ;;
+    esac
+}
+
 parse_args() {
     ALLOWED="$1"
     shift
@@ -148,6 +172,21 @@ parse_args() {
             --port=*)
                 require_option port "--port"
                 set_port "${1#*=}" "--port"
+                shift
+                ;;
+            -b | --new-branch | -B | --reset-branch)
+                require_option branch "$1"
+                set_branch "${2:-}" "$1"
+                shift 2
+                ;;
+            -b?* | -B?*)
+                require_option branch "${1:0:2}"
+                set_branch "${1:2}" "${1:0:2}"
+                shift
+                ;;
+            --new-branch=* | --reset-branch=*)
+                require_option branch "${1%%=*}"
+                set_branch "${1#*=}" "${1%%=*}"
                 shift
                 ;;
             -[!-]?*)
@@ -178,14 +217,14 @@ parse_args() {
                 DETACH=1
                 shift
                 ;;
+            -A | --no-attach)
+                require_option attach "$1"
+                ATTACH=0
+                shift
+                ;;
             -f | --force)
                 require_option force "$1"
                 FORCE=$((FORCE + 1))
-                shift
-                ;;
-            -b | --new-branch)
-                require_option branch "$1"
-                NEW_BRANCH=1
                 shift
                 ;;
             --)
@@ -204,11 +243,13 @@ parse_args() {
     done
 }
 
-# A path as the user meant it: relative to where they ran the command.
+# A directory as the user meant it: a bare name is a worktree under .worktrees/, anything with a
+# slash or a leading dot is a path relative to where the command was run, and absolute stays put.
 resolve_dir() {
     case $1 in
         /*) printf '%s\n' "$1" ;;
-        *) printf '%s\n' "${CALLER_DIR%/}/$1" ;;
+        .* | */*) printf '%s\n' "${CALLER_DIR%/}/$1" ;;
+        *) printf '%s\n' "$(primary_root)/.worktrees/$1" ;;
     esac
 }
 
@@ -294,7 +335,7 @@ do_serve() {
     root="$(target_root "$1")"
     session="$(session_target "$root")"
 
-    if [ "$ATTACH" -eq 1 ] && [ "$DETACH" -eq 0 ]; then
+    if [ "$ATTACH" = 1 ]; then
         if tmux has-session -t "$session" 2> /dev/null; then
             # Already running: join it rather than letting scripts/serve restart it.
             if [ -n "${TMUX:-}" ]; then
@@ -309,7 +350,7 @@ do_serve() {
     fi
 
     # scripts/serve prints the branch, worktree and URL itself, so only add what it cannot know.
-    (cd "$root" && scripts/serve --detach)
+    (cd "$root" && scripts/serve --no-attach)
     echo "Left running in the background; attach with" \
         "\"yarn worktree serve $(relpath "$CALLER_DIR" "$root") --attach\"."
 }
@@ -353,9 +394,9 @@ do_remove() {
     if [ "$FORCE" -eq 0 ]; then
         dirty="$(git -C "$root" status --porcelain)"
         if [ -n "$dirty" ]; then
-            printf 'Uncommitted changes in %s:\n%s\n' \
+            printf 'Work that would be lost in %s:\n%s\n' \
                 "$(relpath "$CALLER_DIR" "$root")" "$dirty" >&2
-            die 'Commit them, or pass --force to delete the worktree anyway.'
+            die 'Deal with it, or pass --force to delete the worktree anyway.'
         fi
     fi
 
@@ -380,7 +421,8 @@ do_remove() {
 }
 
 do_add() {
-    local branch="$1" dir primary
+    local start="$1" dir primary branch opts
+
     primary="$(primary_root)"
 
     # Check the ports before creating anything, so that a port clash does not leave a half
@@ -389,20 +431,50 @@ do_add() {
         require_free_ports "$PORT"
     fi
 
+    # Decide what will be checked out, following "git worktree add": -b/-B name a branch to
+    # create at <commit-ish>; an existing commit-ish is checked out as it stands, which git
+    # attaches for a branch and detaches for a tag or commit; and a name that resolves to
+    # nothing is taken as a new branch off HEAD.
+    if [ -n "$NEW_BRANCH" ]; then
+        branch="$NEW_BRANCH"
+        start="${start:-HEAD}"
+    elif [ -z "$start" ]; then
+        usage add >&2
+        exit 1
+    elif [ "$DETACH" -eq 1 ]; then
+        # Asking to detach says <commit-ish> is meant to exist, so let git reject it if it does
+        # not, rather than quietly treating it as a new branch name and detaching at HEAD.
+        branch=''
+    elif git rev-parse --verify --quiet "$start^{commit}" > /dev/null; then
+        branch=''
+    else
+        branch="$start"
+        start=HEAD
+    fi
+
     if [ -n "$2" ]; then
         dir="$(resolve_dir "$2")"
     else
         # Kept inside the checkout so that the EXTENDS and SESSIONS_DIR paths written into the
         # worktree's .env do not depend on what the main checkout's directory is called.
-        dir="$primary/.worktrees/$(slugify "$branch")"
+        dir="$primary/.worktrees/$(slugify "${branch:-$start}")"
     fi
     [ -e "$dir" ] && die "$dir already exists."
 
-    if [ "$NEW_BRANCH" -eq 1 ] || ! git show-ref --verify --quiet "refs/heads/$branch"; then
-        git worktree add -b "$branch" "$dir"
-    else
-        git worktree add "$dir" "$branch"
+    # Assembled rather than branched on, so that git applies its own rules to its own options:
+    # -b, -B and --detach are mutually exclusive, and it says so better than we would.
+    opts=()
+    if [ -n "$branch" ]; then
+        if [ "$RESET_BRANCH" -eq 1 ]; then
+            opts=(-B "$branch")
+        else
+            opts=(-b "$branch")
+        fi
     fi
+    if [ "$DETACH" -eq 1 ]; then
+        opts=("${opts[@]}" --detach)
+    fi
+    git worktree add "${opts[@]}" "$dir" "$start"
 
     do_bootstrap "$dir"
     if [ "$SERVE" -eq 1 ]; then
@@ -418,8 +490,11 @@ COMMAND="${1:-help}"
 case $COMMAND in
     add | a)
         COMMAND=add
-        parse_args "port install serve attach branch" "$@"
-        [ "${#ARGS[@]}" -gt 0 ] || { usage add >&2; exit 1; }
+        parse_args "port install serve attach branch detach" "$@"
+        # Ours to check rather than git's: either polarity is meaningless unless we will serve.
+        if [ -n "$ATTACH" ] && [ "$SERVE" -eq 0 ]; then
+            die "--attach and --no-attach need --serve."
+        fi
         do_add "${ARGS[0]}" "${ARGS[1]}"
         ;;
     bootstrap | b)
@@ -429,7 +504,7 @@ case $COMMAND in
         ;;
     serve | s)
         COMMAND=serve
-        parse_args "attach detach" "$@"
+        parse_args "attach" "$@"
         do_serve "${ARGS[0]}"
         ;;
     list | l | ls)

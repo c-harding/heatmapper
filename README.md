@@ -18,20 +18,36 @@ When you are ready to deploy, please also complete [`dist/.env`](dist/.env), by 
 ## Worktrees
 
 Several branches can be checked out at once using [git worktrees](https://git-scm.com/docs/git-worktree), each with its own pair of dev servers running side by side.
-`yarn worktree` does the setup that git itself does not: allocating ports, sharing the credentials, and sharing your Strava login.
+`yarn worktree` does the setup that git itself does not: allocating ports, sharing the credentials, and sharing server-side sessions.
 
 ##### yarn worktree add
 
-Create a worktree for a branch under `.worktrees/`, and install its dependencies.
+Create a worktree under `.worktrees/`, and install its dependencies.
 
 ```sh
 yarn worktree add my-branch          # .worktrees/my-branch, on the next free ports
 yarn worktree add my-branch --serve  # ...and start its dev servers in the background
+yarn worktree add my-branch -s -a    # ...and attach to them straight away
 ```
 
-The directory takes its name from the branch, lowercased and with anything unusual turned into
-hyphens, so `JIRA-123/Fix` lands in `.worktrees/jira-123-fix`.
-Pass a directory of your own as a second argument to put it elsewhere.
+The argument is a commit-ish, interpreted as `git worktree add` does: a branch is checked out, a
+tag or commit is checked out detached, and a name that does not exist yet becomes a new branch off
+`HEAD`.
+`-b`/`--new-branch` and `-B`/`--reset-branch` take a branch to create at that point, and
+`--detach` forces a detached checkout.
+
+```sh
+yarn worktree add v1.2.3                  # detached at the tag
+yarn worktree add main -b hotfix          # new branch hotfix, starting at main
+yarn worktree add main --detach           # detached, rather than on the branch
+```
+
+The directory takes its name from the branch or commit, lowercased and with special characters
+turned into hyphens, so `fix/localStorage` lands in `.worktrees/fix-localstorage`.
+Pass a directory of your own as a second argument: a bare name is another worktree under
+`.worktrees/`, while anything with a slash or a leading dot is a path relative to where you are.
+The other commands take either spelling, so `yarn worktree remove wip` and
+`yarn worktree remove .worktrees/wip` mean the same thing.
 
 Each worktree gets a `.env` holding only its own ports, and inherits everything else from the main checkout — the Strava and Mapbox credentials included — through an `EXTENDS` line:
 
@@ -47,6 +63,7 @@ SESSIONS_DIR=../../server/sessions
 There is therefore only ever one copy of the secrets to keep up to date, and because the paths are relative to the checkout rather than named after it, renaming the checkout does not break them.
 Ports are handed out in pairs from 8080 upwards, skipping any that another worktree has claimed or that something is already listening on.
 Strava always allows `localhost`, whatever callback domain is configured at https://www.strava.com/settings/api, so a new worktree needs nothing set up there.
+Mapbox is stricter: if the token has URL restrictions, each new port has to be added to them, since they match the whole origin rather than just the host.
 
 `EXTENDS` is understood only by [`shared/config/dotenv.js`](shared/config/dotenv.js).
 The deploy files in `dist/` are also read by bash and by Docker Compose, neither of which knows about it, so they are not layered that way.
@@ -63,7 +80,7 @@ It is safe to re-run, and does nothing if the worktree is already set up; pass `
 
 - `serve` starts a worktree's dev servers in the background, or with `--attach` brings them to the foreground — attaching to servers that are already running rather than restarting them.
 - `list` shows every worktree with its ports and whether its servers are up.
-- `remove` stops the servers and deletes the worktree, refusing if there are uncommitted changes unless given `--force`; the branch itself is left alone.
+- `remove` stops the servers and deletes the worktree, refusing if anything would be lost — uncommitted changes, or untracked files that are not ignored — unless given `--force`; the branch itself is left alone.
 
 Every command takes `--help`, and `yarn worktree help <command>` does the same.
 
@@ -91,7 +108,7 @@ Install all dependencies needed for developing and running the code locally.
 Run both servers together, using `tmux`.
 Ctrl-C in either one will kill both.
 
-Pass `--detach` to leave them running in the background instead of attaching.
+Pass `--no-attach` to leave them running in the background instead of attaching.
 
 See [`yarn serve`](#yarn-serve-1) below for more information about how these servers work.
 
