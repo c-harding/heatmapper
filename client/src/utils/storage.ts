@@ -36,6 +36,23 @@ const routeStore = localforage.createInstance({
   storeName: 'routes',
 });
 
+/** Per-store write queues, so read-modify-write ops on the same store can't interleave. */
+const writeQueues = new WeakMap<LocalForage, Promise<unknown>>();
+
+/**
+ * Serialize a read-modify-write against a single store instance. Concurrent calls for the
+ * same store run one at a time, in call order; calls for different stores run independently.
+ */
+function serializeStoreWrite<T>(store: LocalForage, op: () => Promise<T>): Promise<T> {
+  const queue = writeQueues.get(store) ?? Promise.resolve();
+  const result = queue.then(op);
+  writeQueues.set(
+    store,
+    result.catch(() => undefined),
+  ); // keep the chain alive even if op rejects
+  return result;
+}
+
 export async function saveCachedGear(id: string, gear: Gear) {
   await gearStore.setItem(id, gear);
 }
@@ -81,7 +98,11 @@ export async function resetStore(version: number, user: number) {
     .filter((key) => key.startsWith('gear:') || key.startsWith('map:'))
     .forEach((key) => localStorage.removeItem(key));
   localStorage.setItem('meta', JSON.stringify({ version, user } satisfies StoreMeta));
-  await Promise.all([gearStore.clear(), activityStore.clear(), routeStore.clear()]);
+  await Promise.all([
+    gearStore.clear(),
+    serializeStoreWrite(activityStore, () => activityStore.clear()),
+    serializeStoreWrite(routeStore, () => routeStore.clear()),
+  ]);
 }
 
 export async function getCachedActivities(): Promise<Activity[]> {
@@ -94,51 +115,57 @@ export async function getCachedRoutes(): Promise<Route[]> {
   return store.routes;
 }
 
-export async function appendCachedActivities(activities: Activity[], end: number, start?: number) {
-  const existingStore = await getActivityStore();
-  const ids = new Set(activities.map((activity) => activity.id));
-  const newStore: ActivityStore = {
-    covered: TimeRange.merge(existingStore.covered.concat({ start, end })),
-    activities: existingStore.activities
-      .filter((existingActivity) => !ids.has(existingActivity.id))
-      .concat(activities)
-      .sort((a, b) => b.date - a.date),
-  };
-  await setActivityStore(newStore.covered, newStore.activities);
-}
-
-export async function appendCachedRoutes(routes: Route[]) {
-  const existingStore = await getRouteStore();
-  const ids = new Set(routes.map((route) => route.id));
-  const newStore: RouteStore = {
-    routes: existingStore.routes
-      .filter((existingRoute) => !ids.has(existingRoute.id))
-      .concat(routes)
-      .sort((a, b) => b.date - a.date),
-  };
-  await routeStore.setItem('routes', newStore);
-}
-
-export async function clearCachedActivities(start?: Date, end?: Date) {
-  const store = await getActivityStore();
-  if (!start && !end) {
-    store.activities = [];
-    store.covered = [];
-  } else {
-    const timeRange: TimeRange = {
-      start: start && start.getTime() / 1000,
-      end: end && end.getTime() / 1000,
+export function appendCachedActivities(activities: Activity[], end: number, start?: number) {
+  return serializeStoreWrite(activityStore, async () => {
+    const existingStore = await getActivityStore();
+    const ids = new Set(activities.map((activity) => activity.id));
+    const newStore: ActivityStore = {
+      covered: TimeRange.merge(existingStore.covered.concat({ start, end })),
+      activities: existingStore.activities
+        .filter((existingActivity) => !ids.has(existingActivity.id))
+        .concat(activities)
+        .sort((a, b) => b.date - a.date),
     };
-    store.activities = store.activities.filter(
-      (activity) => !TimeRange.includes([timeRange], activity.date),
-    );
-    store.covered = TimeRange.subtract(store.activities, [timeRange]);
-  }
-  await setActivityStore(store.covered, store.activities);
+    await setActivityStore(newStore.covered, newStore.activities);
+  });
 }
 
-export async function clearCachedRoutes() {
-  await routeStore.clear();
+export function appendCachedRoutes(routes: Route[]) {
+  return serializeStoreWrite(routeStore, async () => {
+    const existingStore = await getRouteStore();
+    const ids = new Set(routes.map((route) => route.id));
+    const newStore: RouteStore = {
+      routes: existingStore.routes
+        .filter((existingRoute) => !ids.has(existingRoute.id))
+        .concat(routes)
+        .sort((a, b) => b.date - a.date),
+    };
+    await routeStore.setItem('routes', newStore);
+  });
+}
+
+export function clearCachedActivities(start?: Date, end?: Date) {
+  return serializeStoreWrite(activityStore, async () => {
+    const store = await getActivityStore();
+    if (!start && !end) {
+      store.activities = [];
+      store.covered = [];
+    } else {
+      const timeRange: TimeRange = {
+        start: start && start.getTime() / 1000,
+        end: end && end.getTime() / 1000,
+      };
+      store.activities = store.activities.filter(
+        (activity) => !TimeRange.includes([timeRange], activity.date),
+      );
+      store.covered = TimeRange.subtract(store.activities, [timeRange]);
+    }
+    await setActivityStore(store.covered, store.activities);
+  });
+}
+
+export function clearCachedRoutes() {
+  return serializeStoreWrite(routeStore, () => routeStore.clear());
 }
 
 export async function getCachedGears(ids: string[]) {
