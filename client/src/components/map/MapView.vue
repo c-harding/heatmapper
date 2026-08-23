@@ -306,7 +306,7 @@ map.once('idle', () => {
 </template>
 
 <style>
-@import 'https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.css' layer(mapbox);
+@import 'mapbox-gl/dist/mapbox-gl.css' layer(mapbox);
 
 .map-container {
   display: contents;
