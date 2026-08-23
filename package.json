@@ -2,7 +2,6 @@
   "name": "@strava-heatmapper/monorepo",
   "private": true,
   "scripts": {
-    "install-all": "scripts/install",
     "build-deploy": "scripts/build-deploy",
     "buildbackend-deploy": "scripts/buildbackend-deploy",
     "build-container": "scripts/build-container",

@@ -99,7 +99,7 @@ In-browser caches are not shared.
 
 The following scripts are located at the root of the monorepo, and apply changes to both the frontend and backend.
 
-##### yarn install-all
+##### yarn
 
 Install all dependencies needed for developing and running the code locally.
 
@@ -118,10 +118,6 @@ It can then be reentered with `tmux attach`.
 #### Scripts to be run inside each project
 
 The following scripts can be run in either the frontend or the backend projects.
-
-##### `yarn`
-
-Install packages for this one project.
 
 ##### `yarn serve`
 

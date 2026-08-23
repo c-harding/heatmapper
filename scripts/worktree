@@ -46,7 +46,7 @@ Options:
   -d, --detach               check out <commit-ish> detached, even if it is a branch
   -p, --port <n>             use <n> for the backend and <n>+1 for the frontend, instead of
                              the first free pair
-  -n, --no-install           skip "yarn install-all"
+  -n, --no-install           skip the "yarn" that installs dependencies
   -s, --serve                start the dev servers once it is set up
   -a, --attach               with --serve, attach to them rather than leaving them running
                              in the background
@@ -64,7 +64,7 @@ if it is already set up.
 Options:
   -p, --port <n>    use <n> for the backend and <n>+1 for the frontend,
                     instead of the first free pair
-  -n, --no-install  skip "yarn install-all"
+  -n, --no-install  skip the "yarn" that installs dependencies
   -f, --force       rewrite an existing .env, reallocating the ports
 EOF
             ;;
@@ -324,9 +324,9 @@ do_bootstrap() {
     fi
 
     if [ "$INSTALL" -eq 1 ]; then
-        (cd "$root" && scripts/install)
+        (cd "$root" && yarn)
     else
-        echo "Skipped the install; run \"yarn install-all\" there before serving."
+        echo "Skipped the install; run \"yarn\" there before serving."
     fi
 }
 
