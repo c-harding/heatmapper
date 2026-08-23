@@ -79,6 +79,21 @@ if [ -z "$DETACH_FLAG" ] && [ -n "${TMUX:-}" ]; then
     SWITCH=1
 fi
 
+# Without its own .env a worktree falls back to the defaults, which are the main checkout's
+# ports, so the backend would fail on a port already in use rather than say what is wrong. The
+# main checkout is left alone: running there without a .env is the state setup starts from.
+if is_linked_worktree && [ ! -f .env ]; then
+    echo 'This worktree has no .env; run "yarn worktree bootstrap" here first.' >&2
+    exit 1
+fi
+
+# -x rather than -e, so that a shim left dangling by an install from a branch using a different
+# layout counts as broken too. Otherwise both panes just say "command not found".
+if [ ! -x client/node_modules/.bin/vite ] || [ ! -x server/node_modules/.bin/nodemon ]; then
+    echo 'Dependencies are missing or broken; run "yarn" here first.' >&2
+    exit 1
+fi
+
 VITE_DEV_PORT="$(env_value .env VITE_DEV_PORT)"
 
 printf 'Serving %s' "$(branch_label)"
