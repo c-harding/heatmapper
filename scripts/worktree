@@ -358,17 +358,32 @@ do_serve() {
 LIST_FORMAT='%-26s %-22s %-9s %-9s %s\n'
 
 list_row() {
-    local primary="$1" path="$2" branch="$3" server vite
+    local primary="$1" path="$2" branch="$3" containers="$4" server vite running=''
     server="$(env_value "$path/.env" SERVER_PORT)"
     vite="$(env_value "$path/.env" VITE_DEV_PORT)"
+
+    if tmux has-session -t "$(session_target "$path")" 2> /dev/null; then
+        running=dev
+    fi
+    # The /dist suffix keeps this from matching a worktree whose path merely starts the same.
+    case $containers in
+        *"$path/dist"*) running="${running:+$running, }container" ;;
+    esac
+
     printf "$LIST_FORMAT" "$(relpath "$primary" "$path")" "$branch" "${server:-?}" "${vite:-?}" \
-        "$(tmux has-session -t "$(session_target "$path")" 2> /dev/null \
-            && echo running || echo '-')"
+        "${running:--}"
 }
 
 do_list() {
-    local primary line path='' branch=''
+    local primary line path='' branch='' containers=''
     primary="$(primary_root)"
+
+    # Asked once for the whole listing rather than per worktree, since it is the slowest thing
+    # here. Absent or unreachable, docker simply reports nothing rather than failing the command.
+    if command -v docker > /dev/null; then
+        containers="$(docker ps --format '{{.Label "com.docker.compose.project.working_dir"}}' \
+            2> /dev/null || true)"
+    fi
 
     printf "$LIST_FORMAT" WORKTREE BRANCH BACKEND FRONTEND SERVERS
     while IFS= read -r line; do
@@ -377,7 +392,7 @@ do_list() {
             'branch '*) branch="${line#branch refs/heads/}" ;;
             detached) branch='(detached)' ;;
             '')
-                [ -z "$path" ] || list_row "$primary" "$path" "$branch"
+                [ -z "$path" ] || list_row "$primary" "$path" "$branch" "$containers"
                 path=''
                 branch=''
                 ;;
@@ -404,6 +419,17 @@ do_remove() {
     if tmux has-session -t "$session" 2> /dev/null; then
         tmux kill-session -t "$session"
         echo "Stopped the dev servers."
+    fi
+
+    # Containers outlive the worktree they were started from, and compose cannot stop them once
+    # its file is gone, so take them down first. Found by the directory compose recorded, which
+    # covers every environment this worktree started.
+    if command -v docker > /dev/null; then
+        for project in $(docker ps -a --format '{{.Label "com.docker.compose.project"}}' \
+            --filter "label=com.docker.compose.project.working_dir=$root/dist" | sort -u); do
+            docker compose -p "$project" down > /dev/null 2>&1 || true
+            echo "Stopped the $project container."
+        done
     fi
 
     # Always --force, so that the check above is the only thing deciding whether removing this

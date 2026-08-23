@@ -1,8 +1,13 @@
-version: '2'
 services:
   heatmapper:
+    # Configuration comes from the host at run time rather than a copy baked into the image, so a
+    # worktree can run without an env file of its own.
+    env_file:
+      - ${DOTENV_FILE:-./.env}
+    # Named here so that setting one of these in the shell overrides the file above, and reaches
+    # both the container and the port mapping below.
     environment:
-      - DOTENV_FILE
+      - SERVER_PORT
     restart: always
     build: .
     ports:

@@ -7,9 +7,11 @@ cd "$(dirname "$0")/.."
 . scripts/lib
 . scripts/get-env "$@"
 
-# Name the project after this checkout. Compose would otherwise derive the name from the compose
-# file's directory, which is "dist" in every worktree, so two checkouts would fight over one set
-# of containers and one binding of the host port.
-DOTENV_FILE="$ENV.env" \
+if [ -z "$DOTENV_FILE" ]; then
+  echo 'No env file to run with; create dist/.env by copying dist/sample.env.' >&2
+  exit 1
+fi
+
+SERVER_PORT="$(env_value .env SERVER_PORT)" \
   docker compose -f dist/docker-compose.yml --env-file "$DOTENV_FILE" \
   --project-name "$(compose_project "$ENV")" up "${REST_ARGS[@]}"
