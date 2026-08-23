@@ -5,6 +5,7 @@ declare const USE_STRAVA_ICONS: boolean;
 declare const VALIDATE_USER_BEFORE_CACHE: boolean;
 declare const ATTRIBUTION: string[];
 declare const GIT_HASH: string | undefined;
+declare const GIT_BRANCH: string | undefined;
 
 const config = {
   MAPBOX_TOKEN,
@@ -13,6 +14,7 @@ const config = {
   VALIDATE_USER_BEFORE_CACHE,
   ATTRIBUTION,
   GIT_HASH,
+  GIT_BRANCH,
 };
 
 export default config;

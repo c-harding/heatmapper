@@ -10,12 +10,27 @@ import {
 } from '@strava-heatmapper/shared/config/dotenv';
 import vue from '@vitejs/plugin-vue';
 import vueJsx from '@vitejs/plugin-vue-jsx';
-import gitDescribe from 'git-describe';
+import { execFileSync } from 'child_process';
 import { resolve } from 'path';
 import { defineConfig } from 'vite';
 import { viteStaticCopy } from 'vite-plugin-static-copy';
 
 process.env.VITE_APP_NAME ||= VITE_APP_NAME;
+
+/** The output of a git command, or nothing if it cannot be run. */
+function git(...args) {
+  try {
+    return execFileSync('git', args, { encoding: 'utf-8' }).trim();
+  } catch {
+    return undefined;
+  }
+}
+
+/** The checked-out branch, or nothing when the head is detached. */
+function gitBranch() {
+  const branch = git('rev-parse', '--abbrev-ref', 'HEAD');
+  return branch === 'HEAD' ? undefined : branch;
+}
 
 const manualChunks = {
   config: ['@/utils/config'],
@@ -52,7 +67,8 @@ export default defineConfig(({ mode }) => {
       VALIDATE_USER_BEFORE_CACHE: JSON.stringify(VALIDATE_USER_BEFORE_CACHE),
       ATTRIBUTION: JSON.stringify(ATTRIBUTION),
       GIT_HASH:
-        mode === 'production' ? JSON.stringify(gitDescribe.gitDescribeSync().hash) : undefined,
+        mode === 'production' ? JSON.stringify(git('rev-parse', '--short', 'HEAD')) : undefined,
+      GIT_BRANCH: mode === 'production' ? undefined : JSON.stringify(gitBranch()),
     },
     resolve: {
       extensions: ['.mjs', '.js', '.ts', '.jsx', '.tsx', '.json', '.vue'],

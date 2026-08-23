@@ -42,7 +42,6 @@
     "eslint-plugin-prettier": "^5.2.1",
     "eslint-plugin-simple-import-sort": "^12.1.1",
     "eslint-plugin-vue": "^9.31.0",
-    "git-describe": "^4.1.1",
     "prettier": "^3.3.3",
     "sass-embedded": "^1.81.0",
     "typescript": "~5.9.3",

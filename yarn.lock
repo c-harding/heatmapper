@@ -1043,11 +1043,6 @@
   resolved "https://registry.yarnpkg.com/@types/retry/-/retry-0.12.5.tgz#f090ff4bd8d2e5b940ff270ab39fd5ca1834a07e"
   integrity sha512-3xSjTp3v03X/lSQLkczaN9UIEwJMoMCA1+Nb5HfbJEQWogdeQIyVtTvxPXDQjZ5zws8rFQfVfRdz03ARihPJgw==
 
-"@types/semver@^7.3.8":
-  version "7.3.13"
-  resolved "https://registry.yarnpkg.com/@types/semver/-/semver-7.3.13.tgz#da4bfd73f49bd541d28920ab0e2bf0ee80f71c91"
-  integrity sha512-21cFJr9z3g5dW8B0CVI9g2O9beqaThGQ6ZFBqHfwhzLDKUxaqTIy3vnfah/UPkfOiF2pLq+tGz+W8RyCskuslw==
-
 "@types/send@*":
   version "0.17.4"
   resolved "https://registry.yarnpkg.com/@types/send/-/send-0.17.4.tgz#6619cd24e7270793702e4e6a4b958a9010cfc57a"
@@ -2814,16 +2809,6 @@ get-tsconfig@^4.10.0:
   dependencies:
     resolve-pkg-maps "^1.0.0"
 
-git-describe@^4.1.1:
-  version "4.1.1"
-  resolved "https://registry.yarnpkg.com/git-describe/-/git-describe-4.1.1.tgz#a2a2882e442aa68abd0b3cb467459c83ed2f96ef"
-  integrity sha512-JC8ganO5kO80G8+XE98TDDjnMXQN3Estk3qdJuG2EGRF/l6zuMTMcN+8OSfQZ5FWpqIRLB015anWX4aSRgnxAQ==
-  dependencies:
-    "@types/semver" "^7.3.8"
-    lodash "^4.17.21"
-  optionalDependencies:
-    semver "^5.6.0"
-
 gl-matrix@^3.4.3:
   version "3.4.3"
   resolved "https://registry.yarnpkg.com/gl-matrix/-/gl-matrix-3.4.3.tgz#fc1191e8320009fd4d20e9339595c6041ddc22c9"
@@ -4276,7 +4261,7 @@ sass-embedded@^1.81.0:
     sass-embedded-win32-ia32 "1.81.0"
     sass-embedded-win32-x64 "1.81.0"
 
-"semver@2 || 3 || 4 || 5", semver@^5.6.0:
+"semver@2 || 3 || 4 || 5":
   version "5.7.2"
   resolved "https://registry.yarnpkg.com/semver/-/semver-5.7.2.tgz#48d55db737c3287cd4835e17fa13feace1c41ef8"
   integrity sha512-cBznnQ9KjJqU67B52RMC65CMarK2600WFnbkcaiwWq3xy/5haFJlshgnpjovMVJ+Hff49d8GEn0b87C5pDQ10g==

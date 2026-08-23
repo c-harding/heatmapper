@@ -2,6 +2,7 @@
 import config from '@/utils/config';
 
 const gitHash = config.GIT_HASH ?? null;
+const gitBranch = config.GIT_BRANCH ?? null;
 </script>
 
 <template>
@@ -28,6 +29,9 @@ const gitHash = config.GIT_HASH ?? null;
     </p>
     <p v-if="gitHash">
       Build <code>{{ gitHash }}</code>
+    </p>
+    <p v-else-if="gitBranch">
+      Branch <code>{{ gitBranch }}</code>
     </p>
   </div>
 </template>
