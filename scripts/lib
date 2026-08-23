@@ -135,8 +135,9 @@ port_listening() {
 # The first free backend port at or after $1 (8080 by default) whose successor is also free.
 # Ports are handed out in pairs: SERVER_PORT, then VITE_DEV_PORT immediately after it.
 alloc_ports() {
-  local base="${1:-8080}" skip="${2:-}" tries=100 claimed
+  local base="${1:-8080}" skip="${2:-}" tries=10 claimed first
   claimed="$(claimed_ports "$skip")"
+  first="$base"
   while [ "$tries" -gt 0 ]; do
     if
       ! printf '%s\n' "$claimed" | grep -qx "$base" \
@@ -150,7 +151,7 @@ alloc_ports() {
     base=$((base + 2))
     tries=$((tries - 1))
   done
-  printf 'Could not find a free pair of ports.\n' >&2
+  printf 'Could not find a free pair of ports between %s and %s.\n' "$first" "$((base - 1))" >&2
   return 1
 }
 

@@ -61,9 +61,10 @@ SESSIONS_DIR=../../server/sessions
 ```
 
 There is therefore only ever one copy of the secrets to keep up to date, and because the paths are relative to the checkout rather than named after it, renaming the checkout does not break them.
-Ports are handed out in pairs from 8080 upwards, skipping any that another worktree has claimed or that something is already listening on.
+Ports are handed out in pairs from 8080 up to 8098, skipping any that another worktree has claimed or that something is already listening on.
 Strava always allows `localhost`, whatever callback domain is configured at https://www.strava.com/settings/api, so a new worktree needs nothing set up there.
-Mapbox is stricter: if the token has URL restrictions, each new port has to be added to them, since they match the whole origin rather than just the host.
+Mapbox is stricter: a token with URL restrictions has to allow every origin the browser uses, which is the frontend port while the dev servers are running, and the backend port when the container serves the built app.
+The range is bounded so that this is a one-time job: allowing `http://localhost:8080` through `http://localhost:8099` covers every worktree.
 
 `EXTENDS` is understood only by [`shared/config/dotenv.js`](shared/config/dotenv.js).
 The deploy files in `dist/` are also read by bash and by Docker Compose, neither of which knows about it, so they are not layered that way.
