@@ -67,6 +67,7 @@ if (!window.cachedMapElement) {
     style: mapStyleUrl.value,
     center: center.value,
     zoom: zoom.value,
+    attributionControl: false,
   });
 
   newMap.addControl(new mapboxgl.FullscreenControl(), topCorner);
@@ -83,6 +84,8 @@ if (!window.cachedMapElement) {
   );
 
   newMap.addControl(new mapboxgl.ScaleControl(), 'bottom-left');
+
+  newMap.addControl(new mapboxgl.AttributionControl({ compact: true }));
 
   window.cachedMapElement = newMap;
 }
