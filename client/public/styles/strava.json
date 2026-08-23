@@ -67,16 +67,22 @@
     "zoom": 8.717674501504616,
     "bearing": 0,
     "pitch": 0,
-    "light": {
-        "intensity": 0.5,
-        "color": "hsl(0, 0%, 0%)",
-        "anchor": "viewport",
-        "position": [
-            1.15,
-            210,
-            30
-        ]
-    },
+    "lights": [
+        {
+            "id": "flat",
+            "type": "flat",
+            "properties": {
+                "intensity": 0.5,
+                "color": "hsl(0, 0%, 0%)",
+                "anchor": "viewport",
+                "position": [
+                    1.15,
+                    210,
+                    30
+                ]
+            }
+        }
+    ],
     "sources": {
         "mapbox://mapbox.mapbox-terrain-dem-v1": {
             "url": "mapbox://mapbox.mapbox-terrain-dem-v1",
