@@ -58,6 +58,10 @@ function loadEnvChain(entry) {
 
 loadEnvChain(ENV_FILE);
 
+// Left undefined when unset, so that a missing credential surfaces as a login failure
+// rather than as a request made with an empty id.
+const STRAVA_CLIENT_ID = process.env.STRAVA_CLIENT_ID;
+const STRAVA_CLIENT_SECRET = process.env.STRAVA_CLIENT_SECRET;
 const SERVER_PORT = process.env.SERVER_PORT || 8080;
 const ENV = process.env.ENV || '';
 const VITE_DEV_PORT = process.env.VITE_DEV_PORT || 8081;
@@ -78,6 +82,8 @@ const SERVER_DOMAIN = process.env.SERVER_DOMAIN || `http://localhost:${SERVER_PO
 const SESSIONS_DIR = resolve(ROOT_DIR, process.env.SESSIONS_DIR || 'server/sessions');
 
 module.exports = {
+  STRAVA_CLIENT_ID,
+  STRAVA_CLIENT_SECRET,
   SERVER_PORT,
   VITE_DEV_PORT,
   VITE_APP_NAME,
