@@ -71,6 +71,14 @@ then
     exit 1
 fi
 
+# tmux will not create a session from inside one, so create it detached and move the client
+# there instead: the same end state, reached the only way tmux allows.
+SWITCH=0
+if [ -z "$DETACH_FLAG" ] && [ -n "${TMUX:-}" ]; then
+    DETACH_FLAG='-d'
+    SWITCH=1
+fi
+
 VITE_DEV_PORT="$(env_value .env VITE_DEV_PORT)"
 
 printf 'Serving %s' "$(branch_label)"
@@ -91,3 +99,11 @@ SESSION_TARGET="$(session_target)"
     tmux new-session $DETACH_FLAG -s "$SESSION_NAME" -c "$PWD/client" "$(wrap yarn serve)" \;\
          split-window -v -t "$SESSION_NAME"          -c "$PWD/server" "$(wrap yarn serve)"
 )
+
+if [ "$SWITCH" -eq 1 ]; then
+    # Put the client back where it came from once these servers stop. The default,
+    # detach-on-destroy on, would drop it out of tmux altogether instead. Set only on the session
+    # we made, and only when we moved the client, so nothing else changes behaviour.
+    tmux set-option -t "$SESSION_NAME" detach-on-destroy previous
+    tmux switch-client -t "$SESSION_TARGET"
+fi
