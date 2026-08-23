@@ -50,10 +50,10 @@ class LngLatBounds {
     return this.southWest.lng;
   }
   get north() {
-    return this.southWest.lat;
+    return this.northEast.lat;
   }
   get east() {
-    return this.southWest.lng;
+    return this.northEast.lng;
   }
 
   extend(toAdd: LngLatLike): this {
