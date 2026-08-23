@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
-cd "$(dirname "$0")/.." &&
+set -e
 
-scripts/buildbackend && scripts/deploy
+cd "$(dirname "$0")/.."
+
+scripts/buildbackend
+scripts/deploy
