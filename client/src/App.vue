@@ -7,7 +7,6 @@ import CollapsibleSidebar from './components/sidebar/CollapsibleSidebar.vue';
 import SidebarContent from './components/sidebar/SidebarContent.vue';
 import { SELECTED_SIDEBAR_ITEM_SELECTOR } from './components/sidebar/SidebarItem.vue';
 import { useActivityStore } from './stores/ActivityStore';
-import { getBestCenter } from './utils/midpoint';
 
 const { routes: routesInUrl = false } = defineProps<{ routes: boolean }>();
 
@@ -31,8 +30,6 @@ watch([() => activityStore.useRoutes], ([useRoutes]) => {
     router.replace({ path: '/routes' });
   }
 });
-
-const geolocation = getBestCenter(activityStore.mapItems);
 
 const center = ref({ lat: 51.5, lng: -0.1 });
 
@@ -66,7 +63,6 @@ defineExpose({ mapItems: activityStore.mapItems });
         ref="map"
         v-model:center="center"
         v-model:zoom="zoom"
-        :bounds="geolocation"
         :mapItems="activityStore.mapItems"
       />
     </Suspense>

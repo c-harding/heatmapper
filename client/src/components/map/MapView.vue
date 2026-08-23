@@ -1,7 +1,6 @@
 <script lang="tsx">
 import {
   type LngLatBounds,
-  type LngLatBoundsLike,
   type LngLatLike,
   type Map as MapboxMap,
   type MapMouseEvent,
@@ -17,6 +16,9 @@ declare global {
     cachedMapElement?: MapboxMap;
   }
 }
+
+/** Whether the user has taken control of the map, after which it must not be moved under them */
+let userMoved = false;
 </script>
 
 <script setup lang="tsx">
@@ -26,11 +28,11 @@ import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 
 import { useMapStyle } from '@/MapStyle';
 import { addLayersToMap, applyMapItems, MapSourceLayer, useMapSelection } from '@/utils/map';
+import { getBestCenter } from '@/utils/midpoint';
 import Viewport from '@/Viewport';
 
-const { mapItems, bounds } = defineProps<{
+const { mapItems } = defineProps<{
   mapItems: readonly MapItem[];
-  bounds?: LngLatBoundsLike;
 }>();
 
 const center = defineModel<LngLatLike>('center', { required: true });
@@ -62,7 +64,6 @@ if (!window.cachedMapElement) {
   const newMap = new mapboxgl.Map({
     accessToken: config.MAPBOX_TOKEN,
     container: document.createElement('div'),
-    bounds,
     style: mapStyleUrl.value,
     center: center.value,
     zoom: zoom.value,
@@ -91,14 +92,27 @@ const map = window.cachedMapElement;
 onMounted(() => {
   container.value?.appendChild(map.getContainer());
   map.resize();
+  applyDefaultPosition();
 });
 
 watch(
   () => mapItems,
-  (mapItems) => {
+  (mapItems, previousMapItems) => {
     applyMapItems(map, mapItems, MapSourceLayer.LINES);
+    if (!previousMapItems.length) applyDefaultPosition();
   },
 );
+
+map.on('movestart', ({ originalEvent: userEvent }) => {
+  if (userEvent) userMoved = true;
+});
+
+/** Open the map on the square holding the most paths, unless the user has taken control of it. */
+function applyDefaultPosition(): void {
+  if (userMoved || !container.value) return;
+  const bounds = getBestCenter(mapItems);
+  if (bounds) map.fitBounds(bounds, { animate: false });
+}
 
 watch(
   () => selectionStore.selectedItems,
