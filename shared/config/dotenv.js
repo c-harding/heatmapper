@@ -64,6 +64,7 @@ const SERVER_PORT = process.env.SERVER_PORT || 8080;
 const ENV = process.env.ENV || '';
 const VITE_DEV_PORT = process.env.VITE_DEV_PORT || 8081;
 const VITE_APP_NAME = process.env.VITE_APP_NAME || 'Heatmapper';
+const VITE_APP_FAVICON = process.env.VITE_APP_FAVICON || '/favicon.ico';
 const MAPBOX_TOKEN = process.env.MAPBOX_TOKEN || '';
 const MAPBOX_STYLE = process.env.MAPBOX_STYLE;
 // Attribution can be a comma-separated list of brands, or * to allow all brands. Leave blank for none.
@@ -85,6 +86,7 @@ module.exports = {
   SERVER_PORT,
   VITE_DEV_PORT,
   VITE_APP_NAME,
+  VITE_APP_FAVICON,
   SERVER_DOMAIN,
   MAPBOX_TOKEN,
   ATTRIBUTION,

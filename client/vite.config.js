@@ -5,6 +5,7 @@ import {
   SERVER_PORT,
   USE_STRAVA_ICONS,
   VALIDATE_USER_BEFORE_CACHE,
+  VITE_APP_FAVICON,
   VITE_APP_NAME,
   VITE_DEV_PORT,
 } from '@strava-heatmapper/shared/config/dotenv';
@@ -16,6 +17,7 @@ import { defineConfig } from 'vite';
 import { viteStaticCopy } from 'vite-plugin-static-copy';
 
 process.env.VITE_APP_NAME ||= VITE_APP_NAME;
+process.env.VITE_APP_FAVICON ||= VITE_APP_FAVICON;
 
 /** The output of a git command, or nothing if it cannot be run. */
 function git(...args) {

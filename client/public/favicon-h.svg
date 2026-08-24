@@ -1,0 +1,51 @@
+<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <!--
+    Heatmapper. A cursive h drawn as a route on parkland, using the same three-layer stack the map
+    uses for heat (see getLayersForStyle in client/src/utils/map.ts): every pass is painted in blue,
+    then every pass in red, then every pass in yellow. Because the layers are whole rather than
+    per-pass, overlap accumulates, so the letter runs hottest where the strokes pile up: the
+    ascender loop, the crossing and the stem. Ground and roads are the natural style's park and land
+    colours.
+  -->
+  <defs>
+    <clipPath id="h-tile">
+      <rect width="64" height="64" rx="14" />
+    </clipPath>
+
+    <!-- The letter, written once: looped ascender into the stem, then the arch. -->
+    <g id="h-hand">
+      <path d="M17 52C20 43 25 28 30.5 12C31.5 7.5 25 6 22.5 10C20.5 13.5 24 21 25.6 27C27.5 36 26 45 26 53" />
+      <path d="M26 42C28.5 33 35 28.8 40.5 31.5C46 34.2 45 43 44 48C43.3 51.5 45.5 53.5 48.5 52" />
+    </g>
+
+    <!-- Four passes of the same hand, as if the route were run four times. -->
+    <g id="h-passes">
+      <use href="#h-hand" />
+      <use href="#h-hand" transform="rotate(1.1 32 32) translate(0.6 -0.5)" />
+      <use href="#h-hand" transform="rotate(-1.2 32 32) translate(-0.55 0.6)" />
+      <use href="#h-hand" transform="translate(1.1 0.85) scale(0.991) translate(0.3 0.3)" />
+    </g>
+  </defs>
+
+  <g clip-path="url(#h-tile)">
+    <rect width="64" height="64" fill="#adebad" />
+
+    <g fill="none" stroke="#ececf4">
+      <path d="M20 -2V66M-2 45H66" stroke-width="2.6" stroke-opacity=".8" />
+      <path d="M-4 13C12 21 22 7 34 15S54 27 68 19" stroke-width="3.8" stroke-opacity=".92" />
+    </g>
+    <path
+      d="M-2 56C10 52 18 58 30 55S52 60 66 57"
+      fill="none"
+      stroke="#61d161"
+      stroke-width="2"
+      stroke-opacity=".5"
+    />
+
+    <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+      <use href="#h-passes" stroke="#0a2ee8" stroke-width="4" stroke-opacity=".74" />
+      <use href="#h-passes" stroke="#ff2200" stroke-width="3.04" stroke-opacity=".17" />
+      <use href="#h-passes" stroke="#ffc400" stroke-width="1.92" stroke-opacity=".15" />
+    </g>
+  </g>
+</svg>

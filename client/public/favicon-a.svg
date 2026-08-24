@@ -1,0 +1,51 @@
+<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <!--
+    Activity Map. A hand-drawn capital A drawn as a route on parkland, using the same three-layer
+    stack the map uses for heat (see getLayersForStyle in client/src/utils/map.ts): every pass is
+    painted in blue, then every pass in red, then every pass in yellow. Because the layers are whole
+    rather than per-pass, overlap accumulates, so the letter runs hottest where the strokes pile
+    up: the apex and the two crossbar crossings. Ground and roads are the natural style's park and
+    land colours.
+  -->
+  <defs>
+    <clipPath id="a-tile">
+      <rect width="64" height="64" rx="14" />
+    </clipPath>
+
+    <!-- The letter, written once: both diagonals in one stroke with an exit curl, then the crossbar. -->
+    <g id="a-hand">
+      <path d="M12 53C15 39 22 24 31 11C35 24 41 38 47 52C48.5 55 51 55.5 54 52.5" />
+      <path d="M17 42C25 38.5 37 38.5 46 42" />
+    </g>
+
+    <!-- Four passes of the same hand, as if the route were run four times. -->
+    <g id="a-passes">
+      <use href="#a-hand" />
+      <use href="#a-hand" transform="rotate(1.7 32 32) translate(1 -0.8)" />
+      <use href="#a-hand" transform="rotate(-1.9 32 32) translate(-0.9 1)" />
+      <use href="#a-hand" transform="translate(1.7 1.3) scale(0.984) translate(0.5 0.5)" />
+    </g>
+  </defs>
+
+  <g clip-path="url(#a-tile)">
+    <rect width="64" height="64" fill="#adebad" />
+
+    <g fill="none" stroke="#ececf4">
+      <path d="M20 -2V66M-2 45H66" stroke-width="2.6" stroke-opacity=".8" />
+      <path d="M-4 13C12 21 22 7 34 15S54 27 68 19" stroke-width="3.8" stroke-opacity=".92" />
+    </g>
+    <path
+      d="M-2 56C10 52 18 58 30 55S52 60 66 57"
+      fill="none"
+      stroke="#61d161"
+      stroke-width="2"
+      stroke-opacity=".5"
+    />
+
+    <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+      <use href="#a-passes" stroke="#0a2ee8" stroke-width="5" stroke-opacity=".74" />
+      <use href="#a-passes" stroke="#ff2200" stroke-width="3.8" stroke-opacity=".17" />
+      <use href="#a-passes" stroke="#ffc400" stroke-width="2.4" stroke-opacity=".15" />
+    </g>
+  </g>
+</svg>
