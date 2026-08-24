@@ -87,9 +87,14 @@ if is_linked_worktree && [ ! -f .env ]; then
     exit 1
 fi
 
-# -x rather than -e, so that a shim left dangling by an install from a branch using a different
-# layout counts as broken too. Otherwise both panes just say "command not found".
-if [ ! -x client/node_modules/.bin/vite ] || [ ! -x server/node_modules/.bin/nodemon ]; then
+# A dependency is usable if its shim is executable (node-modules linker) or, when there is no
+# shim to find (the pnpm and pnp linkers do not write one), if yarn can still resolve the binary.
+# -x on the shim also catches one left dangling by an install from a branch with a different
+# layout. Otherwise both panes just say "command not found".
+have_bin() {
+    [ -x "$1/node_modules/.bin/$2" ] || (cd "$1" && yarn bin "$2" > /dev/null 2>&1)
+}
+if ! have_bin client vite || ! have_bin server nodemon; then
     echo 'Dependencies are missing or broken; run "yarn" here first.' >&2
     exit 1
 fi
