@@ -1,5 +1,5 @@
 import express from 'express';
-import { type Router } from 'express-ws';
+import type * as ws from 'express-ws';
 
 import { ActivitiesHandler } from './routes/activities';
 import { HookHandler } from './routes/hook';
@@ -15,8 +15,9 @@ import { UserHandler } from './routes/user';
  */
 const MODEL_VERSION = 6;
 
-export default function apiRouter(domain: string): express.Router {
-  const router = express.Router() as Router;
+export default function apiRouter(domain: string, wsInstance: ws.Instance): express.Router {
+  const router = express.Router() as ws.Router;
+  wsInstance.applyTo(router);
 
   const activitiesHandler = new ActivitiesHandler(domain, MODEL_VERSION);
   router.ws('/activities', activitiesHandler.get);

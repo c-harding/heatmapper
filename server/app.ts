@@ -8,7 +8,7 @@ import expressWs from 'express-ws';
 import apiRouter from './api';
 
 const app = express();
-expressWs(app);
+const wsInstance = expressWs(app);
 app.use(cookieParser());
 
 app.use(bodyParser.json());
@@ -23,7 +23,7 @@ const corsConfig: RequestHandler = (req, res, next) => {
 
 app.use(corsConfig);
 
-app.use('/api', apiRouter(SERVER_DOMAIN));
+app.use('/api', apiRouter(SERVER_DOMAIN, wsInstance));
 
 // Support history api
 app.use(
