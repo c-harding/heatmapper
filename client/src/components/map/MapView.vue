@@ -4,6 +4,7 @@ import {
   type LngLatLike,
   type Map as MapboxMap,
   type MapMouseEvent,
+  type StyleSpecification,
 } from 'mapbox-gl';
 
 import { useSelectionStore } from '@/stores/SelectionStore';
@@ -26,7 +27,7 @@ import polyline from '@mapbox/polyline';
 import { type MapItem } from '@strava-heatmapper/shared/interfaces';
 import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 
-import { resolveStyle, useMapStyle } from '@/MapStyle';
+import { FALLBACK_STYLE, resolveStyle, useMapStyle } from '@/MapStyle';
 import { addLayersToMap, applyMapItems, MapSourceLayer, useMapSelection } from '@/utils/map';
 import { getBestCenter } from '@/utils/midpoint';
 import Viewport from '@/Viewport';
@@ -50,7 +51,27 @@ if (mapboxgl.getRTLTextPluginStatus() === 'unavailable') {
 
 const container = ref<HTMLElement>();
 
-const { mapStyleUrl, mapChoice, mapStyle, mapStyleChoices } = useMapStyle();
+const { mapStyleUrl, mapChoice, mapStyle, mapStyleChoices, rememberStyle } = useMapStyle();
+
+/**
+ * The style to hand to mapbox-gl, falling back where one will not load.
+ *
+ * A Suspense with nothing to show in its place awaits this component, and the style picker is
+ * inside it, so a style that throws here would take the map and the means of choosing another one
+ * down together. Fall back to a style Mapbox host, which needs no fetching of ours.
+ *
+ * @param url the style to load
+ * @returns that style, or the fallback, having moved the choice to match
+ */
+async function styleOrFallback(url: string): Promise<string | StyleSpecification> {
+  try {
+    return await resolveStyle(url);
+  } catch (error) {
+    console.error(`Could not load the map style ${url}`, error);
+    mapChoice.value = FALLBACK_STYLE;
+    return mapStyleUrl.value;
+  }
+}
 
 const terrain = ref(false);
 
@@ -60,7 +81,7 @@ if (!window.cachedMapElement) {
   const newMap = new mapboxgl.Map({
     accessToken: config.MAPBOX_TOKEN,
     container: document.body.appendChild(document.createElement('div')),
-    style: await resolveStyle(mapStyleUrl.value),
+    style: await styleOrFallback(mapStyleUrl.value),
     center: center.value,
     zoom: zoom.value,
     attributionControl: false,
@@ -119,13 +140,14 @@ watch([() => selectionStore.selectedItems], ([selectedMapItems]) => {
 });
 
 watch(mapStyleUrl, async (styleUrl) => {
-  const style = await resolveStyle(styleUrl);
+  const style = await styleOrFallback(styleUrl);
   // Another style may have been picked while this one was being fetched, and it wins.
   if (mapStyleUrl.value !== styleUrl) return;
 
   map.setStyle(style);
   map.once('styledata', () => {
     mapLoaded(map);
+    rememberStyle();
   });
 });
 

@@ -1,5 +1,5 @@
 import { type StyleSpecification } from 'mapbox-gl';
-import { computed, ref, watch } from 'vue';
+import { computed, ref } from 'vue';
 
 import config from '@/utils/config';
 
@@ -73,8 +73,9 @@ type MapStyleSelection = MapStyle | SystemStyle;
 
 const STYLE_NAME_KEY = 'mapbox-style-name';
 
-// Where MAPBOX_STYLE, or a stored choice, names a style that is not one of ours.
-const FALLBACK_STYLE: MapStyleSelection = 'minimal';
+// Where MAPBOX_STYLE, or a stored choice, names a style that is not one of ours, and where one
+// will not load.
+export const FALLBACK_STYLE: MapStyleSelection = 'minimal';
 
 // A migration table to cover the renamed styles (2026-08).
 const renamedStyles: Partial<Record<string, MapStyleSelection>> = {
@@ -141,9 +142,11 @@ export function useMapStyle() {
 
   const mapStyleUrl = computed(() => mapboxStyleUrls[mapStyle.value]);
 
-  watch(mapChoice, (newChoice) => {
-    localStorage.setItem(STYLE_NAME_KEY, newChoice);
-  });
+  // Written once a style has drawn rather than as it is picked, so that what is stored is the
+  // last one that worked.
+  const rememberStyle = () => {
+    localStorage.setItem(STYLE_NAME_KEY, mapChoice.value);
+  };
 
-  return { mapChoice, mapStyle, mapStyleUrl, mapStyleChoices };
+  return { mapChoice, mapStyle, mapStyleUrl, mapStyleChoices, rememberStyle };
 }
