@@ -14,8 +14,8 @@ const HELP = `Vendor a map style, and the sprite it names, into this repo.
 
 Usage: yarn load-styles [-f|--force] [--] [<style>...]
 
-A style is fetched when it is missing, or when its source has been edited since it was last
-written. Upstream changing is not something we can see from here, so --force fetches anyway.
+A style is fetched when it is missing, or when its source or this script has been edited since it
+was written. Upstream changing is not something we can see from here, so --force fetches anyway.
 
 Each style is described by a source of its own, and named after it: natural-dark is
 scripts/style-sources/natural-dark.json, and is written out as
@@ -118,13 +118,14 @@ function remoteHosts(style) {
   return [...hosts];
 }
 
-/** A style is worth fetching if we have not got it, or if its source is newer than it. */
+/** A style is worth fetching if we have not got it, or if what makes it is newer than it. */
 async function isStale(sourceFile, destination) {
-  const [edits, style] = await Promise.all([
+  const [edits, script, style] = await Promise.all([
     fs.stat(sourceFile),
+    fs.stat(__filename),
     fs.stat(destination).catch(() => null),
   ]);
-  return !style || edits.mtimeMs > style.mtimeMs;
+  return !style || Math.max(edits.mtimeMs, script.mtimeMs) > style.mtimeMs;
 }
 
 async function loadStyle(sourceFile, force) {
@@ -149,7 +150,7 @@ async function loadStyle(sourceFile, force) {
     style.sprite = `${STYLE_URL}/${name}`;
   }
 
-  await fs.writeFile(destination, JSON.stringify(style, null, 4) + '\n');
+  await fs.writeFile(destination, JSON.stringify(style));
 
   console.log(`${destination}: ${style.name ?? 'unnamed style'}`);
   const remote = remoteHosts(style);
