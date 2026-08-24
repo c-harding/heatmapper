@@ -26,7 +26,7 @@ import polyline from '@mapbox/polyline';
 import { type MapItem } from '@strava-heatmapper/shared/interfaces';
 import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 
-import { useMapStyle } from '@/MapStyle';
+import { resolveStyle, useMapStyle } from '@/MapStyle';
 import { addLayersToMap, applyMapItems, MapSourceLayer, useMapSelection } from '@/utils/map';
 import { getBestCenter } from '@/utils/midpoint';
 import Viewport from '@/Viewport';
@@ -60,7 +60,7 @@ if (!window.cachedMapElement) {
   const newMap = new mapboxgl.Map({
     accessToken: config.MAPBOX_TOKEN,
     container: document.body.appendChild(document.createElement('div')),
-    style: mapStyleUrl.value,
+    style: await resolveStyle(mapStyleUrl.value),
     center: center.value,
     zoom: zoom.value,
     attributionControl: false,
@@ -118,8 +118,12 @@ watch([() => selectionStore.selectedItems], ([selectedMapItems]) => {
   applyMapItems(map, selectedMapItems, MapSourceLayer.SELECTED);
 });
 
-watch(mapStyleUrl, (style) => {
-  map.setStyle(style + '?optimize=true');
+watch(mapStyleUrl, async (styleUrl) => {
+  const style = await resolveStyle(styleUrl);
+  // Another style may have been picked while this one was being fetched, and it wins.
+  if (mapStyleUrl.value !== styleUrl) return;
+
+  map.setStyle(style);
   map.once('styledata', () => {
     mapLoaded(map);
   });

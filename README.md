@@ -104,6 +104,11 @@ The following scripts are located at the root of the monorepo, and apply changes
 
 Install all dependencies needed for developing and running the code locally.
 
+##### yarn load-styles
+
+Fetch the map styles described in [`scripts/style-sources`](scripts/style-sources), and write them to `client/public/styles/generated`, which is not checked in.
+`yarn serve` and `yarn build` do this themselves when a style is missing or its source has changed; run it by hand with `--force` to pick up changes made upstream.
+
 ##### yarn serve
 
 Run both servers together, using `tmux`.

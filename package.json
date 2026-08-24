@@ -12,6 +12,7 @@
     "buildbackend": "scripts/buildbackend",
     "serve": "scripts/serve",
     "worktree": "scripts/worktree",
+    "load-styles": "scripts/load-styles",
     "lint": "yarn --cwd=shared lint && yarn --cwd=client lint && yarn --cwd=server lint",
     "prettier": "yarn --cwd=shared prettier && yarn --cwd=client prettier && yarn --cwd=server prettier"
   },

@@ -99,6 +99,14 @@ if ! have_bin client vite || ! have_bin server nodemon; then
     exit 1
 fi
 
+# Fetched here as well as in the build, so that a checkout that has never been built serves the
+# vendored styles rather than 404ing them, and an edited style source takes effect on restart.
+# Unlike a build, a dev server is worth having without them, so this only warns: everything the
+# styles do not cover carries on working.
+if ! scripts/load-styles; then
+    echo 'Could not load the map styles, so the generated ones will not be available.' >&2
+fi
+
 VITE_DEV_PORT="$(env_value .env VITE_DEV_PORT)"
 
 printf 'Serving %s' "$(branch_label)"

@@ -1,0 +1,208 @@
+#!/usr/bin/env node
+
+const fs = require('node:fs/promises');
+const path = require('node:path');
+
+// Where the user actually was, captured before the chdir below moves us to the checkout root:
+// yarn leaves it in INIT_CWD, and without yarn process.cwd() is still the caller's. Paths on the
+// command line are resolved against this, everything else against the root.
+const CALLER_DIR = process.env.INIT_CWD ?? process.cwd();
+
+process.chdir(path.join(__dirname, '..'));
+
+const HELP = `Vendor a map style, and the sprite it names, into this repo.
+
+Usage: yarn load-styles [-f|--force] [--] [<style>...]
+
+A style is fetched when it is missing, or when its source has been edited since it was last
+written. Upstream changing is not something we can see from here, so --force fetches anyway.
+
+Each style is described by a source of its own, and named after it: natural-dark is
+scripts/style-sources/natural-dark.json, and is written out as
+client/public/styles/generated/natural-dark.json. Name the styles to load, as a bare name or as a
+path to a source elsewhere, or name none to load all of them.
+
+The source is a JSON file describing the style, applied once it has been fetched:
+
+  "url"     where to fetch it from
+
+  "fonts"   renames the fonts a style labels itself in, wherever they are named, since those are
+            only fetchable by whoever the host serving the glyphs will serve them to
+  "layers"  is keyed by layer id and merged into the layer of that name, for correcting upstream
+
+Anything else in the file is merged into the style itself. A null removes what it names rather
+than setting it, so "sources": {"x": null} drops that source, and the layers drawing it go too.
+
+Options:
+  -f, --force  fetch every style named, however recently it was written
+  -h, --help   show this
+`;
+
+// mapbox-gl asks for the plain pair, or the @2x pair on a high-density screen.
+const SPRITE_PARTS = ['.json', '.png', '@2x.json', '@2x.png'];
+
+// Where the sources live, and where the styles they describe are written.
+const SOURCE_DIR = path.join('scripts', 'style-sources');
+const STYLE_DIR = path.join('client', 'public', 'styles', 'generated');
+
+// Where STYLE_DIR is served from, being inside the client's public directory.
+const STYLE_URL = '/styles/generated';
+
+async function fetchOk(url) {
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`${response.status} ${response.statusText} for ${url}`);
+  }
+  return response;
+}
+
+async function download(url, destination) {
+  const response = await fetchOk(url);
+  await fs.writeFile(destination, Buffer.from(await response.arrayBuffer()));
+}
+
+/** Merge one object into another, a key at a time, without losing what the edits do not name. */
+function merge(target, edits) {
+  for (const [key, value] of Object.entries(edits)) {
+    const mergeable = (v) => v && typeof v === 'object' && !Array.isArray(v);
+    if (value === null) delete target[key];
+    else if (mergeable(value) && mergeable(target[key])) merge(target[key], value);
+    else target[key] = value;
+  }
+}
+
+/** Apply a source's edits, whose layers are named rather than positioned as the style's are. */
+function applyEdits(style, { fonts = {}, layers = {}, ...rest }) {
+  merge(style, rest);
+
+  const renames = new Map(Object.entries(fonts));
+  for (const layer of style.layers ?? []) {
+    const font = layer.layout?.['text-font'];
+    if (font) layer.layout['text-font'] = renameFonts(renames, font);
+    // Merged after the rename, so that a source naming a text-font outright still wins.
+    if (layers[layer.id]) merge(layer, layers[layer.id]);
+  }
+
+  // Worked out before the drop below, so that a layer we remove ourselves is not then reported
+  // as one the style never had.
+  const absent = Object.keys(layers).filter((id) => !style.layers?.some((l) => l.id === id));
+  if (absent.length)
+    console.log(`  source names layers this style has not got: ${absent.join(', ')}`);
+
+  // A layer whose source has been removed cannot draw anything, and would fail validation.
+  const orphaned = (style.layers ?? []).filter((l) => l.source && !style.sources?.[l.source]);
+  if (orphaned.length) {
+    style.layers = style.layers.filter((l) => !orphaned.includes(l));
+    console.log(
+      `  dropped ${orphaned.length} layers left without a source: ` +
+        orphaned.map((l) => l.id).join(', '),
+    );
+  }
+}
+
+/** Rename fonts throughout a text-font, which may be an expression rather than a plain stack. */
+function renameFonts(fonts, value) {
+  if (typeof value === 'string') return fonts.get(value) ?? value;
+  if (Array.isArray(value)) return value.map((item) => renameFonts(fonts, item));
+  return value;
+}
+
+/** The hosts a style still reaches out to, which a browser elsewhere may not be allowed to. */
+function remoteHosts(style) {
+  const hosts = new Set();
+  for (const source of Object.values(style.sources ?? {})) {
+    for (const url of [source.url, ...(source.tiles ?? [])]) {
+      if (url && !url.startsWith('mapbox://')) hosts.add(new URL(url).host);
+    }
+  }
+  return [...hosts];
+}
+
+/** A style is worth fetching if we have not got it, or if its source is newer than it. */
+async function isStale(sourceFile, destination) {
+  const [edits, style] = await Promise.all([
+    fs.stat(sourceFile),
+    fs.stat(destination).catch(() => null),
+  ]);
+  return !style || edits.mtimeMs > style.mtimeMs;
+}
+
+async function loadStyle(sourceFile, force) {
+  const { url, ...edits } = JSON.parse(await fs.readFile(sourceFile, 'utf8'));
+  if (!url) throw new Error(`${sourceFile} does not give the "url" it comes from`);
+
+  const destination = path.join(STYLE_DIR, path.basename(sourceFile));
+  if (!force && !(await isStale(sourceFile, destination))) {
+    console.log(`${destination}: up to date`);
+    return;
+  }
+  const style = await (await fetchOk(url)).json();
+
+  await fs.mkdir(path.dirname(destination), { recursive: true });
+
+  applyEdits(style, edits);
+
+  if (style.sprite) {
+    const name = path.basename(destination, '.json') + '-sprite';
+    const spriteBase = path.join(STYLE_DIR, name);
+    await Promise.all(SPRITE_PARTS.map((part) => download(style.sprite + part, spriteBase + part)));
+    style.sprite = `${STYLE_URL}/${name}`;
+  }
+
+  await fs.writeFile(destination, JSON.stringify(style, null, 4) + '\n');
+
+  console.log(`${destination}: ${style.name ?? 'unnamed style'}`);
+  const remote = remoteHosts(style);
+  if (remote.length) console.log(`  tiles still come from ${remote.join(', ')}`);
+}
+
+/** The source a style is named by: a bare name is one of ours, anything else is the user's path. */
+function sourcePath(style) {
+  if (path.basename(style) !== style || path.extname(style)) return path.resolve(CALLER_DIR, style);
+  return path.join(SOURCE_DIR, `${style}.json`);
+}
+
+/** Every source we have, for when none were named. */
+async function everySource() {
+  const entries = await fs.readdir(SOURCE_DIR);
+  return entries
+    .filter((entry) => entry.endsWith('.json'))
+    .sort()
+    .map((entry) => path.join(SOURCE_DIR, entry));
+}
+
+/** Split the options off the styles, taking everything after a bare -- as a style. */
+function parseArgs(argv) {
+  const styles = [];
+  let force = false;
+  let help = false;
+  let options = true;
+
+  for (const arg of argv) {
+    if (!options || !arg.startsWith('-')) styles.push(arg);
+    else if (arg === '--') options = false;
+    else if (arg === '-f' || arg === '--force') force = true;
+    else if (arg === '-h' || arg === '--help') help = true;
+    else throw new Error(`Unknown option ${arg}. Try "yarn load-styles --help".`);
+  }
+
+  return { force, help, styles };
+}
+
+async function main(argv) {
+  const { force, help, styles } = parseArgs(argv);
+  if (help) {
+    console.log(HELP);
+    return;
+  }
+
+  const sources = styles.length ? styles.map(sourcePath) : await everySource();
+  for (const source of sources) {
+    await loadStyle(source, force);
+  }
+}
+
+main(process.argv.slice(2)).catch((error) => {
+  console.error(error.message);
+  process.exitCode = 1;
+});

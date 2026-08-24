@@ -7,6 +7,9 @@ node_modules
 /dist/sessions
 /server/sessions
 
+# Map styles vendored by scripts/load-styles
+/client/public/styles/generated/
+
 # Worktrees made by scripts/worktree
 /.worktrees/
 

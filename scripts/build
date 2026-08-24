@@ -6,6 +6,8 @@ cd "$(dirname "$0")/.."
 
 . scripts/get-env "$@"
 
+(echo "loading map styles"; scripts/load-styles)
+
 (echo "building client"; yarn --cwd client build)
 
 (echo "building shared"; yarn --cwd shared build)

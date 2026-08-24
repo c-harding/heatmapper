@@ -1,0 +1,39 @@
+{
+  "url": "https://www.strava.com/tiles/pois/default-poi-style.json?style=standard",
+  "fonts": {
+    "Boathouse Regular": "Roboto Regular",
+    "Boathouse Medium": "Roboto Medium",
+    "Boathouse Medium Oblique": "Roboto Italic",
+    "Boathouse Bold": "Roboto Bold",
+    "Maison Neue APP Bold": "Roboto Bold"
+  },
+  "sources": {
+    "pois": null,
+    "networks": null,
+    "mapbox-dem": {
+      "url": "mapbox://mapbox.mapbox-terrain-dem-v1",
+      "type": "raster-dem",
+      "tileSize": 256,
+      "maxzoom": 14
+    }
+  },
+  "layers": {
+    "national-park-label": {
+      "paint": {
+        "text-opacity": 1,
+        "icon-opacity": 1
+      }
+    },
+    "hillshade": {
+      "type": "hillshade",
+      "source": "mapbox-dem",
+      "source-layer": null,
+      "paint": {
+        "fill-color": null,
+        "fill-opacity": null,
+        "fill-antialias": null,
+        "hillshade-exaggeration": 0.175
+      }
+    }
+  }
+}
