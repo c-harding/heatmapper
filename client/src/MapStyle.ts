@@ -9,7 +9,7 @@ export enum MapStyle {
   LIGHT = 'LIGHT',
   DARK = 'DARK',
   OUTDOOR = 'OUTDOOR',
-  STRAVA = 'STRAVA',
+  ORIGINAL = 'ORIGINAL',
   HYBRID = 'HYBRID',
   SATELLITE = 'SATELLITE',
 }
@@ -19,7 +19,7 @@ const mapboxStyleUrls: Record<MapStyle, string> = {
   [MapStyle.LIGHT]: 'mapbox://styles/mapbox/light-v11',
   [MapStyle.DARK]: 'mapbox://styles/mapbox/dark-v11',
   [MapStyle.OUTDOOR]: 'mapbox://styles/mapbox/outdoors-v12',
-  [MapStyle.STRAVA]: '/styles/strava.json',
+  [MapStyle.ORIGINAL]: '/styles/original.json',
   [MapStyle.HYBRID]: 'mapbox://styles/mapbox/satellite-streets-v11',
   [MapStyle.SATELLITE]: 'mapbox://styles/mapbox/satellite-v9',
 };
@@ -29,7 +29,7 @@ type MapStyleSelection = MapStyle | 'light-dark';
 const STYLE_NAME_KEY = 'mapbox-style-name';
 
 const mapStyleChoices: readonly DropdownChoice<MapStyleSelection>[] = [
-  { value: MapStyle.STRAVA, label: 'Original style' },
+  { value: MapStyle.ORIGINAL, label: 'Original style' },
   { value: MapStyle.STANDARD, label: 'Standard style' },
   { value: MapStyle.LIGHT, label: 'Light style' },
   { value: MapStyle.DARK, label: 'Dark style' },
