@@ -130,7 +130,7 @@ async function isStale(sourceFile, destination) {
 
 async function loadStyle(sourceFile, force) {
   const { url, ...edits } = JSON.parse(await fs.readFile(sourceFile, 'utf8'));
-  if (!url) throw new Error(`${sourceFile} does not give the "url" it comes from`);
+  if (!url) throw new Error('it does not give the "url" to fetch the style from');
 
   const destination = path.join(STYLE_DIR, path.basename(sourceFile));
   if (!force && !(await isStale(sourceFile, destination))) {
@@ -146,9 +146,7 @@ async function loadStyle(sourceFile, force) {
   // The spec allows an array of sprites, each with an id of its own. We have never met one, and
   // would not know which to serve, so say so rather than fetching "[object Object].json".
   if (style.sprite !== undefined && typeof style.sprite !== 'string') {
-    throw new Error(
-      `${sourceFile} describes a style with more than one sprite, which we cannot vendor`,
-    );
+    throw new Error('the style it names has more than one sprite, which we cannot vendor');
   }
 
   if (style.sprite) {
@@ -207,11 +205,21 @@ async function main(argv) {
 
   const sources = styles.length ? styles.map(sourcePath) : await everySource();
   for (const source of sources) {
-    await loadStyle(source, force);
+    try {
+      await loadStyle(source, force);
+    } catch (error) {
+      // Which style we were loading, since what goes wrong below can come from a URL, a file or
+      // a body that was not the JSON we asked for, and say so itself in none of those cases.
+      throw new Error(`An error occurred when loading ${source}: ${error.message}`, {
+        cause: error.cause,
+      });
+    }
   }
 }
 
 main(process.argv.slice(2)).catch((error) => {
-  console.error(error.message);
+  // fetch says only "fetch failed", and leaves the reason it failed in the cause.
+  const cause = error.cause instanceof Error ? ` (caused by ${error.cause.message})` : '';
+  console.error(`${error.message}${cause}`);
   process.exitCode = 1;
 });
