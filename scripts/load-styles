@@ -143,6 +143,14 @@ async function loadStyle(sourceFile, force) {
 
   applyEdits(style, edits);
 
+  // The spec allows an array of sprites, each with an id of its own. We have never met one, and
+  // would not know which to serve, so say so rather than fetching "[object Object].json".
+  if (style.sprite !== undefined && typeof style.sprite !== 'string') {
+    throw new Error(
+      `${sourceFile} describes a style with more than one sprite, which we cannot vendor`,
+    );
+  }
+
   if (style.sprite) {
     const name = path.basename(destination, '.json') + '-sprite';
     const spriteBase = path.join(STYLE_DIR, name);
