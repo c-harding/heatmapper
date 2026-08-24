@@ -176,7 +176,8 @@ export function clearCachedActivities(start?: Date, end?: Date) {
         end: end && end.getTime() / 1000,
       };
       store.activities = store.activities.filter(
-        (activity) => !TimeRange.includes([timeRange], activity.date),
+        // activity.date is in milliseconds; TimeRange works in seconds.
+        (activity) => !TimeRange.includes([timeRange], activity.date / 1000),
       );
       store.covered = TimeRange.subtract(store.activities, [timeRange]);
     }
