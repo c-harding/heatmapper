@@ -165,10 +165,10 @@ watch([start, end, () => activityStore.useRoutes], () => {
           :invertColor="activityStore.filterModel.starred === false"
           :icon="activityStore.filterModel.starred === undefined ? 'star_border' : 'star'"
           @click="
-            activityStore.filterModel.starred =
-              activityStore.filterModel.starred !== undefined ? undefined : true
+            void (activityStore.filterModel.starred =
+              activityStore.filterModel.starred !== undefined ? undefined : true)
           "
-          @dbl-click="activityStore.filterModel.starred = false"
+          @dbl-click="void (activityStore.filterModel.starred = false)"
         />
       </label>
     </div>
