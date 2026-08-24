@@ -3,6 +3,7 @@ node_modules
 /dist/*/
 /dist/package.json
 /dist/yarn.lock
+/dist/.yarnrc.yml
 /dist/sessions
 /server/sessions
 

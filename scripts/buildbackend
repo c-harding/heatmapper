@@ -8,4 +8,4 @@ cd "$(dirname "$0")/.."
 
 (echo "building server"; yarn --cwd server build)
 
-(echo "copying install info"; cp package.json yarn.lock dist)
+(echo "copying install info"; cp package.json yarn.lock .yarnrc.yml dist; mkdir -p dist/client; cp client/package.json dist/client/)
