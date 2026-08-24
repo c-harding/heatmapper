@@ -155,33 +155,25 @@ function clickGroup(e: MouseEvent) {
 .sidebarGroupItems {
   display: grid;
   grid-template-rows: 1fr;
+  overflow: hidden;
 
   > * {
     overflow: hidden;
+    align-self: start;
   }
 
   &:global(.v-enter-active),
   &:global(.v-leave-active) {
-    transition:
-      grid-template-rows 500ms,
-      max-height 500ms;
+    transition: grid-template-rows var(--transition-speed) ease-in-out;
   }
 
-  &:global(.v-enter-active) {
-    transition-timing-function: ease-in-out;
-  }
-  &:global(.v-leave-active) {
-    transition-timing-function: ease-in-out;
-  }
   &:global(.v-enter-from),
   &:global(.v-leave-to) {
     grid-template-rows: 0fr;
-    max-height: 0;
   }
   &:global(.v-enter-to),
   &:global(.v-leave-from) {
     grid-template-rows: 1fr;
-    max-height: 100vh;
   }
 }
 </style>
