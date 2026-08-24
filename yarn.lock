@@ -1246,7 +1246,6 @@ __metadata:
     eslint-plugin-simple-import-sort: "npm:^12.1.1"
     eslint-plugin-vue: "npm:^9.33.0"
     geojson: "npm:^0.5.0"
-    git-describe: "npm:^4.1.1"
     globals: "npm:^17.3.0"
     localforage: "npm:^1.10.0"
     mapbox-gl: "npm:~3.18.1"
@@ -1634,13 +1633,6 @@ __metadata:
   version: 0.12.5
   resolution: "@types/retry@npm:0.12.5"
   checksum: 10c0/eaaca483cc62f2f02c0b8486847ee70986ca7f97afd7363037247dbe3e98df8bd56a5b50d58b1e96768a5a1be0307010d86e9991bd458d72e8df88be471bd720
-  languageName: node
-  linkType: hard
-
-"@types/semver@npm:^7.3.8":
-  version: 7.3.13
-  resolution: "@types/semver@npm:7.3.13"
-  checksum: 10c0/73295bb1fee46f8c76c7a759feeae5a3022f5bedfdc17d16982092e4b33af17560234fb94861560c20992a702a1e1b9a173bb623a96f95f80892105f5e7d25e3
   languageName: node
   linkType: hard
 
@@ -4572,20 +4564,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"git-describe@npm:^4.1.1":
-  version: 4.1.1
-  resolution: "git-describe@npm:4.1.1"
-  dependencies:
-    "@types/semver": "npm:^7.3.8"
-    lodash: "npm:^4.17.21"
-    semver: "npm:^5.6.0"
-  dependenciesMeta:
-    semver:
-      optional: true
-  checksum: 10c0/04f88ba8781890b1369a14a87d01f3bcd4f4c644de44d18ee102a7c76e7b336bcb27f286ad09bb0e88879fd12b80550ff28a03f97145e081edfca1d624df77d1
-  languageName: node
-  linkType: hard
-
 "gl-matrix@npm:^3.4.4":
   version: 3.4.4
   resolution: "gl-matrix@npm:3.4.4"
@@ -7225,7 +7203,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"semver@npm:2 || 3 || 4 || 5, semver@npm:^5.6.0":
+"semver@npm:2 || 3 || 4 || 5":
   version: 5.7.2
   resolution: "semver@npm:5.7.2"
   bin:
