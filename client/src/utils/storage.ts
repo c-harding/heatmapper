@@ -179,7 +179,7 @@ export function clearCachedActivities(start?: Date, end?: Date) {
         // activity.date is in milliseconds; TimeRange works in seconds.
         (activity) => !TimeRange.includes([timeRange], activity.date / 1000),
       );
-      store.covered = TimeRange.subtract(store.activities, [timeRange]);
+      store.covered = TimeRange.subtract(store.covered, [timeRange]);
     }
     await setActivityStore(store.covered, store.activities);
   });
