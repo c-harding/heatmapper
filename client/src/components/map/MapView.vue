@@ -63,7 +63,7 @@ const topCorner = document.dir === 'rtl' ? 'top-left' : 'top-right';
 if (!window.cachedMapElement) {
   const newMap = new mapboxgl.Map({
     accessToken: config.MAPBOX_TOKEN,
-    container: document.createElement('div'),
+    container: document.body.appendChild(document.createElement('div')),
     style: mapStyleUrl.value,
     center: center.value,
     zoom: zoom.value,
