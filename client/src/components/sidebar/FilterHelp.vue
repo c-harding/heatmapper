@@ -26,12 +26,12 @@ function toggleFilter(field: FilterField) {
     <dl>
       <dt>
         <label>
-          Sport Type
           <input
             type="checkbox"
             :checked="activityStore.filterFields.has('sportType')"
             @change="toggleFilter('sportType')"
           />
+          Sport Type
         </label>
       </dt>
       <dd>
@@ -45,23 +45,23 @@ function toggleFilter(field: FilterField) {
       </dd>
 
       <dt>
-        <label
-          >Distance
+        <label>
           <input
             type="checkbox"
             :checked="activityStore.filterFields.has('distance')"
             @change="toggleFilter('distance')"
           />
+          Distance
         </label>
       </dt>
       <dt>
-        <label
-          >Elevation
+        <label>
           <input
             type="checkbox"
             :checked="activityStore.filterFields.has('elevation')"
             @change="toggleFilter('elevation')"
           />
+          Elevation
         </label>
       </dt>
       <dd>
@@ -72,12 +72,12 @@ function toggleFilter(field: FilterField) {
 
       <dt v-if="activityStore.useRoutes">
         <label>
-          Starred
           <input
             type="checkbox"
             :checked="activityStore.filterFields.has('starred')"
             @change="toggleFilter('starred')"
           />
+          Starred
         </label>
       </dt>
 
@@ -89,12 +89,12 @@ function toggleFilter(field: FilterField) {
 
       <dt v-if="!activityStore.useRoutes">
         <label>
-          Gear
           <input
             type="checkbox"
             :checked="activityStore.filterFields.has('gear')"
             @change="toggleFilter('gear')"
           />
+          Gear
         </label>
       </dt>
       <dd v-if="!activityStore.useRoutes">
@@ -102,13 +102,13 @@ function toggleFilter(field: FilterField) {
       </dd>
 
       <dt v-if="!activityStore.useRoutes">
-        <label
-          >Device
+        <label>
           <input
             type="checkbox"
             :checked="activityStore.filterFields.has('device')"
             @change="toggleFilter('device')"
           />
+          Device
         </label>
       </dt>
       <dd>
@@ -118,13 +118,13 @@ function toggleFilter(field: FilterField) {
       </dd>
 
       <dt v-if="!activityStore.useRoutes">
-        <label
-          >Commutes
+        <label>
           <input
             type="checkbox"
             :checked="activityStore.filterFields.has('isCommute')"
             @change="toggleFilter('isCommute')"
           />
+          Commutes
         </label>
       </dt>
       <dd v-if="!activityStore.useRoutes">
@@ -135,13 +135,13 @@ function toggleFilter(field: FilterField) {
       </dd>
 
       <dt>
-        <label
-          >Visibility
+        <label>
           <input
             type="checkbox"
             :checked="activityStore.filterFields.has('isPrivate')"
             @change="toggleFilter('isPrivate')"
           />
+          Visibility
         </label>
       </dt>
       <dd>
