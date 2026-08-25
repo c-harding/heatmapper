@@ -29,7 +29,13 @@ const summary = computed(
 </script>
 
 <template>
-  <UIVerticalTab :tab icon="segment" :summary="summary" heading="Grouping">
+  <UIVerticalTab
+    :tab
+    icon="segment"
+    :summary="summary"
+    heading="Grouping"
+    :isActive="activityStore.groupLevel !== GroupLevel.OFF"
+  >
     <template #expanded>
       <div :class="controlsStyle.grid">
         <label>

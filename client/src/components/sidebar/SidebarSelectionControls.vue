@@ -40,6 +40,14 @@ const summaryEmpty = computed(() =>
   selectionStore.multiSelectionMode ? 'Multiple selection' : 'None selected',
 );
 
+/** A mode or a focus, not a selection, which comes and goes as you click around. */
+const isActive = computed(
+  () => selectionStore.multiSelectionMode || !!selectionStore.lockedSelection,
+);
+
+/** Counts the selection too, since reset would clear it. */
+const nothingToReset = computed(() => !isActive.value && !selectionStore.selected.size);
+
 function reset() {
   selectionStore.multiSelectionMode = false;
   selectionStore.releaseSelection();
@@ -57,11 +65,8 @@ const showHelp = ref(false);
     :summary
     :summaryEmpty
     showSummaryWhenExpanded
-    :resetDisabled="
-      selectionStore.multiSelectionMode === false &&
-      !selectionStore.lockedSelection &&
-      !selectionStore.selected.size
-    "
+    :isActive
+    :resetDisabled="nothingToReset"
     @reset="reset"
     @help="showHelp = true"
   >

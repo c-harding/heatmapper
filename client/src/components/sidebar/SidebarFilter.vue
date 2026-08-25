@@ -153,6 +153,8 @@ const savedFilter = ref<FilterModel>(loadFilterModel() ?? blankFilter);
 
 const isSaved = computed(() => compareFilters(activityStore.filterModel, savedFilter.value));
 
+const isActive = computed(() => !compareFilters(activityStore.filterModel, blankFilter));
+
 const hideResetToSaved = computed(() => compareFilters(blankFilter, savedFilter.value));
 const canResetToSaved = computed(() =>
   compareFilters(activityStore.filterModel, savedFilter.value),
@@ -236,6 +238,7 @@ const showHelp = ref(false);
     heading="Filter"
     :summary="filterSummary"
     summaryEmpty="none set"
+    :isActive
     @help="showHelp = true"
   >
     <template #expanded>

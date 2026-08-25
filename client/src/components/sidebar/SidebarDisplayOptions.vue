@@ -19,6 +19,8 @@ const summary = computed(() =>
   ].filter((string): string is string => !!string),
 );
 
+const isActive = computed(() => activityStore.displayOptions.showActivities);
+
 function reset() {
   activityStore.displayOptions.showActivities = false;
 }
@@ -31,7 +33,8 @@ function reset() {
     icon="visibility"
     heading="Display"
     :summary
-    :resetDisabled="!activityStore.displayOptions.showActivities"
+    :isActive
+    :resetDisabled="!isActive"
     @reset="reset"
   >
     <template #expanded>
