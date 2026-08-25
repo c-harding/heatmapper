@@ -109,7 +109,7 @@ export const useActivityStore = defineStore('activity', () => {
   const continueLoginStore = useContinueLoginStore();
 
   const routeStats = ref<LoadingStats>({ inCache: false });
-  const activityStats = ref<LoadingStats>({ inCache: true });
+  const activityStats = ref<LoadingStats>({ inCache: false });
 
   const filterModel: FilterModel = reactive(loadFilterModel() ?? {});
   const filterFields: Set<FilterField> = reactive(
@@ -169,6 +169,12 @@ export const useActivityStore = defineStore('activity', () => {
   });
 
   const stats = computed(() => (useRoutes.value ? routeStats.value : activityStats.value));
+
+  /** A load under way, from before its first count arrives, while the cache fills the list */
+  const loading = computed(() => {
+    const { cleared, closed, finding } = stats.value;
+    return !!finding?.started && !cleared && !closed && !finding.finished;
+  });
 
   const parsedDeviceFilter = computed(() => parseDeviceFilter(filterModel.device));
 
@@ -558,6 +564,7 @@ export const useActivityStore = defineStore('activity', () => {
   return {
     continueLogin: toRef(continueLoginStore, 'continueLogin'),
     stats,
+    loading,
     routeStats,
     activityStats,
     filterModel,
@@ -572,6 +579,7 @@ export const useActivityStore = defineStore('activity', () => {
     devices,
 
     mapItems: visibleMapItems,
+    allMapItems,
     backgroundMapItems,
     availableSports,
 
