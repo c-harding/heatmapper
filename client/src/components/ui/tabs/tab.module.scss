@@ -12,12 +12,18 @@ $row-padding: 0.25rem;
   grid-column: span 2;
 
   .meta {
-    float: inline-end;
+    margin-inline-start: auto;
+    align-self: stretch;
     display: flex;
-    align-items: center;
-    gap: 0.25rem;
-    margin-inline-start: 0.25rem;
     font-size: 0.75em;
+
+    // Stretched to the row and no further, so the target does not reach into the row above.
+    // [class] for weight: ghost strips padding and margin at an even match.
+    > button[class] {
+      align-self: stretch;
+      padding-inline: 0.25rem;
+      margin-block: -$row-padding;
+    }
   }
 }
 
@@ -85,6 +91,7 @@ $row-padding: 0.25rem;
 }
 
 .summary {
+  min-width: 0;
   font-size: 0.9em;
   font-style: italic;
 }
@@ -92,4 +99,10 @@ $row-padding: 0.25rem;
 .summaryRow {
   list-style: none;
   padding-block: $row-padding;
+
+  // flex, so the button can take the full height
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  min-width: 0;
 }

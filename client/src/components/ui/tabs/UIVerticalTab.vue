@@ -60,14 +60,13 @@ const summary = computed(() =>
     <details :class="[style.content]" :open="tab.isOpen" @toggle="onToggle">
       <summary :class="style.summaryRow" @click="preventIfSelected">
         <slot :isOpen="tab.isOpen" :toggle="tab.toggle" :select="tab.select">
-          <span v-if="tab.isOpen" :class="style.meta"><slot name="meta" /></span>
           <span v-if="heading" :class="style.heading">{{ heading }}</span>
-          {{ ' ' }}
           <span v-if="!tab.isOpen" :class="style.summary">
             <slot name="summary" :select="tab.select">
               <UIUnbrokenList :items="summary.items">{{ summary.fallback }}</UIUnbrokenList>
             </slot>
           </span>
+          <span v-if="tab.isOpen" :class="style.meta"><slot name="meta" /></span>
         </slot>
       </summary>
       <div :class="expandedContentClass">
