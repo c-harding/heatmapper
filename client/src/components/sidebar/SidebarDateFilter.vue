@@ -5,6 +5,7 @@ import { formatDate, formatDateRange } from '@/utils/numberFormat';
 
 import UIVerticalTab from '../ui/tabs/UIVerticalTab.vue';
 import { type Tab } from '../ui/tabs/UIVerticalTabContainer.vue';
+import UIButton from '../ui/UIButton.vue';
 import UIDateInput from '../ui/UIDateInput.vue';
 import controlsStyle from './controls.module.scss';
 
@@ -36,15 +37,10 @@ const summary = computed(() => {
 </script>
 
 <template>
-  <UIVerticalTab
-    :tab
-    icon="date_range"
-    heading="Dates"
-    :summary="[summary]"
-    :isActive
-    :resetDisabled="!isActive"
-    @reset="reset"
-  >
+  <UIVerticalTab :tab icon="date_range" heading="Dates" :summary="[summary]" :isActive>
+    <template #meta>
+      <UIButton ghost icon="delete" :disabled="!isActive" @click="reset">Clear</UIButton>
+    </template>
     <template #expanded>
       <div :class="controlsStyle.grid">
         <label>

@@ -20,10 +20,6 @@ const summary = computed(() =>
 );
 
 const isActive = computed(() => activityStore.displayOptions.showActivities);
-
-function reset() {
-  activityStore.displayOptions.showActivities = false;
-}
 </script>
 
 <template>
@@ -34,8 +30,6 @@ function reset() {
     heading="Display"
     :summary
     :isActive
-    :resetDisabled="!isActive"
-    @reset="reset"
   >
     <template #expanded>
       <UICheckbox

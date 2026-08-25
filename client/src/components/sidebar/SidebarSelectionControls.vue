@@ -55,21 +55,20 @@ function reset() {
 }
 
 const showHelp = ref(false);
+
+function openHelp() {
+  showHelp.value = true;
+}
 </script>
 
 <template>
-  <UIVerticalTab
-    :tab
-    icon="done_all"
-    heading="Selection"
-    :summary
-    :summaryEmpty
-    showSummaryWhenExpanded
-    :isActive
-    :resetDisabled="nothingToReset"
-    @reset="reset"
-    @help="showHelp = true"
-  >
+  <UIVerticalTab :tab icon="done_all" heading="Selection" :summary :summaryEmpty :isActive>
+    <template #meta>
+      <UIButton ghost icon="help" @click="openHelp">Help</UIButton>
+      <UIButton ghost icon="settings_backup_restore" :disabled="nothingToReset" @click="reset">
+        Reset
+      </UIButton>
+    </template>
     <template #expanded>
       <UICheckbox v-model="selectionStore.multiSelectionMode">Multiple selection mode</UICheckbox>
       <UIButtonGroup>
