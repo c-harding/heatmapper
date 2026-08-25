@@ -35,6 +35,11 @@ const summary = computed(() =>
   ].filter((string): string is string => !!string),
 );
 
+/** The mode, when there are no counts to report. */
+const summaryEmpty = computed(() =>
+  selectionStore.multiSelectionMode ? 'Multiple selection' : 'None selected',
+);
+
 function reset() {
   selectionStore.multiSelectionMode = false;
   selectionStore.releaseSelection();
@@ -50,7 +55,7 @@ const showHelp = ref(false);
     icon="done_all"
     heading="Selection"
     :summary
-    summaryEmpty="None selected"
+    :summaryEmpty
     showSummaryWhenExpanded
     :resetDisabled="
       selectionStore.multiSelectionMode === false &&
