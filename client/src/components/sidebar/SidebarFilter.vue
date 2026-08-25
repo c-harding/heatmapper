@@ -263,7 +263,7 @@ function openHelp() {
           />
         </label>
 
-        <label v-if="activityStore.liveFields.has('distance')">
+        <div v-if="activityStore.liveFields.has('distance')" :class="controlsStyle.label">
           <span>Distance</span>
           <UIRange
             v-model="activityStore.filterModel.distance"
@@ -271,12 +271,12 @@ function openHelp() {
             :scale="0.001"
             suffix="km"
           />
-        </label>
+        </div>
 
-        <label v-if="activityStore.liveFields.has('elevation')">
+        <div v-if="activityStore.liveFields.has('elevation')" :class="controlsStyle.label">
           <span>Elevation</span>
           <UIRange v-model="activityStore.filterModel.elevation" :step="0.1" suffix="m" />
-        </label>
+        </div>
 
         <div
           v-if="activityStore.liveFields.has('starred')"
