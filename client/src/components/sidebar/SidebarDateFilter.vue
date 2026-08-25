@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 
 import { formatDate, formatDateRange } from '@/utils/numberFormat';
 
@@ -7,6 +7,7 @@ import UIVerticalTab from '../ui/tabs/UIVerticalTab.vue';
 import { type Tab } from '../ui/tabs/UIVerticalTabContainer.vue';
 import UIButton from '../ui/UIButton.vue';
 import UIDateInput from '../ui/UIDateInput.vue';
+import UIMultiText from '../ui/UIMultiText.vue';
 import controlsStyle from './controls.module.scss';
 
 defineProps<{ tab: Tab<string> }>();
@@ -14,12 +15,22 @@ defineProps<{ tab: Tab<string> }>();
 const start = defineModel<Date>('start');
 const end = defineModel<Date>('end');
 
-function reset() {
-  start.value = undefined;
-  end.value = undefined;
-}
-
 const isActive = computed(() => !!start.value || !!end.value);
+
+const cleared = ref<{ start?: Date; end?: Date }>();
+
+const clearState = computed(() => (isActive.value ? 'clear' : cleared.value ? 'undo' : 'initial'));
+
+function clearOrRestore() {
+  if (isActive.value) {
+    cleared.value = { start: start.value, end: end.value };
+    start.value = undefined;
+    end.value = undefined;
+  } else {
+    start.value = cleared.value?.start;
+    end.value = cleared.value?.end;
+  }
+}
 
 const summary = computed(() => {
   // The end date, or undefined if in the future
@@ -39,7 +50,17 @@ const summary = computed(() => {
 <template>
   <UIVerticalTab :tab icon="date_range" heading="Dates" :summary="[summary]" :isActive>
     <template #meta>
-      <UIButton ghost icon="delete" :disabled="!isActive" @click="reset">Clear</UIButton>
+      <UIButton
+        ghost
+        :disabled="clearState === 'initial'"
+        :icon="clearState === 'undo' ? 'undo' : 'delete'"
+        @click="clearOrRestore"
+      >
+        <UIMultiText
+          :texts="{ clear: 'Clear', undo: 'Undo' }"
+          :selected="clearState === 'undo' ? 'undo' : 'clear'"
+        />
+      </UIButton>
     </template>
     <template #expanded>
       <div :class="controlsStyle.grid">

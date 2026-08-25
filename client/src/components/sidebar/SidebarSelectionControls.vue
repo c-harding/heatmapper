@@ -15,6 +15,7 @@ import { type Tab } from '../ui/tabs/UIVerticalTabContainer.vue';
 import UIButton from '../ui/UIButton.vue';
 import UIButtonGroup from '../ui/UIButtonGroup.vue';
 import UICheckbox from '../ui/UICheckbox.vue';
+import UIMultiText from '../ui/UIMultiText.vue';
 import SelectionHelp from './SelectionHelp.vue';
 
 defineProps<{ tab: Tab<string> }>();
@@ -52,10 +53,33 @@ const isActive = computed(
 /** Counts the selection too, since reset would clear it. */
 const nothingToReset = computed(() => !isActive.value && !selectionStore.selected.size);
 
-function reset() {
-  selectionStore.multiSelectionMode = false;
-  selectionStore.releaseSelection();
-  selectionStore.clearSelection();
+/** All three things a reset clears, so that undoing it can put each one back. */
+const reset = ref<{
+  multiSelectionMode: boolean;
+  lockedSelection?: ReadonlySet<string>;
+  selected: ReadonlySet<string>;
+}>();
+
+const resetState = computed(() =>
+  nothingToReset.value ? (reset.value ? 'undo' : 'initial') : 'reset',
+);
+
+function resetOrRestore() {
+  if (!nothingToReset.value) {
+    reset.value = {
+      multiSelectionMode: selectionStore.multiSelectionMode,
+      lockedSelection: selectionStore.lockedSelection,
+      selected: new Set(selectionStore.selected),
+    };
+    selectionStore.multiSelectionMode = false;
+    selectionStore.releaseSelection();
+    selectionStore.clearSelection();
+  } else if (reset.value) {
+    selectionStore.clearSelection();
+    selectionStore.multiSelectionMode = reset.value.multiSelectionMode;
+    selectionStore.lockedSelection = reset.value.lockedSelection;
+    reset.value.selected.forEach((id) => selectionStore.selected.add(id));
+  }
 }
 
 const showHelp = ref(false);
@@ -69,8 +93,16 @@ function openHelp() {
   <UIVerticalTab :tab icon="done_all" heading="Selection" :summary :summaryEmpty :isActive>
     <template #meta>
       <UIButton ghost icon="help" @click="openHelp">Help</UIButton>
-      <UIButton ghost icon="settings_backup_restore" :disabled="nothingToReset" @click="reset">
-        Reset
+      <UIButton
+        ghost
+        :disabled="resetState === 'initial'"
+        :icon="resetState === 'undo' ? 'undo' : 'settings_backup_restore'"
+        @click="resetOrRestore"
+      >
+        <UIMultiText
+          :texts="{ reset: 'Reset', undo: 'Undo' }"
+          :selected="resetState === 'undo' ? 'undo' : 'reset'"
+        />
       </UIButton>
     </template>
     <template #expanded>
