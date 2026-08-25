@@ -96,7 +96,8 @@ $padding-top: calc(0.5rem + var(--top-safe-area));
 }
 
 .sidebar {
-  --tab-radius: min(var(--surface-border-radius), calc(#{$tab-width} / 2));
+  --tab-width: #{$tab-width};
+  --tab-radius: min(var(--surface-border-radius), calc(var(--tab-width) / 2));
 
   flex: 0 $sidebar-width;
   display: flex;
@@ -155,7 +156,7 @@ $padding-top: calc(0.5rem + var(--top-safe-area));
   position: relative;
   z-index: -2;
   height: $tab-height;
-  width: $tab-width;
+  width: var(--tab-width);
   margin-inline-start: auto;
   margin-bottom: -$tab-height;
   background: var(--background-full);
@@ -168,7 +169,7 @@ $padding-top: calc(0.5rem + var(--top-safe-area));
   // Used for hiding the back button when the map button is shown
   &::after {
     @include pseudo-element;
-    width: $tab-width;
+    width: var(--tab-width);
     inset-inline-end: 100%;
     inset-block: 0;
   }
@@ -189,7 +190,7 @@ $padding-top: calc(0.5rem + var(--top-safe-area));
   }
 
   &.top {
-    width: calc($tab-width * var(--top-curve, 0));
+    width: calc(var(--tab-width) * var(--top-curve, 0));
 
     &::before {
       bottom: 100%;
@@ -201,7 +202,7 @@ $padding-top: calc(0.5rem + var(--top-safe-area));
 
   &.bottom {
     margin-top: $tab-height;
-    width: calc($tab-width * var(--bottom-curve, 0));
+    width: calc(var(--tab-width) * var(--bottom-curve, 0));
 
     &::before {
       top: 100%;
@@ -233,7 +234,7 @@ $padding-top: calc(0.5rem + var(--top-safe-area));
     margin: 0;
     box-sizing: border-box;
     padding: 0 1em;
-    width: $tab-width;
+    width: var(--tab-width);
   }
 
   // The rounded corners for the folding buttons
@@ -260,13 +261,13 @@ $padding-top: calc(0.5rem + var(--top-safe-area));
   &.map {
     &::before {
       top: 0;
-      width: calc($tab-width * var(--top-curve, 0));
+      width: calc(var(--tab-width) * var(--top-curve, 0));
       border-start-end-radius: $scaled-corner-radius;
     }
 
     &::after {
       top: 0;
-      inset-inline-end: calc($tab-width * var(--top-curve, 0));
+      inset-inline-end: calc(var(--tab-width) * var(--top-curve, 0));
     }
   }
 
@@ -274,13 +275,13 @@ $padding-top: calc(0.5rem + var(--top-safe-area));
   &.back {
     &::before {
       bottom: 0;
-      width: calc($tab-width * var(--bottom-curve, 0));
+      width: calc(var(--tab-width) * var(--bottom-curve, 0));
       border-end-end-radius: $scaled-corner-radius;
     }
 
     &::after {
       bottom: 0;
-      inset-inline-end: calc($tab-width * var(--bottom-curve, 0));
+      inset-inline-end: calc(var(--tab-width) * var(--bottom-curve, 0));
     }
   }
 }
@@ -340,12 +341,12 @@ $padding-top: calc(0.5rem + var(--top-safe-area));
     }
 
     .tabs {
-      margin-inline-end: -$tab-width;
+      margin-inline-end: calc(-1 * var(--tab-width));
     }
 
     &:not(.minimised) {
       .tab.back {
-        margin-inline-end: $tab-width;
+        margin-inline-end: var(--tab-width);
       }
 
       --top-curve: 1;
