@@ -22,12 +22,16 @@ defineProps<{ tab: Tab<string> }>();
 const activityStore = useActivityStore();
 const selectionStore = useSelectionStore();
 
+/** Nothing else says this: the totals below count a selection, never a focus. */
+const focused = computed(() => {
+  const { size } = selectionStore.lockedSelection ?? {};
+  if (!size) return undefined;
+  return activityStore.useRoutes ? countFocusedRoutes(size) : countFocusedActivities(size);
+});
+
 const summary = computed(() =>
   [
-    selectionStore.lockedSelection?.size &&
-      (activityStore.useRoutes
-        ? countFocusedRoutes(selectionStore.lockedSelection.size)
-        : countFocusedActivities(selectionStore.lockedSelection.size)),
+    focused.value,
     selectionStore.selected.size &&
       (activityStore.useRoutes
         ? countSelectedRoutes(selectionStore.selected.size)
@@ -70,6 +74,7 @@ function openHelp() {
       </UIButton>
     </template>
     <template #expanded>
+      <p v-if="focused" :class="$style.focused">{{ focused }}</p>
       <UICheckbox v-model="selectionStore.multiSelectionMode">Multiple selection mode</UICheckbox>
       <UIButtonGroup>
         <UIButton
@@ -95,3 +100,13 @@ function openHelp() {
   </UIVerticalTab>
   <SelectionHelp v-model="showHelp" />
 </template>
+
+<style lang="scss" module>
+.focused {
+  margin: 0 0 0.25rem;
+  padding-inline: 0.5rem;
+  font-size: 0.9em;
+  font-style: italic;
+  color: var(--color-mid);
+}
+</style>
