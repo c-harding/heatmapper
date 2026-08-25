@@ -74,13 +74,14 @@ const maxModel = computed({
   background-color: var(--background-strong);
 
   min-width: 3em;
-  min-height: 1.75rem;
   box-sizing: border-box;
 
+  // On the rows rather than the container, which holds two of them
   label {
     display: grid;
     grid-column: span 3;
     grid-template-columns: subgrid;
+    min-height: var(--tap-min);
     border: 1px solid var(--color-weak);
     padding-inline: 0.25rem;
 
