@@ -76,17 +76,13 @@ function clickHeader() {
 
 <style module lang="scss">
 @use '@/styles/breakpoints';
+@use '@/styles/sidebar';
 
-$tab-width: 5rem;
-$tab-height: 5rem;
-$logo-height: 5rem;
-
-$minimised-width: 0rem;
-$sidebar-width: min(20rem, 100vw - #{$tab-width});
+$sidebar-width: min(20rem, 100vw - #{sidebar.$tab-width});
 $scaled-corner-radius: min(var(--tab-radius), 50%);
 $pseudo-scaled-corner-radius: min(var(--tab-radius), 100%);
 
-$padding-top: calc(0.5rem + var(--top-safe-area));
+$sidebar-overlap: calc(#{sidebar.$minimised-width} - #{$sidebar-width});
 
 @mixin pseudo-element {
   content: '';
@@ -96,7 +92,7 @@ $padding-top: calc(0.5rem + var(--top-safe-area));
 }
 
 .sidebar {
-  --tab-width: #{$tab-width};
+  --tab-width: #{sidebar.$tab-width};
   --tab-radius: min(var(--surface-border-radius), calc(var(--tab-width) / 2));
 
   flex: 0 $sidebar-width;
@@ -115,7 +111,7 @@ $padding-top: calc(0.5rem + var(--top-safe-area));
     display: flex;
     align-items: center;
     justify-content: center;
-    padding-top: $padding-top;
+    padding-top: sidebar.$padding-top;
     background-color: var(--background-full);
 
     transition:
@@ -123,7 +119,7 @@ $padding-top: calc(0.5rem + var(--top-safe-area));
       width var(--transition-speed);
 
     svg {
-      height: $logo-height;
+      height: sidebar.$logo-height;
       fill: var(--color-full);
       max-height: 100%;
     }
@@ -155,10 +151,10 @@ $padding-top: calc(0.5rem + var(--top-safe-area));
 .tabs {
   position: relative;
   z-index: -2;
-  height: $tab-height;
+  height: sidebar.$tab-height;
   width: var(--tab-width);
   margin-inline-start: auto;
-  margin-bottom: -$tab-height;
+  margin-bottom: -1 * sidebar.$tab-height;
   background: var(--background-full);
   border-end-end-radius: var(--tab-radius);
   border-start-end-radius: var(--tab-radius);
@@ -201,7 +197,7 @@ $padding-top: calc(0.5rem + var(--top-safe-area));
   }
 
   &.bottom {
-    margin-top: $tab-height;
+    margin-top: sidebar.$tab-height;
     width: calc(var(--tab-width) * var(--bottom-curve, 0));
 
     &::before {
@@ -287,13 +283,9 @@ $padding-top: calc(0.5rem + var(--top-safe-area));
 }
 
 @media screen and (max-width: breakpoints.$max-size-to-minimise) {
-  $sidebar-overlap: calc(#{$minimised-width} - #{$sidebar-width});
-  $sidebar-overlay-width: $minimised-width + $tab-width;
-  $sidebar-overlay-height: calc(#{$padding-top} + #{$logo-height} + #{$tab-height});
-
   :global(#app) {
-    --sidebar-overlay-width: #{$sidebar-overlay-width};
-    --sidebar-overlay-height: #{$sidebar-overlay-height};
+    --sidebar-overlay-width: #{sidebar.$minimised-width + sidebar.$tab-width};
+    --sidebar-overlay-height: #{sidebar.$overlay-height};
   }
 
   .sidebar {
@@ -315,8 +307,8 @@ $padding-top: calc(0.5rem + var(--top-safe-area));
 
       &.minimised {
         inset-inline-start: 100%;
-        inset-inline-end: -$sidebar-overlay-width;
-        height: $sidebar-overlay-height;
+        inset-inline-end: -1 * (sidebar.$minimised-width + sidebar.$tab-width);
+        height: sidebar.$overlay-height;
       }
     }
 
@@ -326,13 +318,13 @@ $padding-top: calc(0.5rem + var(--top-safe-area));
 
       > .topBox,
       > .scrollable {
-        margin-inline-start: -$minimised-width;
-        margin-inline-end: $minimised-width;
+        margin-inline-start: -1 * sidebar.$minimised-width;
+        margin-inline-end: sidebar.$minimised-width;
       }
 
       .header {
-        width: $minimised-width + $tab-width;
-        margin-inline-end: -$minimised-width - $tab-width;
+        width: sidebar.$minimised-width + sidebar.$tab-width;
+        margin-inline-end: -1 * sidebar.$minimised-width - sidebar.$tab-width;
       }
 
       .minimised.overlay {

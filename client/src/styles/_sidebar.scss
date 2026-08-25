@@ -1,0 +1,7 @@
+$tab-width: 5rem;
+$tab-height: 5rem;
+$logo-height: 5rem;
+$minimised-width: 0rem;
+$padding-top: calc(0.5rem + var(--top-safe-area));
+
+$overlay-height: calc(#{$padding-top} + #{$logo-height} + #{$tab-height});
