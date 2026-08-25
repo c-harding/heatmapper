@@ -53,20 +53,25 @@ const isActive = computed(
 /** Counts the selection too, since reset would clear it. */
 const nothingToReset = computed(() => !isActive.value && !selectionStore.selected.size);
 
-/** All three things a reset clears, so that undoing it can put each one back. */
+/** All three things a reset clears, and the mode it cleared them in. */
 const reset = ref<{
+  useRoutes: boolean;
   multiSelectionMode: boolean;
   lockedSelection?: ReadonlySet<string>;
   selected: ReadonlySet<string>;
 }>();
 
+/** A focus is held per mode, so one taken in the other belongs to items that are not here. */
+const restorable = computed(() => reset.value?.useRoutes === activityStore.useRoutes);
+
 const resetState = computed(() =>
-  nothingToReset.value ? (reset.value ? 'undo' : 'initial') : 'reset',
+  nothingToReset.value ? (restorable.value ? 'undo' : 'initial') : 'reset',
 );
 
 function resetOrRestore() {
   if (!nothingToReset.value) {
     reset.value = {
+      useRoutes: activityStore.useRoutes,
       multiSelectionMode: selectionStore.multiSelectionMode,
       lockedSelection: selectionStore.lockedSelection,
       selected: new Set(selectionStore.selected),
@@ -74,7 +79,7 @@ function resetOrRestore() {
     selectionStore.multiSelectionMode = false;
     selectionStore.releaseSelection();
     selectionStore.clearSelection();
-  } else if (reset.value) {
+  } else if (reset.value && restorable.value) {
     selectionStore.clearSelection();
     selectionStore.multiSelectionMode = reset.value.multiSelectionMode;
     selectionStore.lockedSelection = reset.value.lockedSelection;
