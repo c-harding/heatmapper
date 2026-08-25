@@ -40,6 +40,10 @@ $row-padding: 0.25rem;
     height: 100%;
     flex-direction: column;
 
+    // Takes in the padding beside it, so the target is wider than the icon without moving it
+    padding-inline-start: var(--form-inline-padding, 0px);
+    margin-inline-start: calc(-1 * var(--form-inline-padding, 0px));
+
     .buttonContent {
       padding-block: $row-padding;
       display: flex;
