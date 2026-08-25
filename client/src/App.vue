@@ -130,6 +130,7 @@ a[href] {
   --link-color: blue;
   --control-border-radius: 7px;
   --surface-border-radius: 1rem;
+  --tap-min: 24px;
   --font-family: -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif;
   font-family: var(--font-family);
   -webkit-font-smoothing: antialiased;
