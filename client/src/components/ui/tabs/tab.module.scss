@@ -1,3 +1,6 @@
+// Above and below every row, in both of its columns, so an icon stays level with its heading
+$row-padding: 0.25rem;
+
 .filterGrid {
   display: grid;
   grid-template-columns: [tab] max-content [content] 1fr;
@@ -32,7 +35,7 @@
     flex-direction: column;
 
     .buttonContent {
-      padding-block: 0.125rem;
+      padding-block: $row-padding;
       display: flex;
       align-items: center;
     }
@@ -88,4 +91,5 @@
 
 .summaryRow {
   list-style: none;
+  padding-block: $row-padding;
 }
