@@ -214,7 +214,7 @@ $sidebar-overlap: calc(#{sidebar.$minimised-width} - #{$sidebar-width});
   height: 100%;
   background: var(--background-full);
   display: flex;
-  margin-bottom: -5rem;
+  margin-bottom: -1 * sidebar.$tab-height;
   flex-direction: column;
   align-items: end;
   justify-content: space-evenly;
