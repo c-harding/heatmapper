@@ -39,15 +39,35 @@ const gitBranch = config.GIT_BRANCH ?? null;
 <style module lang="scss">
 .sidebarCredits {
   font-size: 14px;
-  padding: 1em;
+  padding: 1em 1em 0;
   text-align: center;
   margin-top: auto;
+
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
 
   > p {
     margin: 0;
   }
 
   .icon {
+    // One box for both, since the two images are not the same size
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    inline-size: var(--tap-min);
+    block-size: var(--tap-min);
+    vertical-align: middle;
+
+    // Holds the line to the image it used to be, rather than the box now around it
+    margin-block: calc((1.5em - var(--tap-min)) / 2);
+
+    // Clear of the name by the slack a bigger box leaves around the image inside it
+    &:first-child {
+      margin-inline-start: max(0px, calc(var(--tap-min) / 2 - 10px));
+    }
+
     img {
       height: 1.5em;
       vertical-align: middle;
