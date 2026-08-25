@@ -78,6 +78,28 @@ export function saveFilterFields(filter: Set<FilterField>) {
   localStorage.setItem('filterFields', JSON.stringify(Array.from(filter)));
 }
 
+// returns a string to be validated by the consumer
+export function loadGroupLevel(): string | undefined {
+  return localStorage.getItem('groupLevel') ?? undefined;
+}
+
+export function saveGroupLevel(level: string) {
+  localStorage.setItem('groupLevel', level);
+}
+
+export interface StoredDisplayOptions {
+  showActivities?: boolean;
+}
+
+export function loadDisplayOptions(): StoredDisplayOptions | undefined {
+  const json = localStorage.getItem('displayOptions');
+  if (json) return JSON.parse(json) as StoredDisplayOptions;
+}
+
+export function saveDisplayOptions(options: StoredDisplayOptions) {
+  localStorage.setItem('displayOptions', JSON.stringify(options));
+}
+
 export function getStoreMeta(): StoreMeta {
   const rawCache = localStorage.getItem('meta');
   const cache = rawCache ? (JSON.parse(rawCache) as Partial<StoreMeta>) : undefined;

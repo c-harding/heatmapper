@@ -27,11 +27,15 @@ import {
   getCachedGear,
   getCachedRoutes,
   getStoreMeta,
+  loadDisplayOptions,
   loadFilterFields,
   loadFilterModel,
+  loadGroupLevel,
   resetStore,
   saveCachedGear,
+  saveDisplayOptions,
   saveFilterFields,
+  saveGroupLevel,
 } from '@/utils/storage';
 
 import { cookieToken, useContinueLoginStore } from './ContinueLoginStore';
@@ -54,6 +58,11 @@ export enum GroupLevel {
   WEEKLY_SU = 'WEEKLY_SU',
   MONTHLY = 'MONTHLY',
   YEARLY = 'YEARLY',
+}
+
+function parseGroupLevel(value: string | undefined): GroupLevel {
+  const levels: string[] = Object.values(GroupLevel);
+  return value !== undefined && levels.includes(value) ? (value as GroupLevel) : GroupLevel.OFF;
 }
 
 export type MapItemTypes = Partial<Record<MapItemType, boolean>>;
@@ -79,7 +88,8 @@ export const useActivityStore = defineStore('activity', () => {
 
   const allRoutes = shallowRef<Route[]>([]);
   const allActivities = shallowRef<Activity[]>([]);
-  const groupLevel = ref<GroupLevel>(GroupLevel.OFF);
+  const groupLevel = ref<GroupLevel>(parseGroupLevel(loadGroupLevel()));
+  watch(groupLevel, saveGroupLevel);
 
   let needsUserValidation = config.VALIDATE_USER_BEFORE_CACHE;
 
@@ -95,8 +105,9 @@ export const useActivityStore = defineStore('activity', () => {
   watch(filterFields, saveFilterFields);
 
   const displayOptions: DisplayOptions = reactive({
-    showActivities: false,
+    showActivities: loadDisplayOptions()?.showActivities === true,
   });
+  watch(displayOptions, saveDisplayOptions);
 
   const error = ref<string>();
 
