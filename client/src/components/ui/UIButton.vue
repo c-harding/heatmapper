@@ -94,6 +94,8 @@ button.button {
   display: grid;
   grid-template-areas: 'button';
 
+  font-family: inherit;
+
   margin: 0.5rem;
   padding: 0.15rem 0.15rem;
 
