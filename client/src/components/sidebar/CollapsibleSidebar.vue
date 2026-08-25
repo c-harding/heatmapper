@@ -46,22 +46,22 @@ function clickHeader() {
         </svg>
       </div>
     </div>
-    <div :class="$style.tabs">
-      <div :class="[$style.tabCurve, $style.top]" />
-      <div :class="[$style.tab, $style.map]">
-        <p>
-          <UIIcon icon="map" />
-        </p>
-        <p>Map</p>
-      </div>
-      <div :class="[$style.tab, $style.back]">
-        <p>
-          <UIIcon :icon="backArrow" />
-        </p>
-        <p>Back</p>
-      </div>
-      <div :class="[$style.tabCurve, $style.bottom]" />
-    </div>
+    <button type="button" :class="$style.tabs" @click="minimised = !minimised">
+      <span :class="[$style.tabCurve, $style.top]" />
+      <span :class="[$style.tab, $style.map]" :aria-hidden="minimised">
+        <span>
+          <UIIcon icon="map" aria-hidden="true" />
+        </span>
+        <span>Map</span>
+      </span>
+      <span :class="[$style.tab, $style.back]" :aria-hidden="!minimised">
+        <span>
+          <UIIcon :icon="backArrow" aria-hidden="true" />
+        </span>
+        <span>Back</span>
+      </span>
+      <span :class="[$style.tabCurve, $style.bottom]" />
+    </button>
 
     <section ref="scrollable" :class="$style.scrollable">
       <slot />
@@ -149,6 +149,17 @@ $sidebar-overlap: calc(#{sidebar.$minimised-width} - #{$sidebar-width});
 }
 
 .tabs {
+  appearance: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  text-align: inherit;
+  cursor: pointer;
+  overflow: visible;
+
+  visibility: hidden;
+
   position: relative;
   z-index: -2;
   height: sidebar.$tab-height;
@@ -162,6 +173,23 @@ $sidebar-overlap: calc(#{sidebar.$minimised-width} - #{$sidebar-width});
     margin var(--transition-speed),
     width var(--transition-speed);
 
+  // A child, because this button's own outline paints beneath the tab that fills it
+  &:focus-visible {
+    outline: none;
+
+    &::before {
+      content: '';
+      position: absolute;
+      z-index: 1;
+      inset: 0;
+      box-sizing: border-box;
+      border: 2px solid var(--bold-color);
+      border-start-end-radius: var(--tab-radius);
+      border-end-end-radius: var(--tab-radius);
+      pointer-events: none;
+    }
+  }
+
   // Used for hiding the back button when the map button is shown
   &::after {
     @include pseudo-element;
@@ -172,6 +200,7 @@ $sidebar-overlap: calc(#{sidebar.$minimised-width} - #{$sidebar-width});
 }
 
 .tabCurve {
+  display: block;
   width: 0;
   position: relative;
   margin-inline-start: auto;
@@ -226,8 +255,7 @@ $sidebar-overlap: calc(#{sidebar.$minimised-width} - #{$sidebar-width});
     margin var(--transition-speed),
     width var(--transition-speed);
 
-  p {
-    margin: 0;
+  > span {
     box-sizing: border-box;
     padding: 0 1em;
     width: var(--tab-width);
@@ -334,6 +362,7 @@ $sidebar-overlap: calc(#{sidebar.$minimised-width} - #{$sidebar-width});
 
     .tabs {
       margin-inline-end: calc(-1 * var(--tab-width));
+      visibility: visible;
     }
 
     &:not(.minimised) {
