@@ -367,6 +367,26 @@ function zoomToSelection(): void {
 
 const resizeHandler = () => map.resize();
 
+/** Force the map to full width temporarily and trigger a map rerender at the new width. */
+function presizeToFolded() {
+  const container = map.getContainer();
+
+  // Already as wide as it gets, so nothing is about to open up beside it
+  if (container.clientWidth >= document.documentElement.clientWidth) return;
+
+  const flex = container.style.flex;
+  container.style.flex = '0 0 100vw';
+  map.resize();
+  container.style.flex = flex;
+}
+
+watch(
+  () => minimisedSidebar,
+  (isMinimised) => {
+    if (isMinimised) presizeToFolded();
+  },
+);
+
 onMounted(() => {
   window.addEventListener('transitionend', resizeHandler, { passive: true });
 });
@@ -435,7 +455,7 @@ map.once('idle', () => {
     ref="container"
     :class="[
       'map-container',
-      !minimisedSidebar && 'sidebar-covering',
+      !minimisedSidebar && 'sidebar-expanded',
       sidebarClearing && 'sidebar-clearing',
     ]"
   />
@@ -531,8 +551,8 @@ $widget-gap: 10px;
 
 /* Below the breakpoint the expanded sidebar covers the map, putting these out of reach. */
 @media screen and (max-width: breakpoints.$max-size-to-minimise) {
-  .map-container.sidebar-covering .mapboxgl-ctrl-top-right:dir(ltr),
-  .map-container.sidebar-covering .mapboxgl-ctrl-top-left:dir(rtl) {
+  .map-container.sidebar-expanded .mapboxgl-ctrl-top-right:dir(ltr),
+  .map-container.sidebar-expanded .mapboxgl-ctrl-top-left:dir(rtl) {
     opacity: 0;
   }
 }
@@ -596,8 +616,7 @@ $widget-gap: 10px;
 
 .map-footer {
   grid-area: footer;
-  // minimised keeps its value across a resize past the breakpoint, where it means nothing
-  display: none;
+  display: grid;
   overflow: clip;
 
   // Reset the mapbox-provided font
@@ -606,9 +625,14 @@ $widget-gap: 10px;
   line-height: normal;
 }
 
-@media screen and (max-width: breakpoints.$max-size-to-minimise) {
-  .map-footer {
-    display: grid;
+// Beside the map the card takes the start column, at the width the sidebar gives its row, and the
+// attribution spans both rows so only the scale bar rides up with it
+@include breakpoints.beside-the-map {
+  .map-bottom-stack {
+    grid-template-columns: minmax(0, min(65vw, 600px)) 1fr;
+    grid-template-areas:
+      'inlineStart inlineEnd'
+      'footer      inlineEnd';
   }
 }
 

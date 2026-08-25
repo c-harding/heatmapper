@@ -1,2 +1,15 @@
 // The width at and below which the sidebar folds away and overlays the map.
 $max-size-to-minimise: 600px;
+
+// Complementary halves, so a fractional width from browser zoom lands in exactly one.
+@mixin over-the-map {
+  @media screen and (width <= $max-size-to-minimise) {
+    @content;
+  }
+}
+
+@mixin beside-the-map {
+  @media screen and (width > $max-size-to-minimise) {
+    @content;
+  }
+}

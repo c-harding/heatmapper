@@ -94,6 +94,7 @@ $sidebar-overlap: calc(#{sidebar.$minimised-width} - #{$sidebar-width});
 .sidebar {
   --tab-width: #{sidebar.$tab-width};
   --tab-radius: min(var(--surface-border-radius), calc(var(--tab-width) / 2));
+  --bottom-curve: 1;
 
   flex: 0 $sidebar-width;
   display: flex;
@@ -140,12 +141,54 @@ $sidebar-overlap: calc(#{sidebar.$minimised-width} - #{$sidebar-width});
   .topBox {
     transition: margin var(--transition-speed);
   }
+
+  &.minimised {
+    margin-inline-start: $sidebar-overlap;
+
+    > .topBox,
+    > .scrollable {
+      margin-inline-start: -1 * sidebar.$minimised-width;
+      margin-inline-end: sidebar.$minimised-width;
+    }
+
+    .header {
+      width: sidebar.$minimised-width + sidebar.$tab-width;
+      margin-inline-end: -1 * sidebar.$minimised-width - sidebar.$tab-width;
+    }
+
+    .minimised.overlay {
+      pointer-events: all;
+    }
+  }
+
+  &:not(.minimised) {
+    --top-curve: 1;
+
+    .tab.back {
+      margin-inline-end: var(--tab-width);
+    }
+  }
 }
 
 .overlay {
-  display: none;
+  position: absolute;
+  inset-block: 0;
+  inset-inline-end: 0;
   pointer-events: none;
   cursor: pointer;
+
+  &.expanded {
+    z-index: 2;
+    inset-inline-start: 100%;
+    width: 100vw;
+    width: 100dvw;
+  }
+
+  &.minimised {
+    inset-inline-start: 100%;
+    inset-inline-end: -1 * (sidebar.$minimised-width + sidebar.$tab-width);
+    height: sidebar.$overlay-height;
+  }
 }
 
 .tabs {
@@ -158,13 +201,12 @@ $sidebar-overlap: calc(#{sidebar.$minimised-width} - #{$sidebar-width});
   cursor: pointer;
   overflow: visible;
 
-  visibility: hidden;
-
   position: relative;
   z-index: -2;
   height: sidebar.$tab-height;
   width: var(--tab-width);
   margin-inline-start: auto;
+  margin-inline-end: calc(-1 * var(--tab-width));
   margin-bottom: -1 * sidebar.$tab-height;
   background: var(--background-full);
   border-end-end-radius: var(--tab-radius);
@@ -316,68 +358,17 @@ $sidebar-overlap: calc(#{sidebar.$minimised-width} - #{$sidebar-width});
     --sidebar-overlay-height: #{sidebar.$overlay-height};
   }
 
+  // Too narrow to give the sidebar room of its own, so it floats over the map instead
   .sidebar {
     margin-inline-end: $sidebar-overlap;
 
-    .overlay {
-      display: block;
-      position: absolute;
-      inset-block: 0;
-      inset-inline-end: 0;
-
-      &.expanded {
-        position: absolute;
-        z-index: 2;
-        inset-inline-start: 100%;
-        width: 100vw;
-        width: 100dvw;
-      }
-
-      &.minimised {
-        inset-inline-start: 100%;
-        inset-inline-end: -1 * (sidebar.$minimised-width + sidebar.$tab-width);
-        height: sidebar.$overlay-height;
-      }
-    }
-
     &.minimised {
-      margin-inline-start: $sidebar-overlap;
       margin-inline-end: 0;
-
-      > .topBox,
-      > .scrollable {
-        margin-inline-start: -1 * sidebar.$minimised-width;
-        margin-inline-end: sidebar.$minimised-width;
-      }
-
-      .header {
-        width: sidebar.$minimised-width + sidebar.$tab-width;
-        margin-inline-end: -1 * sidebar.$minimised-width - sidebar.$tab-width;
-      }
-
-      .minimised.overlay {
-        pointer-events: all;
-      }
     }
 
-    .tabs {
-      margin-inline-end: calc(-1 * var(--tab-width));
-      visibility: visible;
+    &:not(.minimised) .expanded.overlay {
+      pointer-events: all;
     }
-
-    &:not(.minimised) {
-      .tab.back {
-        margin-inline-end: var(--tab-width);
-      }
-
-      --top-curve: 1;
-
-      .expanded.overlay {
-        pointer-events: all;
-      }
-    }
-
-    --bottom-curve: 1;
   }
 }
 </style>
