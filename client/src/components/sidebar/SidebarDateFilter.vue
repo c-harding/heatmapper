@@ -18,6 +18,8 @@ function reset() {
   end.value = undefined;
 }
 
+const isActive = computed(() => !!start.value || !!end.value);
+
 const summary = computed(() => {
   // The end date, or undefined if in the future
   const effectiveEnd = end.value && (end.value > new Date() ? undefined : end.value);
@@ -39,7 +41,8 @@ const summary = computed(() => {
     icon="date_range"
     heading="Dates"
     :summary="[summary]"
-    :resetDisabled="!start && !end"
+    :isActive
+    :resetDisabled="!isActive"
     @reset="reset"
   >
     <template #expanded>

@@ -35,6 +35,12 @@ const summary = computed(() =>
   ].filter((string): string is string => !!string),
 );
 
+const controlsActive = computed(
+  () => selectionStore.multiSelectionMode || !!selectionStore.lockedSelection,
+);
+
+const anythingActive = computed(() => controlsActive.value || selectionStore.selected.size > 0);
+
 function reset() {
   selectionStore.multiSelectionMode = false;
   selectionStore.releaseSelection();
@@ -52,11 +58,8 @@ const showHelp = ref(false);
     :summary
     summaryEmpty="None selected"
     showSummaryWhenExpanded
-    :resetDisabled="
-      selectionStore.multiSelectionMode === false &&
-      !selectionStore.lockedSelection &&
-      !selectionStore.selected.size
-    "
+    :isActive="controlsActive"
+    :resetDisabled="!anythingActive"
     @reset="reset"
     @help="showHelp = true"
   >

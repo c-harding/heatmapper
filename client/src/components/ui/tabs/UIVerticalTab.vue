@@ -19,6 +19,8 @@ const {
   summary?: string | string[];
   summaryEmpty?: string;
   resetDisabled?: boolean;
+  /** True when the tab holds something other than its default. */
+  isActive?: boolean;
   showSummaryWhenExpanded?: boolean;
   onHelp?: () => void;
   onReset?: () => void;
@@ -49,7 +51,10 @@ const summary = computed(() =>
 </script>
 
 <template>
-  <section :class="[style.uiVerticalTab, tab.isOpen && style.selected]" :aria-label="heading">
+  <section
+    :class="[style.uiVerticalTab, tab.isOpen && style.selected, isActive && style.active]"
+    :aria-label="heading"
+  >
     <div :class="style.tab">
       <button :class="style.button" :title="heading" @click="tab.toggle()">
         <div :class="style.buttonContent">

@@ -64,6 +64,11 @@
   }
 }
 
+// After .selected, since being open is shown by the box around the tab and not by its colour
+.uiVerticalTab.active .tab {
+  color: var(--bold-color);
+}
+
 .content {
   grid-column: content;
   padding-left: 0.25rem;

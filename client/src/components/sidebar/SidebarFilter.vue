@@ -151,6 +151,8 @@ function compareFilters(filterA: FilterModel, filterB: FilterModel) {
   );
 }
 
+const isActive = computed(() => !compareFilters(activityStore.liveFilterModel, blankFilter));
+
 const previousFilters = ref<FilterModel>();
 const savedFilter = ref<FilterModel>(loadFilterModel() ?? blankFilter);
 
@@ -229,6 +231,7 @@ const showHelp = ref(false);
     heading="Filter"
     :summary="filterSummary"
     summaryEmpty="none set"
+    :isActive
     @help="showHelp = true"
   >
     <template #expanded>
