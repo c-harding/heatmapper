@@ -46,7 +46,7 @@ const summary = computed(() => {
     @reset="reset"
   >
     <template #expanded>
-      <div :class="[controlsStyle.grid, controlsStyle.center]">
+      <div :class="controlsStyle.grid">
         <label>
           <span>Start date</span>
           <UIDateInput v-model="start" name="start" />
