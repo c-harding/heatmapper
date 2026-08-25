@@ -11,6 +11,9 @@ const minimisedOverlay = ref<HTMLElement>();
 
 const backArrow = document.dir === 'rtl' ? 'arrow_forward' : 'arrow_back';
 
+// Points the way the sidebar is about to travel
+const foldChevron = document.dir === 'rtl' ? 'chevron_right' : 'chevron_left';
+
 const appName = import.meta.env.VITE_APP_NAME as string;
 
 const emit = defineEmits<{
@@ -50,7 +53,8 @@ function clickHeader() {
       <span :class="[$style.tabCurve, $style.top]" />
       <span :class="[$style.tab, $style.map]" :aria-hidden="minimised">
         <span>
-          <UIIcon icon="map" aria-hidden="true" />
+          <UIIcon icon="map" :class="$style.viewIcon" aria-hidden="true" />
+          <UIIcon :icon="foldChevron" :class="$style.foldIcon" aria-hidden="true" />
         </span>
         <span>Map</span>
       </span>
@@ -164,8 +168,9 @@ $sidebar-overlap: calc(#{sidebar.$minimised-width} - #{$sidebar-width});
   &:not(.minimised) {
     --top-curve: 1;
 
+    // The tab's own width, as a percentage so that it tracks the tab as it resizes
     .tab.back {
-      margin-inline-end: var(--tab-width);
+      margin-inline-end: 100%;
     }
   }
 }
@@ -238,7 +243,12 @@ $sidebar-overlap: calc(#{sidebar.$minimised-width} - #{$sidebar-width});
     width: var(--tab-width);
     inset-inline-end: 100%;
     inset-block: 0;
+    transition: width var(--transition-speed);
   }
+}
+
+.tab .foldIcon {
+  display: none;
 }
 
 .tabCurve {
@@ -246,6 +256,7 @@ $sidebar-overlap: calc(#{sidebar.$minimised-width} - #{$sidebar-width});
   width: 0;
   position: relative;
   margin-inline-start: auto;
+  // Widths are percentages of the tab strip, tracking it as it resizes
   transition: width var(--transition-speed);
 
   &::before {
@@ -257,7 +268,7 @@ $sidebar-overlap: calc(#{sidebar.$minimised-width} - #{$sidebar-width});
   }
 
   &.top {
-    width: calc(var(--tab-width) * var(--top-curve, 0));
+    width: calc(100% * var(--top-curve, 0));
 
     &::before {
       bottom: 100%;
@@ -269,7 +280,7 @@ $sidebar-overlap: calc(#{sidebar.$minimised-width} - #{$sidebar-width});
 
   &.bottom {
     margin-top: sidebar.$tab-height;
-    width: calc(var(--tab-width) * var(--bottom-curve, 0));
+    width: calc(100% * var(--bottom-curve, 0));
 
     &::before {
       top: 100%;
@@ -301,6 +312,11 @@ $sidebar-overlap: calc(#{sidebar.$minimised-width} - #{$sidebar-width});
     box-sizing: border-box;
     padding: 0 1em;
     width: var(--tab-width);
+    // Clipped so that neither the icons nor the caption reach outside the tab as it grows
+    overflow: clip;
+    transition:
+      padding var(--transition-speed),
+      width var(--transition-speed);
   }
 
   // The rounded corners for the folding buttons
@@ -327,13 +343,13 @@ $sidebar-overlap: calc(#{sidebar.$minimised-width} - #{$sidebar-width});
   &.map {
     &::before {
       top: 0;
-      width: calc(var(--tab-width) * var(--top-curve, 0));
+      width: calc(100% * var(--top-curve, 0));
       border-start-end-radius: $scaled-corner-radius;
     }
 
     &::after {
       top: 0;
-      inset-inline-end: calc(var(--tab-width) * var(--top-curve, 0));
+      inset-inline-end: calc(100% * var(--top-curve, 0));
     }
   }
 
@@ -341,13 +357,43 @@ $sidebar-overlap: calc(#{sidebar.$minimised-width} - #{$sidebar-width});
   &.back {
     &::before {
       bottom: 0;
-      width: calc(var(--tab-width) * var(--bottom-curve, 0));
+      width: calc(100% * var(--bottom-curve, 0));
       border-end-end-radius: $scaled-corner-radius;
     }
 
     &::after {
       bottom: 0;
-      inset-inline-end: calc(var(--tab-width) * var(--bottom-curve, 0));
+      inset-inline-end: calc(100% * var(--bottom-curve, 0));
+    }
+  }
+}
+
+// On screens with space to fit the sidebar next to the map, a more subtle button is
+// used to hide the sidebar
+@include breakpoints.beside-the-map {
+  .sidebar:not(.minimised) {
+    --tab-width: #{sidebar.$slim-tab-width};
+
+    .viewIcon {
+      display: none;
+    }
+
+    .foldIcon {
+      display: inline-block;
+    }
+
+    .tab {
+      > span {
+        padding: 0;
+      }
+
+      // Clipped, not removed: the caption is the only thing naming the button
+      > span:last-child {
+        position: absolute;
+        height: 1px;
+        clip-path: inset(50%);
+        white-space: nowrap;
+      }
     }
   }
 }
