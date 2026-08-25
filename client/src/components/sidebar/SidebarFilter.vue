@@ -221,6 +221,10 @@ const filterSummary = computed(() => {
 });
 
 const showHelp = ref(false);
+
+function openHelp() {
+  showHelp.value = true;
+}
 </script>
 
 <template>
@@ -232,8 +236,10 @@ const showHelp = ref(false);
     :summary="filterSummary"
     summaryEmpty="none set"
     :isActive
-    @help="showHelp = true"
   >
+    <template #meta>
+      <UIButton ghost icon="help" @click="openHelp">Fields</UIButton>
+    </template>
     <template #expanded>
       <div :class="controlsStyle.grid">
         <label v-if="activityStore.liveFields.has('sportType')">

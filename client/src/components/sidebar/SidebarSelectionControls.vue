@@ -48,6 +48,10 @@ function reset() {
 }
 
 const showHelp = ref(false);
+
+function openHelp() {
+  showHelp.value = true;
+}
 </script>
 
 <template>
@@ -57,12 +61,14 @@ const showHelp = ref(false);
     heading="Selection"
     :summary
     summaryEmpty="None selected"
-    showSummaryWhenExpanded
     :isActive="controlsActive"
-    :resetDisabled="!anythingActive"
-    @reset="reset"
-    @help="showHelp = true"
   >
+    <template #meta>
+      <UIButton ghost icon="help" @click="openHelp">Help</UIButton>
+      <UIButton ghost icon="settings_backup_restore" :disabled="!anythingActive" @click="reset">
+        Reset
+      </UIButton>
+    </template>
     <template #expanded>
       <UICheckbox v-model="selectionStore.multiSelectionMode">Multiple selection mode</UICheckbox>
       <UIButtonGroup>

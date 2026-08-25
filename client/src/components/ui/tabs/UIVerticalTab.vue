@@ -1,7 +1,6 @@
 <script setup lang="ts" generic="T extends string">
 import { computed } from 'vue';
 
-import UIButton from '../UIButton.vue';
 import UIIcon from '../UIIcon.vue';
 import UIUnbrokenList from '../UIUnbrokenList.vue';
 import style from './tab.module.scss';
@@ -18,16 +17,14 @@ const {
   heading?: string;
   summary?: string | string[];
   summaryEmpty?: string;
-  resetDisabled?: boolean;
   /** True when the tab holds something other than its default. */
   isActive?: boolean;
-  showSummaryWhenExpanded?: boolean;
-  onHelp?: () => void;
-  onReset?: () => void;
 }>();
 
 defineSlots<{
   icon(): unknown;
+  /** Buttons acting on the whole tab, shown beside its heading while it is open. */
+  meta(): unknown;
   default(props: { isOpen: boolean; toggle(): void; select(): void }): unknown;
   summary(props: { select?: () => void }): unknown;
   expanded(props: { toggle(): void }): unknown;
@@ -66,21 +63,7 @@ const summary = computed(() =>
     <details :class="[style.content]" :open="tab.isOpen" @toggle="onToggle">
       <summary :class="style.summaryRow" @click="preventIfSelected">
         <slot :isOpen="tab.isOpen" :toggle="tab.toggle" :select="tab.select">
-          <UIButton
-            v-if="onHelp && tab.isOpen"
-            :class="[style.topRightButton, style.helpButton]"
-            ghost
-            icon="help"
-            @click="onHelp()"
-          />
-          <UIButton
-            v-if="onReset && tab.isOpen"
-            :disabled="resetDisabled"
-            :class="style.topRightButton"
-            ghost
-            icon="settings_backup_restore"
-            @click="onReset()"
-          />
+          <span v-if="tab.isOpen" :class="style.meta"><slot name="meta" /></span>
           <span v-if="heading" :class="style.heading">{{ heading }}</span>
           {{ ' ' }}
           <span v-if="!tab.isOpen" :class="style.summary">
@@ -91,11 +74,6 @@ const summary = computed(() =>
         </slot>
       </summary>
       <div :class="expandedContentClass">
-        <span v-if="showSummaryWhenExpanded" :class="style.summary">
-          <slot name="summary">
-            <UIUnbrokenList :items="summary.items">{{ summary.fallback }}</UIUnbrokenList>
-          </slot>
-        </span>
         <slot name="expanded" :toggle="tab.toggle" />
       </div>
     </details>
