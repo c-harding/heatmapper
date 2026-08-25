@@ -19,10 +19,9 @@
   }
 
   > :is(label, .label) {
-    grid-template-columns: subgrid;
-    display: grid;
+    display: flex;
+    flex-direction: column;
     grid-column: span 2;
-    align-items: center;
   }
 
   > .buttons {
@@ -34,11 +33,15 @@
 .row,
 .grid {
   > :is(label, .label) > span {
-    min-height: 1.2em;
-    font-size: 0.9em;
+    font-size: 0.75em;
     font-weight: 600;
+    color: var(--color-mid);
     padding-inline: 0.5rem;
     display: block;
+
+    // Against the margin the field below carries, which is a field's worth of space and not a
+    // label's
+    margin-block-end: -0.25rem;
   }
 }
 
