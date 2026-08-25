@@ -15,7 +15,7 @@ const summary = computed(() =>
   [
     activityStore.useRoutes &&
       activityStore.displayOptions.showActivities &&
-      'show past activities',
+      'showing past activities',
   ].filter((string): string is string => !!string),
 );
 
