@@ -239,6 +239,17 @@ function openHelp() {
   >
     <template #meta>
       <UIButton ghost icon="help" @click="openHelp">Fields</UIButton>
+      <UIButton
+        ghost
+        :disabled="filterState === 'initial'"
+        :icon="filterState === 'canUndo' ? 'undo' : 'delete'"
+        @click="revertFilter"
+      >
+        <UIMultiText
+          :texts="{ clear: 'Clear', undo: 'Undo' }"
+          :selected="filterState === 'canUndo' ? 'undo' : 'clear'"
+        />
+      </UIButton>
     </template>
     <template #expanded>
       <div :class="controlsStyle.grid">
@@ -347,27 +358,20 @@ function openHelp() {
           </SegmentedControl>
         </div>
 
-        <div :class="controlsStyle.buttons">
-          <em v-if="activityStore.filterFields.size === 0">All filters are hidden</em>
-          <UIButtonGroup v-else>
+        <div v-if="activityStore.filterFields.size === 0" :class="controlsStyle.buttons">
+          <em>All filters are hidden</em>
+        </div>
+        <div v-else :class="controlsStyle.label">
+          <span>Default filter</span>
+          <UIButtonGroup>
             <UIButton icon="save" :disabled="isSaved" @click="saveFilter"> Save </UIButton>
-            <UIButton
-              :disabled="filterState === 'initial'"
-              :icon="filterState === 'canUndo' ? 'undo' : 'delete'"
-              @click="revertFilter"
-            >
-              <UIMultiText
-                :texts="{ clear: 'Clear', undo: 'Undo' }"
-                :selected="filterState === 'canUndo' ? 'undo' : 'clear'"
-              />
-            </UIButton>
             <UIButton
               v-if="!hideResetToSaved"
               :disabled="canResetToSaved"
               icon="settings_backup_restore"
               @click="resetToSaved"
             >
-              Reset
+              Restore
             </UIButton>
           </UIButtonGroup>
         </div>
