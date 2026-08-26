@@ -76,13 +76,13 @@ const selectedWidth = fromZoom([5, 4], [14, 8]);
 
 const satelliteViews = new Set([MapStyle.SATELLITE, MapStyle.HYBRID]);
 
+const darkViews = new Set([MapStyle.MINIMAL_DARK, MapStyle.NATURAL_DARK]);
+
 const colorsForStyle = (style: MapStyle): Record<'lines' | 'medium' | 'hot', RGB> => {
   const F = 255;
   if (satelliteViews.has(style)) {
     return { lines: [F, 0, F], medium: [F, 0, F], hot: [F, 0, F] };
-  } else if (style === MapStyle.MINIMAL_DARK) {
-    return { lines: [0xb2, 0xb2, F], medium: [0xf8, 0, 0], hot: [0x2f, 0x2f, 0] };
-  } else if (style === MapStyle.NATURAL_DARK) {
+  } else if (darkViews.has(style)) {
     return { lines: [F, 0x3d, 0x9a], medium: [F, 0xa2, 0x3a], hot: [F, 0xf7, 0xe0] };
   } else {
     return { lines: [0, 0, F], medium: [F, 0, 0], hot: [F, F, 0] };
