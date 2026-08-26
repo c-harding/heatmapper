@@ -289,7 +289,7 @@ $padding-top: calc(0.5rem + var(--top-safe-area));
   $sidebar-overlay-width: $minimised-width + $tab-width;
   $sidebar-overlay-height: calc(#{$padding-top} + #{$logo-height} + #{$tab-height});
 
-  #app {
+  :global(#app) {
     --sidebar-overlay-width: #{$sidebar-overlay-width};
     --sidebar-overlay-height: #{$sidebar-overlay-height};
   }
