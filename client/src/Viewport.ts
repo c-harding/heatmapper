@@ -32,10 +32,10 @@ export default class Viewport {
   }
 
   get safeWidth(): number {
-    return this.width - this.offsets.left - this.offsets.right;
+    return Math.max(0, this.width - this.offsets.left - this.offsets.right);
   }
   get safeHeight(): number {
-    return this.height - this.offsets.top - this.offsets.bottom;
+    return Math.max(0, this.height - this.offsets.top - this.offsets.bottom);
   }
   get aspectRatio(): number {
     return this.safeHeight / this.safeWidth;
