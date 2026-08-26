@@ -209,6 +209,30 @@ const onTerrain = () => {
 watch(terrain, onTerrain);
 
 /**
+ * Measure with every fold run to its end, so a fly that starts mid-fold aims at the layout it will
+ * land in rather than the one it is leaving.
+ *
+ * Seeking a transition to its end finishes it, which drops it from getAnimations, so the list is
+ * taken first; putting the times back un-finishes it and fires nothing. Both halves have to run in
+ * one task, ahead of the frame that would dispatch transitionend, so nothing here may await.
+ */
+function atRest<T>(measure: () => T): T {
+  const animations = (container.value?.getAnimations({ subtree: true }) ?? []).filter((animation) =>
+    Number.isFinite(Number(animation.effect?.getComputedTiming().endTime)),
+  );
+  const times = animations.map((animation) => animation.currentTime);
+
+  animations.forEach((animation) => {
+    animation.currentTime = Number(animation.effect?.getComputedTiming().endTime);
+  });
+  try {
+    return measure();
+  } finally {
+    animations.forEach((animation, index) => (animation.currentTime = times[index]));
+  }
+}
+
+/**
  * Calculate all ways of zooming to fit the activity while avoiding the controls in the corners.
  *
  * This works by considering the visual aspect ratio of the route, and for each corner control,
@@ -301,7 +325,7 @@ function flyTo(mapItems: readonly MapItem[], zoom = false): void {
     new mapboxgl.LngLatBounds(coordinates[0], coordinates[0]),
   );
 
-  const viewports = getViewports();
+  const viewports = atRest(getViewports);
 
   if (!zoom && viewports.some((viewport) => checkBoundsForViewport(viewport, bounds))) {
     // If one of the viewports fits on the screen, there is no need to rezoom
