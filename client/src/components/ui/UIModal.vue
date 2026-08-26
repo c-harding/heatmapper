@@ -43,7 +43,7 @@ watch(
 dialog.uiModal {
   border: none;
   padding: 0;
-  border-radius: 1rem;
+  border-radius: var(--surface-border-radius);
   position: relative;
   flex-direction: column;
 

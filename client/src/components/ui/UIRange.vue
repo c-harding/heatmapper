@@ -70,7 +70,7 @@ const maxModel = computed({
   grid-template-columns: min-content auto min-content;
   margin: 0.5rem;
 
-  border-radius: var(--border-radius);
+  border-radius: var(--control-border-radius);
   background-color: var(--background-strong);
 
   min-width: 3em;
@@ -96,13 +96,13 @@ const maxModel = computed({
   }
 
   label:first-child {
-    border-top-left-radius: calc(var(--border-radius));
-    border-top-right-radius: calc(var(--border-radius));
+    border-top-left-radius: calc(var(--control-border-radius));
+    border-top-right-radius: calc(var(--control-border-radius));
   }
 
   label:last-child {
-    border-bottom-left-radius: calc(var(--border-radius));
-    border-bottom-right-radius: calc(var(--border-radius));
+    border-bottom-left-radius: calc(var(--control-border-radius));
+    border-bottom-right-radius: calc(var(--control-border-radius));
   }
 
   input {

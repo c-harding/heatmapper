@@ -97,8 +97,8 @@ button.button {
   margin: 0.5rem;
   padding: 0.15rem 0.15rem;
 
-  --button-border-radius-left: var(--border-radius);
-  --button-border-radius-right: var(--border-radius);
+  --button-border-radius-left: var(--control-border-radius);
+  --button-border-radius-right: var(--control-border-radius);
 
   border-top-left-radius: var(--button-border-radius-left);
   border-bottom-left-radius: var(--button-border-radius-left);

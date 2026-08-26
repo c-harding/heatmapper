@@ -103,7 +103,8 @@ a[href] {
   --transition-speed: 0.5s;
   --bold-color: #fc4c02;
   --link-color: blue;
-  --border-radius: 7px;
+  --control-border-radius: 7px;
+  --surface-border-radius: 1rem;
   font-family: -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;

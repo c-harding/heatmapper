@@ -42,7 +42,7 @@ const useCookie = ref(true);
 
   .notLoggedIn {
     background-color: var(--background-weak);
-    border-radius: 1em;
+    border-radius: var(--surface-border-radius);
     padding: 1em;
 
     display: flex;

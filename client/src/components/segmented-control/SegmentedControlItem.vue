@@ -46,7 +46,7 @@ li.segmentedControlItem {
   display: flex;
   margin: -1px;
 
-  border-radius: var(--border-radius);
+  border-radius: var(--control-border-radius);
   border: 1px solid transparent;
 
   min-height: 1.75rem;
@@ -80,7 +80,7 @@ li.segmentedControlItem {
 
     > .buttonContents {
       padding: 0 0.25em;
-      border-radius: calc(var(--border-radius) - $button-padding);
+      border-radius: calc(var(--control-border-radius) - $button-padding);
       grid-area: button;
       display: flex;
       justify-content: center;

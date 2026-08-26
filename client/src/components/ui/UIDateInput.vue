@@ -37,7 +37,7 @@ function dateToYYYYMMDD(date: Date | null): string | null {
   display: flex;
   margin: 0.5rem;
 
-  border-radius: var(--border-radius);
+  border-radius: var(--control-border-radius);
   border: 1px solid var(--color-weak);
   background-color: var(--background-strong);
 

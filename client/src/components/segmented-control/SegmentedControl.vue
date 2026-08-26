@@ -42,7 +42,7 @@ ul.segmentedControl {
   margin: 0.5rem;
   padding: 0;
 
-  border-radius: var(--border-radius);
+  border-radius: var(--control-border-radius);
   border: 1px solid var(--color-weak);
   background-color: var(--background-mid);
 
