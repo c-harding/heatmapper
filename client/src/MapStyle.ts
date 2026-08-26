@@ -128,9 +128,7 @@ export function useMapStyle() {
   const styleName = renamedStyles[chosenName] ?? chosenName;
   if (storedName && styleName !== storedName) localStorage.setItem(STYLE_NAME_KEY, styleName);
 
-  const initialStyle: MapStyleSelection = validateMapChoice(styleName)
-    ? styleName
-    : FALLBACK_STYLE;
+  const initialStyle: MapStyleSelection = validateMapChoice(styleName) ? styleName : FALLBACK_STYLE;
   const mapChoice = ref(initialStyle);
 
   const systemDarkModeQuery = window.matchMedia('(prefers-color-scheme: dark)');

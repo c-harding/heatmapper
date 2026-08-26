@@ -62,7 +62,9 @@ function pick(choice: T) {
 }
 
 function isActive(choice: Choice): boolean {
-  return value.value === choice.value || (choice.variants?.some((v) => v.value === value.value) ?? false);
+  return (
+    value.value === choice.value || (choice.variants?.some((v) => v.value === value.value) ?? false)
+  );
 }
 </script>
 
@@ -78,8 +80,12 @@ function isActive(choice: Choice): boolean {
             <UILabelledIcon :icon="isActive(choice) ? 'check' : ' '">
               <!-- Rendered at both weights to reserve the bold width. -->
               <UIMultiText :selected="value === choice.value ? 'bold' : 'normal'">
-                <template #normal><span>{{ choice.label }}</span></template>
-                <template #bold><b>{{ choice.label }}</b></template>
+                <template #normal
+                  ><span>{{ choice.label }}</span></template
+                >
+                <template #bold
+                  ><b>{{ choice.label }}</b></template
+                >
               </UIMultiText>
             </UILabelledIcon>
           </span>
