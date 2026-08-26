@@ -28,7 +28,13 @@ import { type MapItem } from '@strava-heatmapper/shared/interfaces';
 import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 
 import { FALLBACK_STYLE, resolveStyle, useMapStyle } from '@/MapStyle';
-import { addLayersToMap, applyMapItems, MapSourceLayer, useMapSelection } from '@/utils/map';
+import {
+  addControl,
+  addLayersToMap,
+  applyMapItems,
+  MapSourceLayer,
+  useMapSelection,
+} from '@/utils/map';
 import { getBestCenter } from '@/utils/midpoint';
 import Viewport from '@/Viewport';
 
@@ -77,6 +83,16 @@ async function styleOrFallback(url: string): Promise<string | StyleSpecification
 
 const terrain = ref(false);
 
+const KEEP_OUT = 'data-keep-out';
+
+/** A container for map widgets, which getViewports keeps routes clear of. */
+function keepOutSlot(parent: HTMLElement, className: string): HTMLElement {
+  const slot = parent.appendChild(document.createElement('div'));
+  slot.className = className;
+  slot.setAttribute(KEEP_OUT, '');
+  return slot;
+}
+
 const topCorner = document.dir === 'rtl' ? 'top-left' : 'top-right';
 
 if (!window.cachedMapElement) {
@@ -102,9 +118,27 @@ if (!window.cachedMapElement) {
     }),
   );
 
-  newMap.addControl(new mapboxgl.ScaleControl(), 'bottom-left');
+  const bottomStack = document.createElement('div');
+  bottomStack.className = 'map-bottom-stack';
+  newMap.getContainer().querySelector('.mapboxgl-control-container')?.append(bottomStack);
 
-  newMap.addControl(new mapboxgl.AttributionControl({ compact: true }));
+  const startSlot = keepOutSlot(bottomStack, 'map-bottom-start');
+  addControl(newMap, startSlot, new mapboxgl.ScaleControl());
+  addControl(
+    newMap,
+    keepOutSlot(bottomStack, 'map-bottom-end'),
+    new mapboxgl.AttributionControl({ compact: true }),
+  );
+  keepOutSlot(bottomStack, 'map-footer');
+
+  // The Map constructor adds this one, so its element is in a corner rather than staged
+  const logo = newMap.getContainer().querySelector('.mapboxgl-ctrl-logo')?.parentElement;
+  if (logo) startSlot.append(logo);
+
+  newMap
+    .getContainer()
+    .querySelectorAll('.mapboxgl-ctrl-top-left, .mapboxgl-ctrl-top-right')
+    .forEach((corner) => corner.setAttribute(KEEP_OUT, ''));
 
   window.cachedMapElement = newMap;
 }
@@ -181,38 +215,47 @@ watch(terrain, onTerrain);
 function getViewports() {
   const padding = 10;
 
-  const { width, height } = map.getCanvas().getBoundingClientRect();
+  const canvas = map.getCanvas().getBoundingClientRect();
+  const clamp = (value: number, max: number) => Math.min(Math.max(value, 0), max);
 
-  const topLeft = container.value?.querySelector('.mapboxgl-ctrl-top-left');
-  const topRight = container.value?.querySelector('.mapboxgl-ctrl-top-right');
-  const bottomLeft = container.value?.querySelector('.mapboxgl-ctrl-bottom-left');
-  const bottomRight = container.value?.querySelector('.mapboxgl-ctrl-bottom-right');
+  // How far in from each edge a route must come to clear each widget, and which way it can pass it
+  const keepOut = [...(container.value?.querySelectorAll(`[${KEEP_OUT}]`) ?? [])]
+    .map((element) => element.getBoundingClientRect())
+    .filter((rect) => rect.width > 0 && rect.height > 0)
+    .map((rect) => ({
+      top: clamp(rect.bottom - canvas.top, canvas.height),
+      bottom: clamp(canvas.bottom - rect.top, canvas.height),
+      left: clamp(rect.right - canvas.left, canvas.width),
+      right: clamp(canvas.right - rect.left, canvas.width),
+      atTop: rect.top - canvas.top < canvas.bottom - rect.bottom,
+      atStart: rect.left - canvas.left < canvas.right - rect.right,
+      blocksWidth: rect.width / canvas.width > 0.5,
+    }));
 
-  return [
-    // Padding is given here as well as at the end so that 2 × padding is maintained from the edges,
-    // and 1 × padding is maintained from the controls
-    new Viewport(width, height, { left: padding, top: padding, bottom: padding, right: padding }),
-  ]
-    .flatMap((viewport) => [
-      viewport.withOffset({ top: topLeft?.clientHeight }),
-      viewport.withOffset({ left: topLeft?.clientWidth ?? 0 }),
-    ])
-    .flatMap((viewport) => [
-      viewport.withOffset({ top: topLeft?.clientHeight }),
-      viewport.withOffset({ left: topLeft?.clientWidth ?? 0 }),
-    ])
-    .flatMap((viewport) => [
-      viewport.withOffset({ bottom: bottomLeft?.clientHeight }),
-      viewport.withOffset({ left: bottomLeft?.clientWidth ?? 0 }),
-    ])
-    .flatMap((viewport) => [
-      viewport.withOffset({ top: topRight?.clientHeight }),
-      viewport.withOffset({ right: topRight?.clientWidth ?? 0 }),
-    ])
-    .flatMap((viewport) => [
-      viewport.withOffset({ bottom: bottomRight?.clientHeight }),
-      viewport.withOffset({ right: bottomRight?.clientWidth ?? 0 }),
-    ])
+  return keepOut
+    .reduce(
+      (viewports, widget) =>
+        viewports.flatMap((viewport) => {
+          const clearedBlock = viewport.withOffset(
+            widget.atTop ? { top: widget.top } : { bottom: widget.bottom },
+          );
+          if (widget.blocksWidth) return [clearedBlock];
+          const clearedInline = viewport.withOffset(
+            widget.atStart ? { left: widget.left } : { right: widget.right },
+          );
+          return [clearedBlock, clearedInline];
+        }),
+      // Padding is given here as well as at the end so that 2 × padding is maintained from the
+      // edges, and 1 × padding is maintained from the widgets
+      [
+        new Viewport(canvas.width, canvas.height, {
+          left: padding,
+          top: padding,
+          bottom: padding,
+          right: padding,
+        }),
+      ],
+    )
     .map((viewport) => viewport.withPadding(padding));
 }
 
@@ -358,6 +401,8 @@ map.once('idle', () => {
 
 @import 'mapbox-gl/dist/mapbox-gl.css' layer(mapbox);
 
+$widget-gap: 10px;
+
 .map-container {
   display: contents;
 }
@@ -413,16 +458,9 @@ map.once('idle', () => {
   }
 }
 
-.mapboxgl-ctrl-bottom-left,
-.mapboxgl-ctrl-bottom-right {
-  padding-bottom: var(--bottom-safe-area);
-}
-
-/* Only the inline-end corners: the sidebar covers the window's inline-start edge. */
+/* Only the inline-end corner: the sidebar covers the window's inline-start edge. */
 .mapboxgl-ctrl-top-right:dir(ltr),
-.mapboxgl-ctrl-bottom-right:dir(ltr),
-.mapboxgl-ctrl-top-left:dir(rtl),
-.mapboxgl-ctrl-bottom-left:dir(rtl) {
+.mapboxgl-ctrl-top-left:dir(rtl) {
   padding-inline-end: var(--inline-end-safe-area);
 }
 
@@ -438,6 +476,64 @@ map.once('idle', () => {
   .map-container.sidebar-covering .mapboxgl-ctrl-top-left:dir(rtl) {
     opacity: 0;
   }
+}
+
+.map-bottom-stack {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  z-index: 2;
+  pointer-events: none;
+
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-areas:
+    'inlineStart inlineEnd'
+    'footer footer';
+
+  padding-inline: var(--inline-start-safe-area) var(--inline-end-safe-area);
+  padding-block-end: var(--bottom-safe-area);
+}
+
+.map-bottom-start,
+.map-bottom-end {
+  display: flex;
+  flex-direction: column;
+  align-self: end;
+}
+
+.map-bottom-start {
+  grid-area: inlineStart;
+  justify-self: start;
+  align-items: start;
+}
+
+.map-bottom-end {
+  grid-area: inlineEnd;
+  justify-self: end;
+  align-items: end;
+}
+
+.map-footer {
+  grid-area: footer;
+}
+
+.map-bottom-start > .mapboxgl-ctrl,
+.map-bottom-end > .mapboxgl-ctrl,
+.map-footer > * {
+  margin-block-end: $widget-gap;
+}
+
+.map-bottom-start > .mapboxgl-ctrl {
+  margin-inline-start: $widget-gap;
+}
+
+.map-bottom-end > .mapboxgl-ctrl {
+  margin-inline-end: $widget-gap;
+}
+
+.map-footer > * {
+  margin-inline: $widget-gap;
 }
 
 /* Override colors of the fullscreen and compass controls to support dark mode */

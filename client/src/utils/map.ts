@@ -2,9 +2,11 @@ import { toGeoJSON } from '@mapbox/polyline';
 import { type MapItem } from '@strava-heatmapper/shared/interfaces';
 import { type Feature, type FeatureCollection, type LineString } from 'geojson';
 import {
+  type ControlPosition,
   type ExpressionSpecification,
   type GeoJSONSource,
   type GeoJSONSourceSpecification,
+  type IControl,
   type LineLayerSpecification,
   type Map as MapboxMap,
   type MapMouseEvent,
@@ -131,6 +133,31 @@ const buildLineLayer = (id: string, layer: LayerDef): LineLayerSpecification => 
     'line-opacity': layer.opacity ?? 1,
   },
 });
+
+/** The corner this app never fills, where a control waits to be moved to its parent. */
+const STAGING_POSITION: ControlPosition = 'left';
+
+/** Add a control to a parent of our choosing, registered as map.addControl would. */
+export function addControl<T extends IControl>(map: MapboxMap, parent: HTMLElement, control: T): T {
+  const staging = map.getContainer().querySelector(`.mapboxgl-ctrl-${STAGING_POSITION}`);
+
+  if (!staging) {
+    console.error(`No .mapboxgl-ctrl-${STAGING_POSITION} to stage a control in`, control);
+    return control;
+  }
+  if (staging.childElementCount) {
+    console.warn(`Expected .mapboxgl-ctrl-${STAGING_POSITION} to be empty`, [...staging.children]);
+  }
+
+  map.addControl(control, STAGING_POSITION);
+
+  // A position without "bottom" in its name appends, so the control just added is the last child
+  const staged = staging.lastElementChild;
+  if (staged) parent.appendChild(staged);
+  else console.error('Staged control left no element to move', control);
+
+  return control;
+}
 
 export const addLayersToMap = (map: MapboxMap, style: MapStyle) => {
   Object.values(MapSourceLayer).forEach(
