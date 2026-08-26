@@ -81,7 +81,14 @@ const emit = defineEmits<{
   }
 
   .clear {
+    // The padding is the hit area; the offset keeps the cross where it is drawn
+    $padding: 10px; // as UIModal, where a 24px glyph plus twice this is 44px
+
     all: unset;
+    padding-block: $padding;
+    padding-inline-end: $padding;
+    margin-block: -$padding;
+    margin-inline-end: -$padding;
     display: flex;
     cursor: pointer;
     color: var(--color-strong);
