@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 
 import MapView from './components/map/MapView.vue';
@@ -41,8 +41,17 @@ const zoom = ref(8);
 
 const minimised = ref(false);
 
+const showSelectionCard = computed(
+  () => minimised.value && selectionStore.selectedItems.length > 0,
+);
+
 function zoomToSelected(): void {
   map.value?.zoomToSelection();
+}
+
+// The card already names the selection, so unfolding over it would only repeat itself
+function focusSidebar(): void {
+  if (!showSelectionCard.value) minimised.value = false;
 }
 
 function unfold() {
@@ -62,7 +71,7 @@ defineExpose({ mapItems: activityStore.mapItems });
   <div id="app">
     <CollapsibleSidebar v-model:minimised="minimised" @scroll-down="scrollToSelected()">
       <SidebarContent
-        @focus-sidebar="minimised = false"
+        @focus-sidebar="focusSidebar()"
         @zoom-to-selected="zoomToSelected"
         @scroll-to-selected="scrollToSelected"
       />
@@ -72,7 +81,7 @@ defineExpose({ mapItems: activityStore.mapItems });
         <template #bottom>
           <Transition name="map-footer">
             <SelectionCard
-              v-if="minimised && selectionStore.selectedItems.length"
+              v-if="showSelectionCard"
               @unfold="unfold()"
             />
           </Transition>
