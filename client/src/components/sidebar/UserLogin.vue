@@ -38,6 +38,7 @@ const useCookie = ref(true);
   padding: 1em;
   position: sticky;
   bottom: 1em;
+  z-index: 3; // opaque footer: sit above the z-indexed controls it can overlap
 
   .notLoggedIn {
     background-color: var(--background-weak);
