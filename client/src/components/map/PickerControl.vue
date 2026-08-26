@@ -1,7 +1,8 @@
 <script setup lang="ts" generic="T extends string">
-import { onMounted, onUnmounted, ref } from 'vue';
+import { onUnmounted, ref, watch } from 'vue';
 
 import UIIcon from '../ui/UIIcon.vue';
+import UILabelledIcon from '../ui/UILabelledIcon.vue';
 
 export interface DropdownChoice<T> {
   readonly value: T;
@@ -24,7 +25,6 @@ const layerPicker = ref<HTMLDivElement>();
 const cancelClickOnClickOutside = false;
 
 const onClickOutside = (e: MouseEvent) => {
-  if (!clickedOpen.value) return;
   const elements = [layerButton.value, layerPicker.value];
   const target = e.target;
   if (target instanceof Node && elements.some((element) => element?.contains(target))) {
@@ -36,8 +36,12 @@ const onClickOutside = (e: MouseEvent) => {
   }
 };
 
-onMounted(() => {
-  window.addEventListener('click', onClickOutside, { capture: cancelClickOnClickOutside });
+watch(clickedOpen, (isOpen) => {
+  if (isOpen) {
+    window.addEventListener('click', onClickOutside, { capture: cancelClickOnClickOutside });
+  } else {
+    window.removeEventListener('click', onClickOutside, { capture: cancelClickOnClickOutside });
+  }
 });
 
 onUnmounted(() => {
@@ -51,14 +55,16 @@ onUnmounted(() => {
   </button>
   <div ref="layerPicker" :class="[$style.layerPicker, clickedOpen && $style.open]">
     <menu>
-      <li v-for="choice of choices" :key="choice.value" :aria-selected="value === choice.value">
+      <li v-for="choice of choices" :key="choice.value">
         <a
           @click.prevent="
             value = choice.value;
             clickedOpen = false;
           "
         >
-          {{ choice.label }}
+          <UILabelledIcon :icon="value === choice.value ? 'check' : ' '">
+            {{ choice.label }}
+          </UILabelledIcon>
         </a>
       </li>
     </menu>
@@ -66,7 +72,7 @@ onUnmounted(() => {
 </template>
 
 <style module lang="scss">
-:global(.mapboxgl-ctrl):has(.layer-picker) {
+:global(.mapboxgl-ctrl):has(> .layerPicker) {
   position: relative;
 }
 
@@ -74,11 +80,14 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
+  z-index: 1;
 }
 
 .layerPicker {
   position: absolute;
-  right: 100%;
+  right: 0;
+  padding-right: 100%;
   top: 0;
   width: max-content;
 
@@ -88,14 +97,16 @@ onUnmounted(() => {
 
   menu {
     background: var(--background-full);
-    border-radius: 0.5rem;
+    border-radius: 1rem;
     overflow: hidden;
     list-style: none;
     margin: 0;
     margin-right: 0.5rem;
-    padding: 0.5rem 0;
+    padding: 0.5rem;
 
     li {
+      border-radius: 0.5rem;
+
       &:hover {
         background-color: var(--background-strong);
       }
@@ -105,7 +116,9 @@ onUnmounted(() => {
       }
 
       a {
-        padding-inline: 1rem;
+        border-radius: inherit;
+        text-decoration: none;
+        padding-inline: 0.5rem;
         display: block;
         cursor: pointer;
         color: inherit;
