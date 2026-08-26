@@ -83,9 +83,8 @@ $logo-height: 5rem;
 
 $minimised-width: 0rem;
 $sidebar-width: min(20rem, 100vw - #{$tab-width});
-$corner-radius: 1rem;
-$scaled-corner-radius: min($corner-radius, 50%);
-$pseudo-scaled-corner-radius: min($corner-radius, 100%);
+$scaled-corner-radius: min(var(--tab-radius), 50%);
+$pseudo-scaled-corner-radius: min(var(--tab-radius), 100%);
 
 $padding-top: calc(0.5rem + var(--top-safe-area));
 
@@ -97,6 +96,8 @@ $padding-top: calc(0.5rem + var(--top-safe-area));
 }
 
 .sidebar {
+  --tab-radius: min(var(--surface-border-radius), calc(#{$tab-width} / 2));
+
   flex: 0 $sidebar-width;
   display: flex;
   flex-direction: column;
@@ -158,8 +159,8 @@ $padding-top: calc(0.5rem + var(--top-safe-area));
   margin-inline-start: auto;
   margin-bottom: -$tab-height;
   background: var(--background-full);
-  border-end-end-radius: $corner-radius;
-  border-start-end-radius: $corner-radius;
+  border-end-end-radius: var(--tab-radius);
+  border-start-end-radius: var(--tab-radius);
   transition:
     margin var(--transition-speed),
     width var(--transition-speed);
@@ -192,7 +193,7 @@ $padding-top: calc(0.5rem + var(--top-safe-area));
 
     &::before {
       bottom: 100%;
-      box-shadow: 0 $corner-radius 0 0 var(--background-full);
+      box-shadow: 0 var(--tab-radius) 0 0 var(--background-full);
       border-end-start-radius: $pseudo-scaled-corner-radius;
       transition: inset var(--transition-speed);
     }
@@ -204,7 +205,7 @@ $padding-top: calc(0.5rem + var(--top-safe-area));
 
     &::before {
       top: 100%;
-      box-shadow: 0 (-$corner-radius) 0 0 var(--background-full);
+      box-shadow: 0 calc(-1 * var(--tab-radius)) 0 0 var(--background-full);
       border-start-start-radius: $pseudo-scaled-corner-radius;
       transition: inset var(--transition-speed);
     }
@@ -222,8 +223,8 @@ $padding-top: calc(0.5rem + var(--top-safe-area));
   justify-content: space-evenly;
   margin-inline-start: auto;
   text-align: center;
-  border-start-end-radius: $corner-radius;
-  border-end-end-radius: $corner-radius;
+  border-start-end-radius: var(--tab-radius);
+  border-end-end-radius: var(--tab-radius);
   transition:
     margin var(--transition-speed),
     width var(--transition-speed);
@@ -239,7 +240,7 @@ $padding-top: calc(0.5rem + var(--top-safe-area));
   &::before {
     @include pseudo-element;
     inset-inline-end: 0;
-    height: 2 * $corner-radius;
+    height: calc(2 * var(--tab-radius));
     width: 0;
     transition:
       margin var(--transition-speed),
@@ -250,8 +251,8 @@ $padding-top: calc(0.5rem + var(--top-safe-area));
   &::after {
     @include pseudo-element;
     inset-inline-end: 0;
-    width: $corner-radius;
-    height: $corner-radius;
+    width: var(--tab-radius);
+    height: var(--tab-radius);
     transition: inset var(--transition-speed);
   }
 
