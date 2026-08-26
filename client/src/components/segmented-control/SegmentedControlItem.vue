@@ -49,7 +49,7 @@ li.segmentedControlItem {
   border-radius: var(--control-border-radius);
   border: 1px solid transparent;
 
-  min-height: max(1.75rem, var(--tap-min));
+  min-height: 1.75rem;
   box-sizing: border-box;
   flex-grow: 1;
 
@@ -65,6 +65,9 @@ li.segmentedControlItem {
 
   > button {
     $button-padding: 0.15rem;
+
+    // On the button, which is the target; the item around it carries a border
+    min-height: var(--tap-min);
 
     flex: 1;
     appearance: none;
