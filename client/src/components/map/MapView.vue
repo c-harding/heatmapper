@@ -41,7 +41,10 @@ import Viewport from '@/Viewport';
 const center = defineModel<LngLatLike>('center', { required: true });
 const zoom = defineModel<number>('zoom', { required: true });
 
-const { minimisedSidebar } = defineProps<{ minimisedSidebar: boolean }>();
+const { minimisedSidebar, sidebarClearing } = defineProps<{
+  minimisedSidebar: boolean;
+  sidebarClearing: boolean;
+}>();
 
 defineExpose({ zoomToSelection });
 
@@ -384,7 +387,14 @@ map.once('idle', () => {
 </script>
 
 <template>
-  <div ref="container" :class="['map-container', !minimisedSidebar && 'sidebar-covering']" />
+  <div
+    ref="container"
+    :class="[
+      'map-container',
+      !minimisedSidebar && 'sidebar-covering',
+      sidebarClearing && 'sidebar-clearing',
+    ]"
+  />
   <Teleport :to="buttonTarget">
     <div class="mapboxgl-ctrl mapboxgl-ctrl-group">
       <button @click="terrain = !terrain">
@@ -490,6 +500,9 @@ $widget-gap: 10px;
   z-index: 2;
   pointer-events: none;
 
+  --fold-speed: calc(var(--transition-speed) / 2);
+  --fold-delay: 0s;
+
   display: grid;
   grid-template-columns: auto 1fr;
   // minmax(0, 1fr) allows scaling to zero, which a bare 1fr would not
@@ -497,7 +510,7 @@ $widget-gap: 10px;
   grid-template-areas:
     'inlineStart inlineEnd'
     'footer footer';
-  transition: grid-template-rows calc(var(--transition-speed) / 2);
+  transition: grid-template-rows var(--fold-speed) var(--fold-delay);
 
   padding-inline: var(--inline-start-safe-area) var(--inline-end-safe-area);
   padding-block-end: var(--bottom-safe-area);
@@ -509,6 +522,12 @@ $widget-gap: 10px;
   // Collapsed at both ends of the footer's own transition, so the widgets ride in and out with it
   &:has(.map-footer-enter-from, .map-footer-leave-to) {
     grid-template-rows: auto minmax(0, 0fr);
+  }
+
+  // Leaving takes the first half of the sidebar's move, so arriving takes the second: one is the
+  // other run backwards, rather than the card landing while the sidebar is still on its way out
+  .map-container.sidebar-clearing &:has(.map-footer-enter-active) {
+    --fold-delay: var(--fold-speed);
   }
 }
 
@@ -558,7 +577,7 @@ $widget-gap: 10px;
 
 .map-footer > * {
   margin-inline: $widget-gap;
-  transition: opacity calc(var(--transition-speed) / 2);
+  transition: opacity var(--fold-speed) var(--fold-delay);
 }
 
 .map-footer-enter-from,
