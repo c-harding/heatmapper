@@ -18,11 +18,9 @@ const keepSignedIn = ref(true);
     <div :class="$style.notLoggedIn">
       <p v-if="reconnect">Your connection to Strava has expired, please reconnect.</p>
       <p v-else>You are not logged in. Click to continue to log in with Strava.</p>
-      <img
-        :class="$style.connectToStrava"
-        src="@/assets/connect-to-strava.svg"
-        @click="emit('login', keepSignedIn)"
-      />
+      <button type="button" :class="$style.connectToStrava" @click="emit('login', keepSignedIn)">
+        <img src="@/assets/connect-to-strava.svg" alt="Connect with Strava" />
+      </button>
 
       <label v-if="!reconnect">
         <input v-model="keepSignedIn" type="checkbox" />
@@ -67,8 +65,16 @@ const keepSignedIn = ref(true);
   }
 
   .connectToStrava {
+    all: unset;
     display: block;
     margin-inline: auto;
+    cursor: pointer;
+
+    // The image is Strava's and may not be altered, so the ring goes around it
+    &:focus-visible {
+      outline: 2px solid AccentColor;
+      outline-offset: 2px;
+    }
   }
 
   .centered {
