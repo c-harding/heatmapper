@@ -414,11 +414,12 @@ map.once('idle', () => {
   padding-bottom: var(--bottom-safe-area);
 }
 
+/* Only the inline-end corners: the sidebar covers the window's inline-start edge. */
 .mapboxgl-ctrl-top-right:dir(ltr),
 .mapboxgl-ctrl-bottom-right:dir(ltr),
 .mapboxgl-ctrl-top-left:dir(rtl),
 .mapboxgl-ctrl-bottom-left:dir(rtl) {
-  padding-left: var(--inline-end-safe-area);
+  padding-inline-end: var(--inline-end-safe-area);
 }
 
 /* Override colors of the fullscreen and compass controls to support dark mode */
