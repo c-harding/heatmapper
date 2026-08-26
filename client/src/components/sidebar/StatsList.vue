@@ -19,11 +19,17 @@ const filteredStats = computed(() => stats.filter(Boolean));
 </template>
 
 <style module lang="scss">
+@use '../../styles/typography' as typography;
+
 .statsList {
+  @include typography.optical-centre;
+
   font-size: 0.75em;
   display: block;
   position: relative;
-  overflow-x: hidden;
+  // Not hidden: that would make the block axis a scroll container, which the trim gives something
+  // to scroll
+  overflow-x: clip;
 
   $separator-spacing: 0.75em;
   margin-right: -$separator-spacing;

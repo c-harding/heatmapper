@@ -91,6 +91,8 @@ const statsIcons = computed(() =>
 </template>
 
 <style module lang="scss">
+@use '../../styles/typography' as typography;
+
 .mapItemRow {
   font-size: 14px;
   display: flex;
@@ -108,10 +110,14 @@ const statsIcons = computed(() =>
   }
 
   .name {
+    @include typography.optical-centre;
+
     overflow-wrap: anywhere;
   }
 
   .device {
+    @include typography.optical-centre;
+
     font-size: 0.75em;
     color: var(--color-mid);
   }
@@ -127,6 +133,8 @@ const statsIcons = computed(() =>
   }
 
   .date {
+    @include typography.optical-centre;
+
     font-size: 0.75em;
     text-align: end;
     white-space: pre-line;

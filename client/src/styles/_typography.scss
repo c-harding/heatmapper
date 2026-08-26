@@ -1,0 +1,26 @@
+/// Sit text on the optical centre of its line box, at the height it already had.
+///
+/// The ink sits low, because the ascent leaves more room above the caps than the descent leaves
+/// below the baseline. Trimming to the cap band and padding it back evenly re-centres it:
+/// 1cap + 2 x (1lh - 1cap) / 2 is 1lh, on any number of lines. Descenders reach into the padding
+/// rather than being clipped, since overflow clips at the padding box.
+///
+/// The trim leaves a sliver of block overflow, harmless until the element is a scroll container.
+/// Clipping one axis must therefore use `overflow-x: clip`, as `hidden` would turn the other axis
+/// into `auto` and give it that sliver to scroll.
+///
+/// `@supports` cannot guard where this applies — it tests the property, not whether the property
+/// reaches the element — and each engine refuses a different shape. Measured across all three:
+/// Firefox will not trim a scroll container, so one-axis clipping has to be `overflow-x: clip` and
+/// two-axis `overflow: clip`, never `hidden`. Safari will not trim a `-webkit-box`, whatever its
+/// overflow, which rules out `-webkit-line-clamp` and its ellipsis. Chromium trims all of it. An
+/// element that is itself a flex or grid container has no line boxes to trim anywhere.
+///
+/// Getting it wrong is worse than not applying it: the padding lands with nothing to compensate it
+/// and the box grows by `1lh - 1cap`.
+@mixin optical-centre {
+  @supports (text-box: trim-both cap alphabetic) {
+    text-box: trim-both cap alphabetic;
+    padding-block: calc((1lh - 1cap) / 2);
+  }
+}

@@ -16,6 +16,8 @@ const { icon } = defineProps<{
 </template>
 
 <style module lang="scss">
+@use '../../styles/typography' as typography;
+
 .uiLabelledIcon {
   display: flex;
   justify-content: center;
@@ -25,6 +27,8 @@ const { icon } = defineProps<{
   }
 
   .label {
+    @include typography.optical-centre;
+
     flex: 1;
   }
 }
