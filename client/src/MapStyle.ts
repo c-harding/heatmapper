@@ -86,13 +86,23 @@ const renamedStyles: Partial<Record<string, MapStyleSelection>> = {
 };
 
 const mapStyleChoices: readonly DropdownChoice<MapStyleSelection>[] = [
-  { value: 'natural', label: 'Natural' },
-  { value: MapStyle.NATURAL_LIGHT, label: 'Natural Light' },
-  { value: MapStyle.NATURAL_DARK, label: 'Natural Dark' },
+  {
+    value: 'natural',
+    label: 'Natural',
+    variants: [
+      { value: MapStyle.NATURAL_LIGHT, icon: 'light_mode', label: 'Natural Light' },
+      { value: MapStyle.NATURAL_DARK, icon: 'dark_mode', label: 'Natural Dark' },
+    ],
+  },
   { value: MapStyle.ORIGINAL, label: 'Original' },
-  { value: 'minimal', label: 'Minimal' },
-  { value: MapStyle.MINIMAL_LIGHT, label: 'Minimal Light' },
-  { value: MapStyle.MINIMAL_DARK, label: 'Minimal Dark' },
+  {
+    value: 'minimal',
+    label: 'Minimal',
+    variants: [
+      { value: MapStyle.MINIMAL_LIGHT, icon: 'light_mode', label: 'Minimal Light' },
+      { value: MapStyle.MINIMAL_DARK, icon: 'dark_mode', label: 'Minimal Dark' },
+    ],
+  },
   { value: MapStyle.STANDARD, label: 'Standard' },
   { value: MapStyle.OUTDOOR, label: 'Outdoor' },
   { value: MapStyle.SATELLITE, label: 'Satellite' },
