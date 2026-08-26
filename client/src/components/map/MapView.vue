@@ -492,12 +492,24 @@ $widget-gap: 10px;
 
   display: grid;
   grid-template-columns: auto 1fr;
+  // minmax(0, 1fr) allows scaling to zero, which a bare 1fr would not
+  grid-template-rows: auto minmax(0, 0fr);
   grid-template-areas:
     'inlineStart inlineEnd'
     'footer footer';
+  transition: grid-template-rows calc(var(--transition-speed) / 2);
 
   padding-inline: var(--inline-start-safe-area) var(--inline-end-safe-area);
   padding-block-end: var(--bottom-safe-area);
+
+  &:has(.map-footer > *) {
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+
+  // Collapsed at both ends of the footer's own transition, so the widgets ride in and out with it
+  &:has(.map-footer-enter-from, .map-footer-leave-to) {
+    grid-template-rows: auto minmax(0, 0fr);
+  }
 }
 
 .map-bottom-start,
@@ -521,6 +533,8 @@ $widget-gap: 10px;
 
 .map-footer {
   grid-area: footer;
+  display: grid;
+  overflow: clip;
 
   // Reset the mapbox-provided font
   font-family: var(--font-family);
@@ -544,6 +558,12 @@ $widget-gap: 10px;
 
 .map-footer > * {
   margin-inline: $widget-gap;
+  transition: opacity calc(var(--transition-speed) / 2);
+}
+
+.map-footer-enter-from,
+.map-footer-leave-to {
+  opacity: 0;
 }
 
 /* Override colors of the fullscreen and compass controls to support dark mode */

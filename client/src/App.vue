@@ -65,7 +65,9 @@ defineExpose({ mapItems: activityStore.mapItems });
     <Suspense>
       <MapView ref="map" v-model:center="center" v-model:zoom="zoom" :minimisedSidebar="minimised">
         <template #bottom>
-          <SelectionCard v-if="minimised && selectionStore.selectedItems.length" />
+          <Transition name="map-footer">
+            <SelectionCard v-if="minimised && selectionStore.selectedItems.length" />
+          </Transition>
         </template>
       </MapView>
     </Suspense>

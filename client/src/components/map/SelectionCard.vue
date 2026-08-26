@@ -22,7 +22,7 @@ const totals = computed(() =>
 </script>
 
 <template>
-  <div v-if="selectionStore.selectedItems.length" :class="$style.selectionCard">
+  <div :class="$style.selectionCard">
     <MapItemRow v-if="singleItem" :class="$style.content" :item="singleItem" />
     <div v-else :class="[$style.content, $style.totals]">
       <SidebarItemCount :counts="totals" />
