@@ -96,7 +96,7 @@ button.button {
       font-style: normal;
       font-size: calc(v-bind(iconScale) * 1.25rem);
       width: 1.25rem;
-      overflow: hidden;
+      overflow: clip;
       line-height: 1;
       letter-spacing: normal;
       text-transform: none;
