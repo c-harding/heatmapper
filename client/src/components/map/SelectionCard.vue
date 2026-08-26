@@ -44,10 +44,12 @@ const totals = computed(() =>
   // The stack it sits in does not take pointer events, so this has to ask for them
   pointer-events: auto;
 
+  --row-inline-padding: 8px;
+
   display: flex;
   align-items: center;
   gap: 4px;
-  padding-inline: 8px;
+  padding-inline: var(--row-inline-padding);
 
   background-color: var(--background-full);
   color: var(--color-full);

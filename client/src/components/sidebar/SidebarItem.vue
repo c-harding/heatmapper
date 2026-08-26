@@ -51,7 +51,10 @@ const emit = defineEmits<{
 <style module lang="scss">
 .sidebarItem {
   cursor: pointer;
-  padding-inline-start: 8px;
+
+  --row-inline-padding: 8px;
+
+  padding-inline: var(--row-inline-padding);
 
   &:hover {
     background: var(--background-strong);
