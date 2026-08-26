@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { type MapItem } from '@strava-heatmapper/shared/interfaces';
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 
 import { useActivityStore } from '@/stores/ActivityStore';
 import { type FilterModel } from '@/types/FilterModel';
@@ -21,6 +21,25 @@ const StravaActivitySymbol = config.USE_STRAVA_ICONS ? StravaIcon : StravaEmoji;
 const { item } = defineProps<{
   item: MapItem;
 }>();
+
+const nameElement = ref<HTMLElement>();
+
+const clippedName = ref<string>();
+
+// Read on hover rather than on render, so a list of thousands does not measure every row
+function checkNameClipped() {
+  const element = nameElement.value;
+  if (!element) return;
+
+  // Measured against itself unclamped: the trim leaves scrollHeight above clientHeight even when
+  // every line fits, so the two cannot be compared directly
+  const clamped = element.clientHeight;
+  element.style.maxHeight = 'none';
+  const full = element.clientHeight;
+  element.style.maxHeight = '';
+
+  clippedName.value = full > clamped ? item.name : undefined;
+}
 
 const startDate = computed(() => (!item.route && item.localDate) || item.date);
 
@@ -76,7 +95,13 @@ const statsIcons = computed(() =>
     <slot name="leading" />
     <StravaActivitySymbol :class="$style.stravaIcon" :sportType="item.type" />
     <div :class="$style.info">
-      <div :class="$style.name" v-text="item.name" />
+      <div
+        ref="nameElement"
+        :class="$style.name"
+        :title="clippedName"
+        @pointerenter="checkNameClipped"
+        v-text="item.name"
+      />
       <div v-if="device" :class="$style.device" v-text="device" />
       <div style="display: flex">
         <SidebarItemStats :item :icons="statsIcons" />
