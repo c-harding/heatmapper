@@ -45,6 +45,11 @@ function zoomToSelected(): void {
   map.value?.zoomToSelection();
 }
 
+function unfold() {
+  minimised.value = false;
+  scrollToSelected();
+}
+
 function scrollToSelected() {
   const el = document.querySelector(`.${SELECTED_SIDEBAR_ITEM_SELECTOR}`);
   el?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
@@ -66,7 +71,10 @@ defineExpose({ mapItems: activityStore.mapItems });
       <MapView ref="map" v-model:center="center" v-model:zoom="zoom" :minimisedSidebar="minimised">
         <template #bottom>
           <Transition name="map-footer">
-            <SelectionCard v-if="minimised && selectionStore.selectedItems.length" />
+            <SelectionCard
+              v-if="minimised && selectionStore.selectedItems.length"
+              @unfold="unfold()"
+            />
           </Transition>
         </template>
       </MapView>

@@ -19,10 +19,14 @@ const singleItem = computed(() =>
 const totals = computed(() =>
   combineStats(selectionStore.selectedItems, selectionStore.selectedItems),
 );
+
+const emit = defineEmits<{
+  unfold: [];
+}>();
 </script>
 
 <template>
-  <div :class="$style.selectionCard">
+  <div :class="$style.selectionCard" @click="emit('unfold')">
     <MapItemRow v-if="singleItem" :class="$style.content" :item="singleItem" />
     <div v-else :class="[$style.content, $style.totals]">
       <SidebarItemCount :counts="totals" />
@@ -32,7 +36,7 @@ const totals = computed(() =>
       type="button"
       :class="$style.clear"
       aria-label="Clear selection"
-      @click="selectionStore.clearSelection()"
+      @click.stop="selectionStore.clearSelection()"
     >
       <UIIcon icon="close" />
     </button>
@@ -43,6 +47,7 @@ const totals = computed(() =>
 .selectionCard {
   // The stack it sits in does not take pointer events, so this has to ask for them
   pointer-events: auto;
+  cursor: pointer;
 
   --row-inline-padding: 8px;
 
