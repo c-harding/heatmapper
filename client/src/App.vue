@@ -59,7 +59,12 @@ defineExpose({ mapItems: activityStore.mapItems });
       />
     </CollapsibleSidebar>
     <Suspense>
-        <MapView ref="map" v-model:center="center" v-model:zoom="zoom" />
+      <MapView
+        ref="map"
+        v-model:center="center"
+        v-model:zoom="zoom"
+        :minimisedSidebar="minimised"
+      />
     </Suspense>
   </div>
 </template>

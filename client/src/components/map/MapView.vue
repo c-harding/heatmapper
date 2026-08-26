@@ -35,6 +35,8 @@ import Viewport from '@/Viewport';
 const center = defineModel<LngLatLike>('center', { required: true });
 const zoom = defineModel<number>('zoom', { required: true });
 
+const { minimisedSidebar } = defineProps<{ minimisedSidebar: boolean }>();
+
 defineExpose({ zoomToSelection });
 
 const selectionStore = useSelectionStore();
@@ -337,7 +339,7 @@ map.once('idle', () => {
 </script>
 
 <template>
-  <div ref="container" class="map-container" />
+  <div ref="container" :class="['map-container', !minimisedSidebar && 'sidebar-covering']" />
   <Teleport :to="buttonTarget">
     <div class="mapboxgl-ctrl mapboxgl-ctrl-group">
       <button @click="terrain = !terrain">
@@ -351,7 +353,9 @@ map.once('idle', () => {
   </Teleport>
 </template>
 
-<style>
+<style lang="scss">
+@use '@/styles/breakpoints';
+
 @import 'mapbox-gl/dist/mapbox-gl.css' layer(mapbox);
 
 .map-container {
@@ -420,6 +424,20 @@ map.once('idle', () => {
 .mapboxgl-ctrl-top-left:dir(rtl),
 .mapboxgl-ctrl-bottom-left:dir(rtl) {
   padding-inline-end: var(--inline-end-safe-area);
+}
+
+/* The corner holding our own widgets. */
+.mapboxgl-ctrl-top-right:dir(ltr),
+.mapboxgl-ctrl-top-left:dir(rtl) {
+  transition: opacity var(--transition-speed);
+}
+
+/* Below the breakpoint the expanded sidebar covers the map, putting these out of reach. */
+@media screen and (max-width: breakpoints.$max-size-to-minimise) {
+  .map-container.sidebar-covering .mapboxgl-ctrl-top-right:dir(ltr),
+  .map-container.sidebar-covering .mapboxgl-ctrl-top-left:dir(rtl) {
+    opacity: 0;
+  }
 }
 
 /* Override colors of the fullscreen and compass controls to support dark mode */
