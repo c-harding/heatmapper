@@ -132,7 +132,7 @@ if (!window.cachedMapElement) {
     keepOutSlot(bottomStack, 'map-bottom-end'),
     new mapboxgl.AttributionControl({ compact: true }),
   );
-  keepOutSlot(bottomStack, 'map-footer');
+  keepOutSlot(bottomStack, 'map-footer').setAttribute('aria-live', 'polite');
 
   // The Map constructor adds this one, so its element is in a corner rather than staged
   const logo = newMap.getContainer().querySelector('.mapboxgl-ctrl-logo')?.parentElement;
