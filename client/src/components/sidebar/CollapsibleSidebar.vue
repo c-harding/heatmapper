@@ -9,10 +9,11 @@ const minimised = defineModel<boolean>('minimised');
 
 const minimisedOverlay = ref<HTMLElement>();
 
-const backArrow = document.dir === 'rtl' ? 'arrow_forward' : 'arrow_back';
+const rtl = document.dir === 'rtl';
 
-// Points the way the sidebar is about to travel
-const foldChevron = document.dir === 'rtl' ? 'chevron_right' : 'chevron_left';
+// Each points the way the sidebar is about to travel
+const hideChevron = rtl ? 'chevron_right' : 'chevron_left';
+const showChevron = rtl ? 'chevron_left' : 'chevron_right';
 
 const appName = import.meta.env.VITE_APP_NAME as string;
 
@@ -54,15 +55,16 @@ function clickHeader() {
       <span :class="[$style.tab, $style.map]" :aria-hidden="minimised">
         <span>
           <UIIcon icon="map" :class="$style.viewIcon" aria-hidden="true" />
-          <UIIcon :icon="foldChevron" :class="$style.foldIcon" aria-hidden="true" />
+          <UIIcon :icon="hideChevron" :class="$style.foldIcon" aria-hidden="true" />
         </span>
         <span>Map</span>
       </span>
       <span :class="[$style.tab, $style.back]" :aria-hidden="!minimised">
         <span>
-          <UIIcon :icon="backArrow" aria-hidden="true" />
+          <UIIcon icon="menu" :class="$style.viewIcon" aria-hidden="true" />
+          <UIIcon :icon="showChevron" :class="$style.foldIcon" aria-hidden="true" />
         </span>
-        <span>Back</span>
+        <span>Menu</span>
       </span>
       <span :class="[$style.tabCurve, $style.bottom]" />
     </button>
