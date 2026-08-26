@@ -179,7 +179,7 @@ function saveFilter() {
 }
 function resetToSaved() {
   previousFilters.value = { ...activityStore.filterModel };
-  Object.assign(activityStore.filterModel, savedFilter.value);
+  Object.assign(activityStore.filterModel, blankFilter, savedFilter.value);
 }
 
 function formatRange(
