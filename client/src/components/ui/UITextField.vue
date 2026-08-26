@@ -95,7 +95,7 @@ const pickListId = computed(() =>
   background-color: var(--background-full);
 
   min-width: 3em;
-  min-height: 1.75rem;
+  min-height: max(1.75rem, var(--tap-min));
   box-sizing: border-box;
 
   input {

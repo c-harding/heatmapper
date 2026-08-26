@@ -112,7 +112,7 @@ button.button {
   color: var(--color-full);
   max-width: max-content;
   min-width: min-content;
-  min-height: 1.75rem;
+  min-height: max(1.75rem, var(--tap-min));
   font-size: 0.9em;
 
   &:disabled {

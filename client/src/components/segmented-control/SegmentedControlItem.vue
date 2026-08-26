@@ -49,7 +49,7 @@ li.segmentedControlItem {
   border-radius: var(--control-border-radius);
   border: 1px solid transparent;
 
-  min-height: 1.75rem;
+  min-height: max(1.75rem, var(--tap-min));
   box-sizing: border-box;
   flex-grow: 1;
 

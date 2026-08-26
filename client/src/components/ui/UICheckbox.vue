@@ -51,6 +51,7 @@ const checkedIcon = computed(() => `'${rawCheckedIcon}'`);
   align-items: center;
   gap: 0.5rem;
   padding-inline: 0.5rem;
+  min-height: var(--tap-min);
 
   > .input {
     appearance: none;
