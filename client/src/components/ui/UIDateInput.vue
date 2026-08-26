@@ -42,7 +42,7 @@ function dateToYYYYMMDD(date: Date | null): string | null {
   background-color: var(--background-strong);
 
   min-width: 3em;
-  min-height: 1.75rem;
+  min-height: max(1.75rem, var(--tap-min));
   box-sizing: border-box;
 
   input {

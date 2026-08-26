@@ -159,7 +159,7 @@ function clickGroup(e: MouseEvent) {
   z-index: 1;
 
   display: flex;
-  min-height: 36px;
+  min-height: max(36px, var(--tap-min));
   align-items: center;
 
   > .sidebarGroupInfo {

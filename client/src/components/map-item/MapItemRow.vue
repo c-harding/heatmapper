@@ -129,7 +129,7 @@ const statsIcons = computed(() =>
     'leading icon stack .    link';
   align-items: center;
   box-sizing: border-box;
-  min-height: 36px;
+  min-height: max(36px, var(--tap-min));
   --row-block-padding: 2px;
   padding-block: var(--row-block-padding);
 
@@ -150,7 +150,7 @@ const statsIcons = computed(() =>
 
   &.hasDevice {
     // Increase the height to accommodate the device information
-    min-height: 49px;
+    min-height: max(49px, var(--tap-min));
   }
 
   .stravaIcon {

@@ -60,7 +60,7 @@ const optionsAndGaps = computed(() => {
 .dropdown {
   display: flex;
   margin: 0.5rem;
-  min-height: 1.75rem;
+  min-height: max(1.75rem, var(--tap-min));
   box-sizing: border-box;
   align-self: stretch;
 
