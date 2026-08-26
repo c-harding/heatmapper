@@ -96,7 +96,7 @@ $sidebar-overlap: calc(#{sidebar.$minimised-width} - #{$sidebar-width});
 }
 
 .sidebar {
-  --tab-width: #{sidebar.$tab-width};
+  @include sidebar.metrics(':not(.minimised)');
   --tab-radius: min(var(--surface-border-radius), calc(var(--tab-width) / 2));
   --bottom-curve: 1;
 
@@ -191,8 +191,8 @@ $sidebar-overlap: calc(#{sidebar.$minimised-width} - #{$sidebar-width});
 
   &.minimised {
     inset-inline-start: 100%;
-    inset-inline-end: -1 * (sidebar.$minimised-width + sidebar.$tab-width);
-    height: sidebar.$overlay-height;
+    inset-inline-end: calc(-1 * var(--sidebar-overlay-width));
+    height: var(--sidebar-overlay-height);
   }
 }
 
@@ -371,9 +371,7 @@ $sidebar-overlap: calc(#{sidebar.$minimised-width} - #{$sidebar-width});
 // On screens with space to fit the sidebar next to the map, a more subtle button is
 // used to hide the sidebar
 @include breakpoints.beside-the-map {
-  .sidebar:not(.minimised) {
-    --tab-width: #{sidebar.$slim-tab-width};
-
+  .sidebar {
     .viewIcon {
       display: none;
     }
@@ -398,12 +396,7 @@ $sidebar-overlap: calc(#{sidebar.$minimised-width} - #{$sidebar-width});
   }
 }
 
-@media screen and (max-width: breakpoints.$max-size-to-minimise) {
-  :global(#app) {
-    --sidebar-overlay-width: #{sidebar.$minimised-width + sidebar.$tab-width};
-    --sidebar-overlay-height: #{sidebar.$overlay-height};
-  }
-
+@include breakpoints.over-the-map {
   // Too narrow to give the sidebar room of its own, so it floats over the map instead
   .sidebar {
     margin-inline-end: $sidebar-overlap;

@@ -477,12 +477,15 @@ map.once('idle', () => {
 
 <style lang="scss">
 @use '@/styles/breakpoints';
+@use '@/styles/sidebar';
 
 @import 'mapbox-gl/dist/mapbox-gl.css' layer(mapbox);
 
 $widget-gap: 10px;
 
 .map-container {
+  @include sidebar.metrics('.sidebar-expanded');
+
   display: contents;
 }
 
@@ -550,7 +553,7 @@ $widget-gap: 10px;
 }
 
 /* Below the breakpoint the expanded sidebar covers the map, putting these out of reach. */
-@media screen and (max-width: breakpoints.$max-size-to-minimise) {
+@include breakpoints.over-the-map {
   .map-container.sidebar-expanded .mapboxgl-ctrl-top-right:dir(ltr),
   .map-container.sidebar-expanded .mapboxgl-ctrl-top-left:dir(rtl) {
     opacity: 0;
