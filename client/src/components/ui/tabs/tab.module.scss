@@ -50,10 +50,17 @@ $remaining-padding: calc(var(--form-inline-padding, 0px) - $taken-padding);
     margin-inline-start: calc(-1 * $remaining-padding);
 
     .buttonContent {
+      box-sizing: border-box;
       padding-block: $row-padding;
       padding-inline: calc($taken-padding / 2);
+
+      // Square enough to hit, counting the padding the button already reaches into
+      min-height: var(--tap-min);
+      min-width: calc(var(--tap-min) - $remaining-padding);
+
       display: flex;
       align-items: center;
+      justify-content: center;
     }
 
     // On the icon's box, as the button itself runs the height of the open tab. The browser's ring
@@ -121,7 +128,9 @@ $remaining-padding: calc(var(--form-inline-padding, 0px) - $taken-padding);
 }
 
 .summaryRow {
+  box-sizing: border-box;
   padding-block: $row-padding;
+  min-height: var(--tap-min);
 
   // flex, so the button can take the full height
   display: flex;
