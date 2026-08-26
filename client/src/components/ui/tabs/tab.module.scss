@@ -45,9 +45,16 @@ $row-padding: 0.25rem;
     margin-inline-start: calc(-1 * var(--form-inline-padding, 0px));
 
     .buttonContent {
+      box-sizing: border-box;
       padding-block: $row-padding;
+
+      // Square enough to hit, counting the padding the button already reaches into
+      min-height: var(--tap-min);
+      min-width: calc(var(--tap-min) - var(--form-inline-padding, 0px));
+
       display: flex;
       align-items: center;
+      justify-content: center;
     }
 
     &:focus-visible {
@@ -102,7 +109,9 @@ $row-padding: 0.25rem;
 
 .summaryRow {
   list-style: none;
+  box-sizing: border-box;
   padding-block: $row-padding;
+  min-height: var(--tap-min);
 
   // flex, so the button can take the full height
   display: flex;
