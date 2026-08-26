@@ -233,6 +233,26 @@ function atRest<T>(measure: () => T): T {
 }
 
 /**
+ * Run `measure` with the card shown, so the space it will take is reserved even where it is stowed
+ * — double-tapping a row in the list frames a route while the sidebar is open and the card is not.
+ *
+ * v-show leaves the element in place under an inline `display: none`, which is what makes this
+ * possible at all; the same rules as atRest apply, so nothing here may await.
+ */
+function unstowed<T>(measure: () => T): T {
+  const stowed = [
+    ...(container.value?.querySelectorAll<HTMLElement>(`[${KEEP_OUT}] > *`) ?? []),
+  ].filter((child) => child.style.display === 'none');
+
+  stowed.forEach((child) => (child.style.display = ''));
+  try {
+    return measure();
+  } finally {
+    stowed.forEach((child) => (child.style.display = 'none'));
+  }
+}
+
+/**
  * Calculate all ways of zooming to fit the activity while avoiding the controls in the corners.
  *
  * This works by considering the visual aspect ratio of the route, and for each corner control,
@@ -325,7 +345,7 @@ function flyTo(mapItems: readonly MapItem[], zoom = false): void {
     new mapboxgl.LngLatBounds(coordinates[0], coordinates[0]),
   );
 
-  const viewports = atRest(getViewports);
+  const viewports = atRest(() => unstowed(getViewports));
 
   if (!zoom && viewports.some((viewport) => checkBoundsForViewport(viewport, bounds))) {
     // If one of the viewports fits on the screen, there is no need to rezoom

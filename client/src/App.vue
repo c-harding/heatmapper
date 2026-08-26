@@ -99,7 +99,8 @@ defineExpose({ mapItems: activityStore.mapItems });
         <template #bottom>
           <Transition name="map-footer">
             <SelectionCard
-              v-if="showSelectionCard"
+              v-if="selectionStore.selectedItems.length"
+              v-show="minimised"
               @unfold="unfold()"
             />
           </Transition>
