@@ -84,7 +84,7 @@ dialog.uiModal {
     padding: 1em;
     overflow-block: auto;
 
-    :first-child {
+    > :first-child {
       margin-top: 0;
     }
   }
