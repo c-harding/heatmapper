@@ -576,13 +576,20 @@ $widget-gap: 10px;
 
 .map-footer {
   grid-area: footer;
-  display: grid;
+  // minimised keeps its value across a resize past the breakpoint, where it means nothing
+  display: none;
   overflow: clip;
 
   // Reset the mapbox-provided font
   font-family: var(--font-family);
   font-size: 1rem;
   line-height: normal;
+}
+
+@media screen and (max-width: breakpoints.$max-size-to-minimise) {
+  .map-footer {
+    display: grid;
+  }
 }
 
 .map-bottom-start > .mapboxgl-ctrl,
