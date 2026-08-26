@@ -113,6 +113,14 @@ const statsIcons = computed(() =>
     @include typography.optical-centre;
 
     overflow-wrap: anywhere;
+
+    // Long enough for any real name; past that the row would run away with the list. Three trimmed
+    // lines are 3lh less the (1lh - 1cap) the trim takes off the ends. -webkit-line-clamp would
+    // bring an ellipsis, but only on a -webkit-box, which Safari will not trim; hidden would make a
+    // scroll container, which Firefox will not trim.
+    display: block;
+    max-height: calc(2lh + 1cap);
+    overflow: clip;
   }
 
   .device {
