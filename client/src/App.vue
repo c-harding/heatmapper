@@ -140,6 +140,15 @@ a[href] {
   color: var(--color-full);
 }
 
+@media (pointer: coarse) {
+  :root {
+    --tap-min: 32px;
+
+    /* A quarter of the control's height, as 7 is of 28 */
+    --control-border-radius: 8px;
+  }
+}
+
 @media (prefers-color-scheme: dark) {
   :root {
     --color-full: #fff;
