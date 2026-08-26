@@ -1,0 +1,87 @@
+<script setup lang="ts">
+import { computed } from 'vue';
+
+import { useSelectionStore } from '@/stores/SelectionStore';
+import { combineStats } from '@/utils/stats';
+
+import MapItemRow from '../map-item/MapItemRow.vue';
+import SidebarItemCount from '../sidebar/SidebarItemCount.vue';
+import SidebarItemStats from '../sidebar/SidebarItemStats.vue';
+import UIIcon from '../ui/UIIcon.vue';
+
+const selectionStore = useSelectionStore();
+
+const singleItem = computed(() =>
+  selectionStore.selectedItems.length === 1 ? selectionStore.selectedItems[0] : undefined,
+);
+
+// Passed twice so that showSelected is set, which is what names the count "3 activities selected"
+const totals = computed(() =>
+  combineStats(selectionStore.selectedItems, selectionStore.selectedItems),
+);
+</script>
+
+<template>
+  <div v-if="selectionStore.selectedItems.length" :class="$style.selectionCard">
+    <MapItemRow v-if="singleItem" :class="$style.content" :item="singleItem" />
+    <div v-else :class="[$style.content, $style.totals]">
+      <SidebarItemCount :counts="totals" />
+      <SidebarItemStats :item="totals" />
+    </div>
+    <button
+      type="button"
+      :class="$style.clear"
+      aria-label="Clear selection"
+      @click="selectionStore.clearSelection()"
+    >
+      <UIIcon icon="close" />
+    </button>
+  </div>
+</template>
+
+<style module lang="scss">
+.selectionCard {
+  // The stack it sits in does not take pointer events, so this has to ask for them
+  pointer-events: auto;
+
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding-inline: 8px;
+
+  background-color: var(--background-full);
+  color: var(--color-full);
+  border-radius: var(--surface-border-radius);
+  box-shadow: 0 2px 14px -4px rgb(0 0 0 / 55%);
+
+  .content {
+    flex: 1;
+    min-width: 0;
+    // A card stands on its own, where a row in the list has neighbours to be separated from
+    padding-block: 0.25rem;
+
+    // Compensate for the visual spacing around the ✕ on the right by adding more on the left
+    margin-inline-start: 4px;
+  }
+
+  .totals {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.25em;
+    font-size: 14px;
+    min-height: 36px;
+  }
+
+  .clear {
+    all: unset;
+    display: flex;
+    cursor: pointer;
+    color: var(--color-strong);
+
+    &:hover {
+      color: var(--bold-color);
+    }
+  }
+}
+</style>

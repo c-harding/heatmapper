@@ -3,10 +3,12 @@ import { ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 
 import MapView from './components/map/MapView.vue';
+import SelectionCard from './components/map/SelectionCard.vue';
 import CollapsibleSidebar from './components/sidebar/CollapsibleSidebar.vue';
 import SidebarContent from './components/sidebar/SidebarContent.vue';
 import { SELECTED_SIDEBAR_ITEM_SELECTOR } from './components/sidebar/SidebarItem.vue';
 import { useActivityStore } from './stores/ActivityStore';
+import { useSelectionStore } from './stores/SelectionStore';
 
 const { routes: routesInUrl = false } = defineProps<{ routes: boolean }>();
 
@@ -15,6 +17,8 @@ const router = useRouter();
 const map = ref<typeof MapView>();
 
 const activityStore = useActivityStore();
+
+const selectionStore = useSelectionStore();
 
 watch(
   [() => routesInUrl],
@@ -59,12 +63,11 @@ defineExpose({ mapItems: activityStore.mapItems });
       />
     </CollapsibleSidebar>
     <Suspense>
-      <MapView
-        ref="map"
-        v-model:center="center"
-        v-model:zoom="zoom"
-        :minimisedSidebar="minimised"
-      />
+      <MapView ref="map" v-model:center="center" v-model:zoom="zoom" :minimisedSidebar="minimised">
+        <template #bottom>
+          <SelectionCard v-if="minimised && selectionStore.selectedItems.length" />
+        </template>
+      </MapView>
     </Suspense>
   </div>
 </template>
@@ -105,7 +108,8 @@ a[href] {
   --link-color: blue;
   --control-border-radius: 7px;
   --surface-border-radius: 1rem;
-  font-family: -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif;
+  --font-family: -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif;
+  font-family: var(--font-family);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 

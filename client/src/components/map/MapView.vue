@@ -364,6 +364,8 @@ const { click } = useMapSelection({
 
 const buttonTarget = map.getContainer().querySelector(`.mapboxgl-ctrl-${topCorner}`);
 
+const footerTarget = map.getContainer().querySelector('.map-footer');
+
 map.on('zoomend', () => {
   zoomend(map);
 });
@@ -393,6 +395,9 @@ map.once('idle', () => {
     <div class="mapboxgl-ctrl mapboxgl-ctrl-group">
       <PickerControl v-model="mapChoice" :choices="mapStyleChoices" />
     </div>
+  </Teleport>
+  <Teleport :to="footerTarget">
+    <slot name="bottom" />
   </Teleport>
 </template>
 
@@ -516,6 +521,11 @@ $widget-gap: 10px;
 
 .map-footer {
   grid-area: footer;
+
+  // Reset the mapbox-provided font
+  font-family: var(--font-family);
+  font-size: 1rem;
+  line-height: normal;
 }
 
 .map-bottom-start > .mapboxgl-ctrl,
