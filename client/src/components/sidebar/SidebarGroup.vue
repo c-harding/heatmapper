@@ -154,7 +154,6 @@ function clickGroup(e: MouseEvent) {
   cursor: pointer;
   top: calc(v-bind('stickyHeaderHeightPx') - var(--group-height));
   height: var(--group-height);
-  bottom: 36px;
   background-color: var(--background-full);
   z-index: 1;
 
