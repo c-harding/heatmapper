@@ -2,11 +2,27 @@
   "url": "https://www.strava.com/tiles/pois/default-poi-style.json?style=dark-standard",
   "glyphs": "mapbox://fonts/charding/{fontstack}/{range}.pbf",
   "fonts": {
-    "Boathouse Regular": "DIN Pro Regular",
-    "Boathouse Medium": "DIN Pro Medium",
+    "Boathouse Regular": [
+      "DIN Pro Regular",
+      "Noto Sans Regular",
+      "Noto Sans Armenian Regular"
+    ],
+    "Boathouse Medium": [
+      "DIN Pro Medium",
+      "Noto Sans Medium",
+      "Noto Sans Armenian Medium"
+    ],
     "Boathouse Medium Oblique": "DIN Pro Medium Italic",
-    "Boathouse Bold": "DIN Pro Bold",
-    "Maison Neue APP Bold": "DIN Pro Bold"
+    "Boathouse Bold": [
+      "DIN Pro Bold",
+      "Noto Sans Bold",
+      "Noto Sans Armenian Bold"
+    ],
+    "Maison Neue APP Bold": [
+      "DIN Pro Bold",
+      "Noto Sans Bold",
+      "Noto Sans Armenian Bold"
+    ]
   },
   "sources": {
     "pois": null,

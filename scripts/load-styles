@@ -24,11 +24,15 @@ path to a source elsewhere, or name none to load all of them.
 
 The source is a JSON file describing the style, applied once it has been fetched:
 
-  "url"     where to fetch it from
+  url: string
+    where to fetch it from
 
-  "fonts"   renames the fonts a style labels itself in, wherever they are named, since those are
-            only fetchable by whoever the host serving the glyphs will serve them to
-  "layers"  is keyed by layer id and merged into the layer of that name, for correcting upstream
+  fonts: Record<string, string | string[]>
+    renames the fonts a style labels itself in, wherever they are named, since those are
+    only fetchable by whoever the host serving the glyphs will serve them to
+
+  layers: Record<string, object>
+    keyed by layer id, and merged into the layer of that name, for correcting upstream
 
 Anything else in the file is merged into the style itself. A null removes what it names rather
 than setting it, so "sources": {"x": null} drops that source, and the layers drawing it go too.
@@ -105,7 +109,10 @@ function applyEdits(style, { fonts = {}, layers = {}, ...rest }) {
 /** Rename fonts throughout a text-font, which may be an expression rather than a plain stack. */
 function renameFonts(fonts, value) {
   if (typeof value === 'string') return fonts.get(value) ?? value;
-  if (Array.isArray(value)) return value.map((item) => renameFonts(fonts, item));
+  if (Array.isArray(value)) {
+    const renamed = value.map((item) => renameFonts(fonts, item));
+    return value.every((item) => typeof item === 'string') ? renamed.flat() : renamed;
+  }
   return value;
 }
 
