@@ -1,11 +1,11 @@
 {
   "url": "https://www.strava.com/tiles/pois/default-poi-style.json?style=dark-standard",
   "fonts": {
-    "Boathouse Regular": "Roboto Regular",
-    "Boathouse Medium": "Roboto Medium",
-    "Boathouse Medium Oblique": "Roboto Italic",
-    "Boathouse Bold": "Roboto Bold",
-    "Maison Neue APP Bold": "Roboto Bold"
+    "Boathouse Regular": "DIN Pro Regular",
+    "Boathouse Medium": "DIN Pro Medium",
+    "Boathouse Medium Oblique": "DIN Pro Medium Italic",
+    "Boathouse Bold": "DIN Pro Bold",
+    "Maison Neue APP Bold": "DIN Pro Bold"
   },
   "sources": {
     "pois": null,
