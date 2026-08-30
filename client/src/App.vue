@@ -56,12 +56,22 @@ function focusSidebar(): void {
 
 function unfold() {
   minimised.value = false;
-  scrollToSelected();
+  // Mid-slide the row is half on screen, but it should be in place before the sidebar arrives
+  scrollToSelected('instant');
 }
 
-function scrollToSelected() {
+// A scroll nobody can see is only a delay, and opening the sidebar during it catches the tail, so
+// animate it only while some of the row is on screen. `minimised` cannot answer that: it flips
+// when the slide starts, not when it ends.
+function scrollToSelected(behavior?: ScrollBehavior) {
   const el = document.querySelector(`.${SELECTED_SIDEBAR_ITEM_SELECTOR}`);
-  el?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  if (!el) return;
+  const { left, right } = el.getBoundingClientRect();
+  const showing = Math.min(right, window.innerWidth) - Math.max(left, 0);
+  el.scrollIntoView({
+    block: 'nearest',
+    behavior: behavior ?? (showing > 0 ? 'smooth' : 'instant'),
+  });
 }
 
 defineExpose({ mapItems: activityStore.mapItems });
