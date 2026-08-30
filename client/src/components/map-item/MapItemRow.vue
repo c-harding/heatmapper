@@ -158,14 +158,9 @@ const statsIcons = computed(() =>
   }
 
   .name {
-    @include typography.optical-centre;
+    @include typography.optical-centre($lines: 3);
 
-    // Use max-height instead of line-clamp, despite the missing ellipsis:
-    // -webkit-line-clamp doesn’t work with optical-centre in Safari,
-    // and overflow: hidden doesn’t work in Firefox.
-    max-height: calc(2lh + 1cap);
     display: block;
-    overflow: clip;
     overflow-wrap: anywhere;
   }
 

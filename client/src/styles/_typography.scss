@@ -6,21 +6,34 @@
 /// rather than being clipped, since overflow clips at the padding box.
 ///
 /// The trim leaves a sliver of block overflow, harmless until the element is a scroll container.
-/// Clipping one axis must therefore use `overflow-x: clip`, as `hidden` would turn the other axis
-/// into `auto` and give it that sliver to scroll.
 ///
 /// `@supports` cannot guard where this applies — it tests the property, not whether the property
-/// reaches the element — and each engine refuses a different shape. Measured across all three:
-/// Firefox will not trim a scroll container, so one-axis clipping has to be `overflow-x: clip` and
-/// two-axis `overflow: clip`, never `hidden`. Safari will not trim a `-webkit-box`, whatever its
-/// overflow, which rules out `-webkit-line-clamp` and its ellipsis. Chromium trims all of it. An
-/// element that is itself a flex or grid container has no line boxes to trim anywhere.
+/// reaches the element — and each engine refuses a different shape.
+/// - Firefox will not trim a scroll container, so one-axis clipping has to be `overflow-x: clip`
+///   and two-axis `overflow: clip`, never `hidden`.
+/// - Safari will not trim a `-webkit-box`, whatever its overflow, which rules out
+///   `-webkit-line-clamp` and its ellipsis.
+/// - Chromium trims all of it.
+///
+/// An element that is itself a flex or grid container has no line boxes to trim anywhere.
 ///
 /// Getting it wrong is worse than not applying it: the padding lands with nothing to compensate it
 /// and the box grows by `1lh - 1cap`.
-@mixin optical-centre {
+///
+/// Pass `$lines` to clamp the text to that many of them. `overflow: clip` comes with it, both to do
+/// the clamping and because the rules above leave no other choice.
+@mixin optical-centre($lines: null) {
+  @if $lines {
+    max-height: calc(#{$lines} * 1lh);
+    overflow: clip;
+  }
+
   @supports (text-box: trim-both cap alphabetic) {
     text-box: trim-both cap alphabetic;
     padding-block: calc((1lh - 1cap) / 2);
+
+    @if $lines {
+      max-height: calc(#{$lines - 1} * 1lh + 1cap);
+    }
   }
 }
