@@ -142,6 +142,7 @@ a[href] {
   --background-pure: #fff;
   --background-error: hsl(0 90% 90%);
   --transition-speed: 0.5s;
+  --transition-ease: ease-in-out;
   --bold-color: #fc4c02;
   --link-color: blue;
   --control-border-radius: 7px;

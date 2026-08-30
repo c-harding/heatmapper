@@ -107,7 +107,7 @@ $sidebar-overlap: calc(#{sidebar.$minimised-width} - #{$sidebar-width});
   flex-direction: column;
   color: var(--color-full);
   background-color: var(--background-full);
-  transition: margin var(--transition-speed);
+  transition: margin var(--transition-speed) var(--transition-ease);
   z-index: 1;
   position: relative;
   padding-inline-start: var(--inline-start-safe-area);
@@ -122,8 +122,8 @@ $sidebar-overlap: calc(#{sidebar.$minimised-width} - #{$sidebar-width});
     background-color: var(--background-full);
 
     transition:
-      margin var(--transition-speed),
-      width var(--transition-speed);
+      margin var(--transition-speed) var(--transition-ease),
+      width var(--transition-speed) var(--transition-ease);
 
     svg {
       height: sidebar.$logo-height;
@@ -137,7 +137,7 @@ $sidebar-overlap: calc(#{sidebar.$minimised-width} - #{$sidebar-width});
     display: flex;
     flex-direction: column;
     overflow: auto;
-    transition: margin var(--transition-speed);
+    transition: margin var(--transition-speed) var(--transition-ease);
     background-color: var(--background-full);
     padding-bottom: var(--bottom-safe-area);
 
@@ -145,7 +145,7 @@ $sidebar-overlap: calc(#{sidebar.$minimised-width} - #{$sidebar-width});
   }
 
   .topBox {
-    transition: margin var(--transition-speed);
+    transition: margin var(--transition-speed) var(--transition-ease);
   }
 
   &.minimised {
@@ -219,8 +219,8 @@ $sidebar-overlap: calc(#{sidebar.$minimised-width} - #{$sidebar-width});
   border-end-end-radius: var(--tab-radius);
   border-start-end-radius: var(--tab-radius);
   transition:
-    margin var(--transition-speed),
-    width var(--transition-speed);
+    margin var(--transition-speed) var(--transition-ease),
+    width var(--transition-speed) var(--transition-ease);
 
   // A child, because this button's own outline paints beneath the tab that fills it
   &:focus-visible {
@@ -245,7 +245,7 @@ $sidebar-overlap: calc(#{sidebar.$minimised-width} - #{$sidebar-width});
     width: var(--tab-width);
     inset-inline-end: 100%;
     inset-block: 0;
-    transition: width var(--transition-speed);
+    transition: width var(--transition-speed) var(--transition-ease);
   }
 }
 
@@ -259,7 +259,7 @@ $sidebar-overlap: calc(#{sidebar.$minimised-width} - #{$sidebar-width});
   position: relative;
   margin-inline-start: auto;
   // Widths are percentages of the tab strip, tracking it as it resizes
-  transition: width var(--transition-speed);
+  transition: width var(--transition-speed) var(--transition-ease);
 
   &::before {
     @include pseudo-element;
@@ -276,7 +276,7 @@ $sidebar-overlap: calc(#{sidebar.$minimised-width} - #{$sidebar-width});
       bottom: 100%;
       box-shadow: 0 var(--tab-radius) 0 0 var(--background-full);
       border-end-start-radius: $pseudo-scaled-corner-radius;
-      transition: inset var(--transition-speed);
+      transition: inset var(--transition-speed) var(--transition-ease);
     }
   }
 
@@ -288,7 +288,7 @@ $sidebar-overlap: calc(#{sidebar.$minimised-width} - #{$sidebar-width});
       top: 100%;
       box-shadow: 0 calc(-1 * var(--tab-radius)) 0 0 var(--background-full);
       border-start-start-radius: $pseudo-scaled-corner-radius;
-      transition: inset var(--transition-speed);
+      transition: inset var(--transition-speed) var(--transition-ease);
     }
   }
 }
@@ -307,8 +307,8 @@ $sidebar-overlap: calc(#{sidebar.$minimised-width} - #{$sidebar-width});
   border-start-end-radius: var(--tab-radius);
   border-end-end-radius: var(--tab-radius);
   transition:
-    margin var(--transition-speed),
-    width var(--transition-speed);
+    margin var(--transition-speed) var(--transition-ease),
+    width var(--transition-speed) var(--transition-ease);
 
   > span {
     box-sizing: border-box;
@@ -317,8 +317,8 @@ $sidebar-overlap: calc(#{sidebar.$minimised-width} - #{$sidebar-width});
     // Clipped so that neither the icons nor the caption reach outside the tab as it grows
     overflow: clip;
     transition:
-      padding var(--transition-speed),
-      width var(--transition-speed);
+      padding var(--transition-speed) var(--transition-ease),
+      width var(--transition-speed) var(--transition-ease);
   }
 
   // The rounded corners for the folding buttons
@@ -328,8 +328,8 @@ $sidebar-overlap: calc(#{sidebar.$minimised-width} - #{$sidebar-width});
     height: calc(2 * var(--tab-radius));
     width: 0;
     transition:
-      margin var(--transition-speed),
-      width var(--transition-speed);
+      margin var(--transition-speed) var(--transition-ease),
+      width var(--transition-speed) var(--transition-ease);
   }
 
   // Used for filling in the gap when a rounded corner is reduced to zero width in the animation
@@ -338,7 +338,7 @@ $sidebar-overlap: calc(#{sidebar.$minimised-width} - #{$sidebar-width});
     inset-inline-end: 0;
     width: var(--tab-radius);
     height: var(--tab-radius);
-    transition: inset var(--transition-speed);
+    transition: inset var(--transition-speed) var(--transition-ease);
   }
 
   // The top right corner
