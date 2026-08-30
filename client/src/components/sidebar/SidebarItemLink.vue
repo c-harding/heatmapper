@@ -47,9 +47,10 @@ const useTextLink = !config.USE_STRAVA_ICONS;
   align-items: stretch;
   justify-content: center;
 
-  // The hit target reaches the row's edge, without spacing whatever follows the link
   padding-inline-end: var(--row-inline-padding, 0px);
   margin-inline-end: calc(-1 * var(--row-inline-padding, 0px));
+  padding-block: var(--row-block-padding, 0px);
+  margin-block: calc(-1 * var(--row-block-padding, 0px));
 
   > img {
     flex: 0 0 $size;

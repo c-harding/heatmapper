@@ -67,14 +67,18 @@ const emit = defineEmits<{
   .content {
     flex: 1;
     min-width: 0;
-    // A card stands on its own, where a row in the list has neighbours to be separated from
-    padding-block: 0.25rem;
+    // A card stands on its own, where a row in the list has neighbours to be separated from.
+    // Set through the row’s own variable, so the link’s hit target still reaches its edges.
+    --row-block-padding: 0.25rem;
 
     // Compensate for the visual spacing around the ✕ on the right by adding more on the left
     margin-inline-start: 4px;
   }
 
   .totals {
+    // The row takes the same padding from this variable, and sizes its minimum the same way
+    box-sizing: border-box;
+    padding-block: var(--row-block-padding);
     display: flex;
     flex-direction: column;
     justify-content: center;

@@ -91,7 +91,9 @@ const statsIcons = computed(() =>
 
 <template>
   <div :class="[$style.mapItemRow, device && $style.hasDevice]">
-    <slot name="leading" />
+    <div v-if="$slots.leading" :class="$style.leading">
+      <slot name="leading" />
+    </div>
     <StravaActivitySymbol :class="$style.stravaIcon" :sportType="item.type" />
     <div :class="$style.info">
       <div
@@ -102,12 +104,12 @@ const statsIcons = computed(() =>
         v-text="item.name"
       />
       <div v-if="device" :class="$style.device" v-text="device" />
-      <div style="display: flex">
+      <div :class="$style.stats">
         <SidebarItemStats :item :icons="statsIcons" />
       </div>
     </div>
     <div :class="$style.date" :title="fullDate" v-text="dateString.join('\n')" />
-    <SidebarItemLink :item />
+    <SidebarItemLink :item :class="$style.link" />
   </div>
 </template>
 
@@ -115,11 +117,35 @@ const statsIcons = computed(() =>
 @use '../../styles/typography' as typography;
 
 .mapItemRow {
+  container: map-item-row / inline-size;
+
   font-size: 14px;
-  display: flex;
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr) auto auto;
+  grid-template-rows: auto min-content;
+  grid-template-areas:
+    'leading icon info  date link'
+    'leading icon stack .    link';
   align-items: center;
-  gap: 0 4px;
+  box-sizing: border-box;
   min-height: 36px;
+  --row-block-padding: 2px;
+  padding-block: var(--row-block-padding);
+
+  .leading {
+    grid-area: leading;
+    display: flex;
+    align-items: center;
+  }
+
+  .link {
+    grid-area: link;
+  }
+
+  // margin instead of gap, so that empty areas take up no space
+  > :not(:last-child) {
+    margin-inline-end: 4px;
+  }
 
   &.hasDevice {
     // Increase the height to accommodate the device information
@@ -127,21 +153,20 @@ const statsIcons = computed(() =>
   }
 
   .stravaIcon {
-    margin-right: 4px;
+    grid-area: icon;
+    margin-inline-end: 8px;
   }
 
   .name {
     @include typography.optical-centre;
 
-    overflow-wrap: anywhere;
-
-    // Long enough for any real name; past that the row would run away with the list. Three trimmed
-    // lines are 3lh less the (1lh - 1cap) the trim takes off the ends. -webkit-line-clamp would
-    // bring an ellipsis, but only on a -webkit-box, which Safari will not trim; hidden would make a
-    // scroll container, which Firefox will not trim.
-    display: block;
+    // Use max-height instead of line-clamp, despite the missing ellipsis:
+    // -webkit-line-clamp doesn’t work with optical-centre in Safari,
+    // and overflow: hidden doesn’t work in Firefox.
     max-height: calc(2lh + 1cap);
+    display: block;
     overflow: clip;
+    overflow-wrap: anywhere;
   }
 
   .device {
@@ -152,17 +177,30 @@ const statsIcons = computed(() =>
   }
 
   .info {
-    flex: 1;
+    grid-area: info;
     display: flex;
     flex-direction: column;
+  }
+
+  .stats {
+    display: flex;
   }
 
   .date {
     @include typography.optical-centre;
 
+    grid-area: date;
     font-size: 0.75em;
     text-align: end;
     white-space: pre-line;
+  }
+
+  @container map-item-row (width < 15rem) {
+    .date {
+      grid-area: stack;
+      text-align: start;
+      white-space: normal;
+    }
   }
 }
 </style>
