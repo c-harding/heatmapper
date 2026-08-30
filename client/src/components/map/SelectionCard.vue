@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { type MapItem } from '@strava-heatmapper/shared/interfaces';
 import { computed } from 'vue';
 
 import { useSelectionStore } from '@/stores/SelectionStore';
@@ -11,14 +12,16 @@ import UIIcon from '../ui/UIIcon.vue';
 
 const selectionStore = useSelectionStore();
 
-const singleItem = computed(() =>
-  selectionStore.selectedItems.length === 1 ? selectionStore.selectedItems[0] : undefined,
+// The card is never unmounted, so clearing the selection would empty it before it has left the
+// screen. Holding the last one there was gives it something to fade out of.
+const frozen = computed<readonly MapItem[]>((previous) =>
+  selectionStore.selectedItems.length ? selectionStore.selectedItems : (previous ?? []),
 );
 
+const singleItem = computed(() => (frozen.value.length === 1 ? frozen.value[0] : undefined));
+
 // Passed twice so that showSelected is set, which is what names the count "3 activities selected"
-const totals = computed(() =>
-  combineStats(selectionStore.selectedItems, selectionStore.selectedItems),
-);
+const totals = computed(() => combineStats(frozen.value, frozen.value));
 
 const emit = defineEmits<{
   unfold: [];

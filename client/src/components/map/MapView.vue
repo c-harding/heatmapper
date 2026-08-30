@@ -41,9 +41,9 @@ import Viewport from '@/Viewport';
 const center = defineModel<LngLatLike>('center', { required: true });
 const zoom = defineModel<number>('zoom', { required: true });
 
-const { minimisedSidebar, sidebarClearing } = defineProps<{
+const { minimisedSidebar, cardShown } = defineProps<{
   minimisedSidebar: boolean;
-  sidebarClearing: boolean;
+  cardShown: boolean;
 }>();
 
 defineExpose({ zoomToSelection });
@@ -222,13 +222,15 @@ function atRest<T>(measure: () => T): T {
   );
   const times = animations.map((animation) => animation.currentTime);
 
-  animations.forEach((animation) => {
+  for (const animation of animations) {
     animation.currentTime = Number(animation.effect?.getComputedTiming().endTime);
-  });
+  }
   try {
     return measure();
   } finally {
-    animations.forEach((animation, index) => (animation.currentTime = times[index]));
+    for (const [index, animation] of animations.entries()) {
+      animation.currentTime = times[index];
+    }
   }
 }
 
@@ -236,19 +238,18 @@ function atRest<T>(measure: () => T): T {
  * Run `measure` with the card shown, so the space it will take is reserved even where it is stowed
  * — double-tapping a row in the list frames a route while the sidebar is open and the card is not.
  *
- * v-show leaves the element in place under an inline `display: none`, which is what makes this
- * possible at all; the same rules as atRest apply, so nothing here may await.
+ * Dropping the class starts the same transitions a fold would, which atRest then seeks to their
+ * end; the same rules apply, so nothing here may await.
  */
-function unstowed<T>(measure: () => T): T {
-  const stowed = [
-    ...(container.value?.querySelectorAll<HTMLElement>(`[${KEEP_OUT}] > *`) ?? []),
-  ].filter((child) => child.style.display === 'none');
+function asShown<T>(measure: () => T): T {
+  const element = container.value;
+  const shown = element?.classList.contains('card-shown') ?? false;
 
-  stowed.forEach((child) => (child.style.display = ''));
+  if (!shown) element?.classList.add('card-shown');
   try {
-    return measure();
+    return atRest(measure);
   } finally {
-    stowed.forEach((child) => (child.style.display = 'none'));
+    if (!shown) element?.classList.remove('card-shown');
   }
 }
 
@@ -345,7 +346,7 @@ function flyTo(mapItems: readonly MapItem[], zoom = false): void {
     new mapboxgl.LngLatBounds(coordinates[0], coordinates[0]),
   );
 
-  const viewports = atRest(() => unstowed(getViewports));
+  const viewports = asShown(getViewports);
 
   if (!zoom && viewports.some((viewport) => checkBoundsForViewport(viewport, bounds))) {
     // If one of the viewports fits on the screen, there is no need to rezoom
@@ -453,11 +454,7 @@ map.once('idle', () => {
 <template>
   <div
     ref="container"
-    :class="[
-      'map-container',
-      !minimisedSidebar && 'sidebar-expanded',
-      sidebarClearing && 'sidebar-clearing',
-    ]"
+    :class="['map-container', !minimisedSidebar && 'sidebar-expanded', cardShown && 'card-shown']"
   />
   <Teleport :to="buttonTarget">
     <div class="mapboxgl-ctrl mapboxgl-ctrl-group">
@@ -567,8 +564,7 @@ $widget-gap: 10px;
   z-index: 2;
   pointer-events: none;
 
-  --fold-speed: calc(var(--transition-speed) / 2);
-  --fold-delay: 0s;
+  --fade-speed: calc(var(--transition-speed) / 2);
 
   display: grid;
   grid-template-columns: auto 1fr;
@@ -577,24 +573,13 @@ $widget-gap: 10px;
   grid-template-areas:
     'inlineStart inlineEnd'
     'footer footer';
-  transition: grid-template-rows var(--fold-speed) var(--fold-delay);
+  transition: grid-template-rows var(--transition-speed) var(--transition-ease);
 
   padding-inline: var(--inline-start-safe-area) var(--inline-end-safe-area);
   padding-block-end: var(--bottom-safe-area);
 
-  &:has(.map-footer > *) {
+  .map-container.card-shown & {
     grid-template-rows: auto minmax(0, 1fr);
-  }
-
-  // Collapsed at both ends of the footer's own transition, so the widgets ride in and out with it
-  &:has(.map-footer-enter-from, .map-footer-leave-to) {
-    grid-template-rows: auto minmax(0, 0fr);
-  }
-
-  // Leaving takes the first half of the sidebar's move, so arriving takes the second: one is the
-  // other run backwards, rather than the card landing while the sidebar is still on its way out
-  .map-container.sidebar-clearing &:has(.map-footer-enter-active) {
-    --fold-delay: var(--fold-speed);
   }
 }
 
@@ -655,12 +640,23 @@ $widget-gap: 10px;
 
 .map-footer > * {
   margin-inline: $widget-gap;
-  transition: opacity var(--fold-speed) var(--fold-delay);
+
+  // Hidden rather than absent, so the row has something to animate and asShown something to measure
+  opacity: 0;
+  visibility: hidden;
+  // Nothing to wait for on the way out
+  --fade-delay: 0s;
+
+  transition:
+    opacity var(--fade-speed) var(--transition-ease) var(--fade-delay),
+    visibility var(--transition-speed) var(--transition-ease);
 }
 
-.map-footer-enter-from,
-.map-footer-leave-to {
-  opacity: 0;
+.map-container.card-shown .map-footer > * {
+  opacity: 1;
+  visibility: visible;
+  // Wait for the room to be made, and finish as it finishes
+  --fade-delay: calc(var(--transition-speed) - var(--fade-speed));
 }
 
 /* Override colors of the fullscreen and compass controls to support dark mode */

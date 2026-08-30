@@ -54,18 +54,6 @@ function focusSidebar(): void {
   if (!showSelectionCard.value) minimised.value = false;
 }
 
-// Only a fold hands the space over, so only then does the card wait; a selection made on the map
-// has nothing in its way. True from the fold until the card it let in has gone again.
-const sidebarClearing = ref(false);
-
-watch(minimised, () => {
-  sidebarClearing.value = showSelectionCard.value;
-});
-
-watch(showSelectionCard, (shown) => {
-  if (!shown) sidebarClearing.value = false;
-});
-
 function unfold() {
   minimised.value = false;
   scrollToSelected();
@@ -94,16 +82,10 @@ defineExpose({ mapItems: activityStore.mapItems });
         v-model:center="center"
         v-model:zoom="zoom"
         :minimisedSidebar="minimised"
-        :sidebarClearing
+        :cardShown="showSelectionCard"
       >
         <template #bottom>
-          <Transition name="map-footer">
-            <SelectionCard
-              v-if="selectionStore.selectedItems.length"
-              v-show="minimised"
-              @unfold="unfold()"
-            />
-          </Transition>
+          <SelectionCard @unfold="unfold()" />
         </template>
       </MapView>
     </Suspense>
