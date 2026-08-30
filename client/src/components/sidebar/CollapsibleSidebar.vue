@@ -103,6 +103,9 @@ $sidebar-overlap: calc(#{sidebar.$minimised-width} - #{$sidebar-width});
   --bottom-curve: 1;
 
   flex: 0 $sidebar-width;
+  // The logo is wider than the panel on a narrow screen, and its automatic minimum size would
+  // hold the panel open past the width folding it away moves it by
+  min-width: 0;
   display: flex;
   flex-direction: column;
   color: var(--color-full);
