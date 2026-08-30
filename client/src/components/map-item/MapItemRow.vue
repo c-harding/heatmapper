@@ -11,7 +11,6 @@ import SidebarItemLink from '../sidebar/SidebarItemLink.vue';
 import SidebarItemStats from '../sidebar/SidebarItemStats.vue';
 import StravaEmoji from '../strava-symbol/StravaEmoji.vue';
 import StravaIcon from '../strava-symbol/StravaIcon.vue';
-import UISpinner from '../ui/UISpinner.vue';
 
 const activityStore = useActivityStore();
 
@@ -107,9 +106,6 @@ const statsIcons = computed(() =>
         <SidebarItemStats :item :icons="statsIcons" />
       </div>
     </div>
-    <div v-if="!item.map" :class="$style.spinner">
-      <UISpinner size="tiny" />
-    </div>
     <div :class="$style.date" :title="fullDate" v-text="dateString.join('\n')" />
     <SidebarItemLink :item />
   </div>
@@ -159,10 +155,6 @@ const statsIcons = computed(() =>
     flex: 1;
     display: flex;
     flex-direction: column;
-  }
-
-  .spinner {
-    margin: 0.5em;
   }
 
   .date {
