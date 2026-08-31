@@ -6,6 +6,7 @@
     "dotenv": "^16.6.1"
   },
   "scripts": {
+    "typecheck": "tsc --build --noEmit",
     "lint": "eslint --fix .",
     "prettier": "prettier -w .",
     "clear-built": "rm -rf ../dist/shared; true",
