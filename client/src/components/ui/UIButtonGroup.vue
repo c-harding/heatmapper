@@ -25,11 +25,11 @@
     }
 
     &:not(:first-child) {
-      --button-border-radius-left: 0;
-      margin-left: -1px;
+      --button-border-radius-start: 0;
+      margin-inline-start: -1px;
     }
     &:not(:last-child) {
-      --button-border-radius-right: 0;
+      --button-border-radius-end: 0;
     }
   }
 }

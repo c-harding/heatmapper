@@ -97,13 +97,13 @@ button.button {
   margin: 0.5rem;
   padding: 0.15rem 0.15rem;
 
-  --button-border-radius-left: var(--control-border-radius);
-  --button-border-radius-right: var(--control-border-radius);
+  --button-border-radius-start: var(--control-border-radius);
+  --button-border-radius-end: var(--control-border-radius);
 
-  border-top-left-radius: var(--button-border-radius-left);
-  border-bottom-left-radius: var(--button-border-radius-left);
-  border-top-right-radius: var(--button-border-radius-right);
-  border-bottom-right-radius: var(--button-border-radius-right);
+  border-start-start-radius: var(--button-border-radius-start);
+  border-end-start-radius: var(--button-border-radius-start);
+  border-start-end-radius: var(--button-border-radius-end);
+  border-end-end-radius: var(--button-border-radius-end);
 
   border: 1px solid var(--color-weak);
   background-color: var(--background-mid);
@@ -122,10 +122,10 @@ button.button {
     grid-area: button;
     min-height: 1.2em;
 
-    border-top-left-radius: calc(var(--button-border-radius-left) - 0.15rem);
-    border-bottom-left-radius: calc(var(--button-border-radius-left) - 0.15rem);
-    border-top-right-radius: calc(var(--button-border-radius-right) - 0.15rem);
-    border-bottom-right-radius: calc(var(--button-border-radius-right) - 0.15rem);
+    border-start-start-radius: calc(var(--button-border-radius-start) - 0.15rem);
+    border-end-start-radius: calc(var(--button-border-radius-start) - 0.15rem);
+    border-start-end-radius: calc(var(--button-border-radius-end) - 0.15rem);
+    border-end-end-radius: calc(var(--button-border-radius-end) - 0.15rem);
 
     padding: 0 0.25rem;
     align-self: stretch;
