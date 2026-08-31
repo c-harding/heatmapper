@@ -119,6 +119,7 @@ if (!window.cachedMapElement) {
       trackUserLocation: true,
       showUserHeading: true,
     }),
+    topCorner,
   );
 
   const bottomStack = document.createElement('div');
