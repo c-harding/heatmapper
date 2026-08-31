@@ -22,7 +22,6 @@ const {
     :class="[
       'material-icons',
       $style.icon,
-      $style.materialIcons,
       inline && $style.inline,
       large && $style.large,
       placeholder && $style.placeholder,

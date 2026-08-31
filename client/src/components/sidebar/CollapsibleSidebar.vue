@@ -7,8 +7,6 @@ import UIIcon from '../ui/UIIcon.vue';
 
 const minimised = defineModel<boolean>('minimised');
 
-const minimisedOverlay = ref<HTMLElement>();
-
 const rtl = document.dir === 'rtl';
 
 // Each points the way the sidebar is about to travel
@@ -73,9 +71,9 @@ function clickHeader() {
       <slot />
     </section>
 
-    <div :class="$style.overlays" @click="minimised = !minimised" @wheel="minimised = true">
+    <div @click="minimised = !minimised" @wheel="minimised = true">
       <div :class="[$style.expanded, $style.overlay]" />
-      <div ref="minimisedOverlay" :class="[$style.minimised, $style.overlay]" />
+      <div :class="[$style.minimised, $style.overlay]" />
     </div>
   </div>
 </template>
