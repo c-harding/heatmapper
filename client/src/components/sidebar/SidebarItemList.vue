@@ -12,7 +12,6 @@ const selectionStore = useSelectionStore();
 
 const emit = defineEmits<{
   zoomToSelected: [];
-  focusSidebar: [];
 }>();
 
 function forceSelect(): void {

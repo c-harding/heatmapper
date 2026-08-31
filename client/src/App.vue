@@ -49,11 +49,6 @@ function zoomToSelected(): void {
   map.value?.zoomToSelection();
 }
 
-// The card already names the selection, so unfolding over it would only repeat itself
-function focusSidebar(): void {
-  if (!showSelectionCard.value) minimised.value = false;
-}
-
 function unfold() {
   minimised.value = false;
   // Mid-slide the row is half on screen, but it should be in place before the sidebar arrives
@@ -80,11 +75,7 @@ defineExpose({ mapItems: activityStore.mapItems });
 <template>
   <div id="app">
     <CollapsibleSidebar v-model:minimised="minimised" @scroll-down="scrollToSelected()">
-      <SidebarContent
-        @focus-sidebar="focusSidebar()"
-        @zoom-to-selected="zoomToSelected"
-        @scroll-to-selected="scrollToSelected"
-      />
+      <SidebarContent @zoom-to-selected="zoomToSelected" @scroll-to-selected="scrollToSelected" />
     </CollapsibleSidebar>
     <Suspense>
       <MapView

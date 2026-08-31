@@ -17,7 +17,6 @@ import SidebarItemStats from './SidebarItemStats.vue';
 
 const emit = defineEmits<{
   zoomToSelected: [];
-  focusSidebar: [];
   scrollToSelected: [];
 }>();
 
@@ -44,9 +43,8 @@ useStickyHeader(
   ),
 );
 
-watch(selectionStore.selected, async (selected) => {
+watch(selectionStore.selected, async () => {
   if (selectionStore.updateSource === 'map' && !selectionStore.multiSelectionMode) {
-    if (selected.size !== 0) emit('focusSidebar');
     await nextTick();
     emit('scrollToSelected');
   }
