@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 
-import { useMaterialIcons } from './material-icons';
 import UISpinner from './UISpinner.vue';
 
 const {
@@ -24,8 +23,6 @@ const isChecked = defineModel<boolean>({ default: false });
 
 const uncheckedIcon = computed(() => `'${rawUncheckedIcon}'`);
 const checkedIcon = computed(() => `'${rawCheckedIcon}'`);
-
-useMaterialIcons();
 </script>
 
 <template>

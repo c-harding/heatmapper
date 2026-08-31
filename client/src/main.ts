@@ -1,4 +1,5 @@
-import { createHead } from '@unhead/vue/client';
+import 'material-icons/iconfont/filled.css';
+
 import { createPinia } from 'pinia';
 import { createApp } from 'vue';
 import { createRouter, createWebHistory, RouterView } from 'vue-router';
@@ -15,4 +16,4 @@ const router = createRouter({
   routes,
 });
 
-createApp(RouterView).use(router).use(createHead()).use(createPinia()).mount('body');
+createApp(RouterView).use(router).use(createPinia()).mount('body');

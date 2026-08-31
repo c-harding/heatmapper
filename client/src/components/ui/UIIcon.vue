@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { useMaterialIcons } from './material-icons';
-
 const {
   icon,
   inline = false,
@@ -15,8 +13,6 @@ const {
   bottom?: boolean;
   rotation?: number;
 }>();
-
-useMaterialIcons();
 </script>
 
 <template>
