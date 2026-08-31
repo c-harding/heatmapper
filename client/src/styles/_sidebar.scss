@@ -1,7 +1,7 @@
 @use 'breakpoints';
 
 $tab-width: 5rem;
-$slim-tab-width: 1.5rem;
+$slim-tab-width: max(1.5rem, var(--tap-min));
 $tab-height: 5rem;
 $logo-height: 5rem;
 $padding-top: calc(0.5rem + var(--top-safe-area));
