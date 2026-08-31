@@ -69,7 +69,8 @@ const emit = defineEmits<{
     min-width: 0;
     // A card stands on its own, where a row in the list has neighbours to be separated from.
     // Set through the row’s own variable, so the link’s hit target still reaches its edges.
-    --row-block-padding: 0.25rem;
+    // Any larger and the row outgrows its 36px minimum instead of resting on it.
+    --row-block-padding: 0.2rem;
 
     // Compensate for the visual spacing around the ✕ on the right by adding more on the left
     margin-inline-start: 4px;
