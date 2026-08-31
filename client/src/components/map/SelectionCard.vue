@@ -85,7 +85,7 @@ const emit = defineEmits<{
     justify-content: center;
     gap: 0.25em;
     font-size: 14px;
-    min-height: 36px;
+    min-height: max(36px, var(--tap-min));
   }
 
   .clear {
