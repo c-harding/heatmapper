@@ -88,7 +88,7 @@ $sidebar-width: min(20rem, 100vw - #{sidebar.$tab-width});
 $scaled-corner-radius: min(var(--tab-radius), 50%);
 $pseudo-scaled-corner-radius: min(var(--tab-radius), 100%);
 
-$sidebar-overlap: calc(#{sidebar.$minimised-width} - #{$sidebar-width});
+$sidebar-overlap: calc(-1 * #{$sidebar-width});
 
 @mixin pseudo-element {
   content: '';
@@ -140,29 +140,18 @@ $sidebar-overlap: calc(#{sidebar.$minimised-width} - #{$sidebar-width});
     display: flex;
     flex-direction: column;
     overflow: auto;
-    transition: margin var(--transition-speed) var(--transition-ease);
     background-color: var(--background-full);
     padding-bottom: var(--bottom-safe-area);
 
     scroll-padding-block-start: v-bind('stickyHeaderHeightPx');
   }
 
-  .topBox {
-    transition: margin var(--transition-speed) var(--transition-ease);
-  }
-
   &.minimised {
     margin-inline-start: $sidebar-overlap;
 
-    > .topBox,
-    > .scrollable {
-      margin-inline-start: -1 * sidebar.$minimised-width;
-      margin-inline-end: sidebar.$minimised-width;
-    }
-
     .header {
-      width: sidebar.$minimised-width + sidebar.$tab-width;
-      margin-inline-end: -1 * sidebar.$minimised-width - sidebar.$tab-width;
+      width: sidebar.$tab-width;
+      margin-inline-end: -1 * sidebar.$tab-width;
     }
 
     .minimised.overlay {
