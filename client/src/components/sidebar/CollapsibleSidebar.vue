@@ -146,6 +146,10 @@ $sidebar-overlap: calc(-1 * #{$sidebar-width});
 
   &.minimised {
     margin-inline-start: $sidebar-overlap;
+    // Animate the margin and flex-basis together to prevent the sidebar moving
+    transition:
+      margin var(--transition-speed) var(--transition-ease),
+      flex-basis var(--transition-speed) var(--transition-ease);
 
     .header {
       width: sidebar.$tab-width;
