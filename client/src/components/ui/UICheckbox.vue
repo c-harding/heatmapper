@@ -45,36 +45,6 @@ const checkedIcon = computed(() => `'${rawCheckedIcon}'`);
 </template>
 
 <style module lang="scss">
-button.button {
-  display: grid;
-  grid-template-areas: 'button';
-  align-items: center;
-
-  margin: 0.5rem;
-  padding: 0.15rem 0.4rem;
-  border-radius: var(--control-border-radius);
-  border: 1px solid var(--color-weak);
-  background-color: var(--background-strong);
-  color: var(--color-full);
-  max-width: max-content;
-  min-width: min-content;
-  min-height: 1.75rem;
-  font-size: 0.9em;
-
-  &:hover:not(:disabled) {
-    background-color: var(--background-weak);
-  }
-
-  &:disabled {
-    color: var(--color-weak);
-    border-color: var(--background-weak);
-  }
-
-  &:has(.buttonSpinner) .buttonContents {
-    visibility: hidden;
-  }
-}
-
 .uiCheckbox {
   display: flex;
   flex-direction: row;
