@@ -499,6 +499,9 @@ else map.once('style.load', () => mapLoaded(map));
 
 $widget-gap: 10px;
 
+// The size Mapbox gives a control button
+$ctrl-size: 29px;
+
 .map-container {
   display: contents;
 
@@ -529,6 +532,19 @@ $widget-gap: 10px;
     color: var(--color-strong);
   }
 
+  // The stacked controls, not the picker's rows, which sit deeper
+  > button {
+    --ctrl-target: max(#{$ctrl-size}, var(--tap-min));
+    --ctrl-bleed: calc((var(--ctrl-target) - #{$ctrl-size}) / 2);
+
+    // Padding grows the hit area; the negative margin leaves the box where it was
+    box-sizing: border-box;
+    inline-size: var(--ctrl-target);
+    block-size: var(--ctrl-target);
+    padding: var(--ctrl-bleed);
+    margin: calc(-1 * var(--ctrl-bleed));
+  }
+
   &:not(empty) {
     box-shadow: 0 0 0 2px color-mix(in srgb, currentColor 20%, transparent);
   }
@@ -550,6 +566,12 @@ $widget-gap: 10px;
     padding-top: max(var(--top-safe-area), var(--sidebar-overlay-height, 0));
     padding-right: var(--sidebar-overlay-width, 0);
   }
+}
+
+/* Two hit areas bleed into each gap, one from either side. */
+.mapboxgl-ctrl-top-left .mapboxgl-ctrl + .mapboxgl-ctrl,
+.mapboxgl-ctrl-top-right .mapboxgl-ctrl + .mapboxgl-ctrl {
+  margin-block-start: max($widget-gap, calc(var(--tap-min) - #{$ctrl-size}));
 }
 
 /* Only the inline-end corner: the sidebar covers the window's inline-start edge. */
