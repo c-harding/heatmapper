@@ -502,6 +502,9 @@ $widget-gap: 10px;
 // The size Mapbox gives a control button
 $ctrl-size: 29px;
 
+// The size Mapbox gives the attribution toggle
+$attrib-size: 24px;
+
 .map-container {
   display: contents;
 
@@ -729,8 +732,19 @@ $ctrl-size: 29px;
 }
 
 .mapboxgl-ctrl-attrib-button {
+  --attrib-target: max(#{$attrib-size}, var(--tap-min));
+  --attrib-bleed: calc((var(--attrib-target) - #{$attrib-size}) / 2);
+
   background: var(--color-full);
-  mask: url("data:image/svg+xml;charset=utf-8,%3Csvg viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg' fill-rule='evenodd'%3E%3Cpath d='M4 10a6 6 0 1 0 12 0 6 6 0 1 0-12 0m5-3a1 1 0 1 0 2 0 1 1 0 1 0-2 0m0 3a1 1 0 1 1 2 0v3a1 1 0 1 1-2 0'/%3E%3C/svg%3E");
+  // Pinned to its own size, so growing the button leaves the glyph alone
+  mask: url("data:image/svg+xml;charset=utf-8,%3Csvg viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg' fill-rule='evenodd'%3E%3Cpath d='M4 10a6 6 0 1 0 12 0 6 6 0 1 0-12 0m5-3a1 1 0 1 0 2 0 1 1 0 1 0-2 0m0 3a1 1 0 1 1 2 0v3a1 1 0 1 1-2 0'/%3E%3C/svg%3E")
+    center / #{$attrib-size} no-repeat;
+
+  // Absolutely placed, so a bigger box pushes nothing around
+  inline-size: var(--attrib-target);
+  block-size: var(--attrib-target);
+  top: calc(-1 * var(--attrib-bleed));
+  right: calc(-1 * var(--attrib-bleed));
 }
 
 .mapboxgl-ctrl-scale {
