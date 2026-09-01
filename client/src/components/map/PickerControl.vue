@@ -166,7 +166,8 @@ function isActive(choice: Choice): boolean {
       .nameInner {
         flex: 1 1 auto;
         min-width: 0;
-        min-height: 1.6rem; // match the variant square, so grouped and plain rows are one height
+        // match the variant square, so grouped and plain rows are one height
+        min-height: max(1.6rem, var(--tap-min));
         display: flex;
         align-items: center;
         margin-left: 0.5rem;
@@ -211,8 +212,8 @@ function isActive(choice: Choice): boolean {
         }
 
         .variantIcon {
-          width: 1.6rem;
-          height: 1.6rem;
+          width: max(1.6rem, var(--tap-min));
+          height: max(1.6rem, var(--tap-min));
           display: flex;
           align-items: center;
           justify-content: center;
@@ -228,17 +229,6 @@ function isActive(choice: Choice): boolean {
         &.variantOn .variantIcon {
           background-color: var(--background-strong);
           color: var(--color-full);
-        }
-      }
-
-      @media (pointer: coarse) {
-        .nameInner {
-          min-height: 44px;
-        }
-
-        .variantIcon {
-          width: 44px;
-          height: 44px;
         }
       }
     }
