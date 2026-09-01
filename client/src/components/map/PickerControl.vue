@@ -195,6 +195,10 @@ function isActive(choice: Choice): boolean {
         border: none;
         margin: 0;
         padding: 0;
+
+        // Shed the 29px Mapbox gives every button inside a control group
+        inline-size: auto;
+        block-size: auto;
         background: none;
         color: inherit;
         cursor: pointer;
