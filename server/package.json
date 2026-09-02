@@ -19,6 +19,9 @@
     "cookie-parser": "^1.4.7",
     "express": "^5.2.1",
     "express-ws": "^5.0.2",
+    "ical-generator": "^3.4.2",
+    "moment": "^2.29.4",
+    "moment-timezone": "^0.5.40",
     "node-fetch": "^2.7.0",
     "proper-lockfile": "^4.1.2",
     "uuid": "^13.0.0"
@@ -31,6 +34,7 @@
     "@types/cookie-parser": "^1.4.7",
     "@types/express": "^5.0.6",
     "@types/express-ws": "^3.0.6",
+    "@types/luxon": "^2.3.2",
     "@types/node": "^20.19.33",
     "@types/node-fetch": "^2.6.13",
     "@typescript-eslint/eslint-plugin": "^8.56.0",
