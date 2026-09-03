@@ -138,6 +138,7 @@ $sidebar-overlap: calc(-1 * #{$sidebar-width});
     display: flex;
     flex-direction: column;
     overflow: auto;
+    transition: margin var(--transition-speed) var(--transition-ease);
     background-color: var(--background-full);
     padding-bottom: var(--bottom-safe-area);
 
@@ -150,6 +151,12 @@ $sidebar-overlap: calc(-1 * #{$sidebar-width});
     transition:
       margin var(--transition-speed) var(--transition-ease),
       flex-basis var(--transition-speed) var(--transition-ease);
+
+    // Offset the sidebar by the width of the safe area, so it is not visible on screen
+    > .scrollable {
+      margin-inline-start: calc(-1 * var(--inline-start-safe-area));
+      margin-inline-end: var(--inline-start-safe-area);
+    }
 
     .header {
       width: sidebar.$tab-width;
