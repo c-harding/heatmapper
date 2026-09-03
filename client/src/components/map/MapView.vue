@@ -601,6 +601,15 @@ $widget-gap: 10px;
   grid-area: inlineEnd;
   justify-self: end;
   align-items: end;
+
+  // reserve no height, so that this element does not stretch the overall grid
+  max-height: 0;
+  justify-content: flex-end;
+
+  // Or the panel would be shrunk to the capped height rather than overflowing it
+  > * {
+    flex: none;
+  }
 }
 
 .map-footer {
@@ -673,6 +682,10 @@ $widget-gap: 10px;
 
 .mapboxgl-ctrl-attrib {
   background-color: color-mix(in srgb, var(--background-pure) 50%, transparent);
+
+  &.mapboxgl-compact.mapboxgl-compact-show {
+    backdrop-filter: blur(8px);
+  }
 }
 
 .mapboxgl-ctrl-attrib a[href] {
