@@ -80,11 +80,19 @@ const satelliteViews = new Set([MapStyle.SATELLITE, MapStyle.HYBRID]);
 
 const darkViews = new Set([MapStyle.MINIMAL_DARK, MapStyle.NATURAL_DARK]);
 
+export type MapTone = 'light' | 'dark' | 'imagery';
+
+export const toneForStyle = (style: MapStyle): MapTone => {
+  if (satelliteViews.has(style)) return 'imagery';
+  return darkViews.has(style) ? 'dark' : 'light';
+};
+
 const colorsForStyle = (style: MapStyle): Record<'lines' | 'medium' | 'hot', RGB> => {
   const F = 255;
-  if (satelliteViews.has(style)) {
+  const tone = toneForStyle(style);
+  if (tone === 'imagery') {
     return { lines: [F, 0, F], medium: [F, 0, F], hot: [F, 0, F] };
-  } else if (darkViews.has(style)) {
+  } else if (tone === 'dark') {
     return { lines: [F, 0x3d, 0x9a], medium: [F, 0xa2, 0x3a], hot: [F, 0xf7, 0xe0] };
   } else {
     return { lines: [0, 0, F], medium: [F, 0, 0], hot: [F, F, 0] };

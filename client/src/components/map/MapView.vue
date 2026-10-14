@@ -33,6 +33,7 @@ import {
   addLayersToMap,
   applyMapItems,
   MapSourceLayer,
+  toneForStyle,
   useMapSelection,
 } from '@/utils/map';
 import { getBestCenter } from '@/utils/midpoint';
@@ -455,7 +456,12 @@ map.once('idle', () => {
 <template>
   <div
     ref="container"
-    :class="['map-container', !minimisedSidebar && 'sidebar-expanded', cardShown && 'card-shown']"
+    :class="[
+      'map-container',
+      `map-${toneForStyle(mapStyle)}`,
+      !minimisedSidebar && 'sidebar-expanded',
+      cardShown && 'card-shown',
+    ]"
   />
   <Teleport :to="buttonTarget">
     <div class="mapboxgl-ctrl mapboxgl-ctrl-group">
@@ -471,6 +477,19 @@ map.once('idle', () => {
   <Teleport :to="footerTarget">
     <slot name="bottom" />
   </Teleport>
+
+  <!-- The outline Mapbox draw around their logo: 1.5px of black at 30% -->
+  <svg class="map-filters" aria-hidden="true">
+    <filter id="map-halo" color-interpolation-filters="sRGB">
+      <feMorphology in="SourceAlpha" operator="dilate" radius="1.5" result="spread" />
+      <feFlood flood-color="#000" flood-opacity="0.3" />
+      <feComposite in2="spread" operator="in" />
+      <feMerge>
+        <feMergeNode />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  </svg>
 </template>
 
 <style lang="scss">
@@ -698,8 +717,29 @@ $widget-gap: 10px;
 }
 
 .mapboxgl-ctrl-scale {
-  border-color: var(--color-strong);
-  background-color: color-mix(in srgb, var(--background-full) 25%, transparent);
-  color: var(--color-strong);
+  --scale-color: #333;
+  --scale-background: #fff;
+
+  border-color: var(--scale-color);
+  background-color: color-mix(in srgb, var(--scale-background) 25%, transparent);
+  color: var(--scale-color);
+
+  .map-dark & {
+    --scale-color: #eee;
+    --scale-background: #222;
+  }
+
+  // Outlined like the logo, as imagery is light in places and dark in others
+  .map-imagery & {
+    --scale-color: #fff;
+    --scale-background: transparent;
+    filter: url(#map-halo);
+  }
+}
+
+.map-filters {
+  position: absolute;
+  width: 0;
+  height: 0;
 }
 </style>
