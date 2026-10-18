@@ -96,7 +96,6 @@ $sidebar-overlap: calc(-1 * #{$sidebar-width});
 }
 
 .sidebar {
-  @include sidebar.metrics(':not(.minimised)');
   --tab-radius: min(var(--surface-border-radius), calc(var(--tab-width) / 2));
   --bottom-curve: 1;
 
@@ -112,6 +111,8 @@ $sidebar-overlap: calc(-1 * #{$sidebar-width});
   z-index: 1;
   position: relative;
   padding-inline-start: var(--inline-start-safe-area);
+
+  @include sidebar.metrics(':not(.minimised)');
 
   .header {
     margin-inline-start: auto;

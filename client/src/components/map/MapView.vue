@@ -501,9 +501,9 @@ map.once('idle', () => {
 $widget-gap: 10px;
 
 .map-container {
-  @include sidebar.metrics('.sidebar-expanded');
-
   display: contents;
+
+  @include sidebar.metrics('.sidebar-expanded');
 }
 
 .mapboxgl-map {

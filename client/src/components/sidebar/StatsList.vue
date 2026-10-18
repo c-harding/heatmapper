@@ -22,8 +22,6 @@ const filteredStats = computed(() => stats.filter(Boolean));
 @use '../../styles/typography' as typography;
 
 .statsList {
-  @include typography.optical-centre;
-
   font-size: 0.75em;
   display: block;
   position: relative;
@@ -33,6 +31,8 @@ const filteredStats = computed(() => stats.filter(Boolean));
 
   $separator-spacing: 0.75em;
   margin-right: -$separator-spacing;
+
+  @include typography.optical-centre;
 
   > .stat {
     display: inline-block;

@@ -158,17 +158,17 @@ const statsIcons = computed(() =>
   }
 
   .name {
-    @include typography.optical-centre($lines: 3);
-
     display: block;
     overflow-wrap: anywhere;
+
+    @include typography.optical-centre($lines: 3);
   }
 
   .device {
-    @include typography.optical-centre;
-
     font-size: 0.75em;
     color: var(--color-mid);
+
+    @include typography.optical-centre;
   }
 
   .info {
@@ -182,12 +182,12 @@ const statsIcons = computed(() =>
   }
 
   .date {
-    @include typography.optical-centre;
-
     grid-area: date;
     font-size: 0.75em;
     text-align: end;
     white-space: pre-line;
+
+    @include typography.optical-centre;
   }
 
   @container map-item-row (width < 15rem) {

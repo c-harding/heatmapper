@@ -27,9 +27,9 @@ const { icon } = defineProps<{
   }
 
   .label {
-    @include typography.optical-centre;
-
     flex: 1;
+
+    @include typography.optical-centre;
   }
 }
 </style>
