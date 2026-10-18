@@ -113,11 +113,6 @@ export default class RawStravaApi {
       // given up with this request
       signal: authCode ? undefined : this.abortSignal,
     });
-    if (res.status >= 400 && authCode) {
-      console.error('/token:', res.status, 'body:', await res.json());
-      // TODO: why such a hard exit?
-      process.exit(1);
-    }
     if (!res.ok) throw await StravaError.from(res);
     const data = (await res.json()) as {
       expires_at: number;
