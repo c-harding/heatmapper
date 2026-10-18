@@ -1,0 +1,22 @@
+{
+  "name": "@strava-heatmapper/e2e",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "playwright test",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint --fix .",
+    "prettier": "prettier -w ."
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0",
+    "@types/node": "^26.6.5",
+    "eslint": "^9.39.3",
+    "eslint-gitignore": "^0.1.0",
+    "globals": "^17.3.0",
+    "prettier": "^3.8.1",
+    "typescript": "~6.0.3",
+    "typescript-eslint": "^8.71.2"
+  }
+}

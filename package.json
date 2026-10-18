@@ -12,11 +12,12 @@
     "buildbackend": "scripts/buildbackend",
     "serve": "scripts/serve",
     "serve-mock": "scripts/serve --mock",
+    "e2e": "yarn --cwd=e2e test",
     "worktree": "scripts/worktree",
     "load-styles": "scripts/load-styles",
-    "typecheck": "yarn --cwd=shared typecheck && yarn --cwd=client typecheck && yarn --cwd=server typecheck",
-    "lint": "yarn --cwd=shared lint && yarn --cwd=client lint && yarn --cwd=server lint",
-    "prettier": "yarn --cwd=shared prettier && yarn --cwd=client prettier && yarn --cwd=server prettier"
+    "typecheck": "yarn --cwd=shared typecheck && yarn --cwd=client typecheck && yarn --cwd=server typecheck && yarn --cwd=e2e typecheck",
+    "lint": "yarn --cwd=shared lint && yarn --cwd=client lint && yarn --cwd=server lint && yarn --cwd=e2e lint",
+    "prettier": "yarn --cwd=shared prettier && yarn --cwd=client prettier && yarn --cwd=server prettier && yarn --cwd=e2e prettier"
   },
   "devDependencies": {
     "@babel/types": "^8.0.4",
@@ -38,7 +39,8 @@
   "workspaces": [
     "shared",
     "client",
-    "server"
+    "server",
+    "e2e"
   ],
   "engines": {
     "node": ">=26.12.1"

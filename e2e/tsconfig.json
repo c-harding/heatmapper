@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "lib": ["es2023", "dom"],
+    "types": ["node"],
+    "target": "es2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "allowJs": true,
+    "esModuleInterop": true,
+    "strict": true,
+    "noEmit": true
+  },
+  "exclude": ["*.config.mjs", "test-results", "playwright-report"]
+}

@@ -127,6 +127,11 @@ The same as `yarn serve`, but the backend serves a mock of Strava and uses it in
 The map still loads from Mapbox.
 Its consent form lets you untick permissions, its logins are kept in `server/sessions-mock`, and the `MOCK_*` settings in `sample.env` choose its data and delays.
 
+##### yarn e2e
+
+Run the Playwright tests in `e2e/` against the mock of Strava, on servers of their own (ports 18080 and 18081, or `E2E_SERVER_PORT` and `E2E_CLIENT_PORT`).
+They need Chromium, downloaded once per machine with `yarn --cwd=e2e playwright install chromium`.
+
 #### Scripts to be run inside each project
 
 The following scripts can be run in either the frontend or the backend projects.
