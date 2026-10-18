@@ -12,6 +12,11 @@ if [ -z "$DOTENV_FILE" ]; then
   exit 1
 fi
 
+# Prevent restarting the server after quitting when running locally
 SERVER_PORT="$(env_value .env SERVER_PORT)" \
-  docker compose -f dist/docker-compose.yml --env-file "$DOTENV_FILE" \
-  --project-name "$(compose_project "$ENV")" up "${REST_ARGS[@]}"
+  docker compose -f dist/docker-compose.yml -f - --env-file "$DOTENV_FILE" \
+  --project-name "$(compose_project "$ENV")" up "${REST_ARGS[@]}" <<'EOF'
+services:
+  heatmapper:
+    restart: 'no'
+EOF
