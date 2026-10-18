@@ -22,6 +22,8 @@ export default defineConfig({
   use: {
     baseURL: CLIENT_URL,
     locale: 'en-GB',
+    // Dates are grouped and shown in UTC; one test checks another timezone on purpose
+    timezoneId: 'UTC',
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
   },

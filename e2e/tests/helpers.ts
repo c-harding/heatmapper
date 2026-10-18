@@ -1,6 +1,7 @@
 import { expect, type Page } from '@playwright/test';
 
 import { DAY, MOCK_NOW, OLDEST_ACTIVITY, SERVER_URL } from '../env';
+import { mockActivities } from './data';
 
 export interface MockRequest {
   time: string;
@@ -31,7 +32,7 @@ export const loginPrompt = (page: Page) => page.locator('img[src*="connect-to-st
 export const loadButton = (page: Page) => page.getByRole('button', { name: /^(Load|Reload)$/ });
 
 /** The totals above the list, which count up as pages arrive */
-export const totals = (page: Page) => page.getByText(/^[\d,]+ (activities|routes)$/).first();
+export const totals = (page: Page) => page.getByText(/^[\d,]+ (activit(y|ies)|routes?)$/).first();
 
 /** Open the consent form from the login prompt, leaving it to the caller */
 export async function openConsent(page: Page, { keepSignedIn = true } = {}) {
@@ -91,4 +92,16 @@ export async function waitForCache(page: Page, count: number, { finished = false
 /** The number the totals above the list show */
 export async function shownCount(page: Page): Promise<number> {
   return Number((await totals(page).textContent())?.replace(/\D/g, ''));
+}
+
+/**
+ * The mock's activities as the page has them. A new one appears every day at 07:00 UTC, so a fetch
+ * made after the page loaded may have one more, newest first, which is left out.
+ */
+export async function activitiesAsShown(page: Page) {
+  const fetched = await mockActivities();
+  const shown = await shownCount(page);
+  expect(fetched.length - shown).toBeGreaterThanOrEqual(0);
+  expect(fetched.length - shown).toBeLessThanOrEqual(1);
+  return fetched.slice(fetched.length - shown);
 }
