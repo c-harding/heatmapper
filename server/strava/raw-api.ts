@@ -72,23 +72,23 @@ export default class RawStravaApi {
   }
 
   private async loadCache(): Promise<Cache> {
+    let cache: Cache;
     try {
-      const jsonStr = await readFile(sessionCacheFile(this.token), 'utf-8');
-      const cache: Cache = JSON.parse(jsonStr);
-      if (this.sessionType !== (cache.sessionType ?? SessionType.DEFAULT)) {
-        throw new InvalidLogin('Token not valid');
-      }
-      if (!cache.stravaAthlete || !cache.stravaRefreshToken) {
-        throw new NeedsLogin('Loaded from cache, but athlete or refresh token is missing');
-      }
-      const currentEpochSeconds = Date.now() / 1e3;
-      if (cache.stravaExpiry && cache.stravaExpiry < currentEpochSeconds) {
-        delete cache.stravaAccessToken;
-      }
-      return cache;
+      cache = JSON.parse(await readFile(sessionCacheFile(this.token), 'utf-8'));
     } catch (e) {
       throw new NeedsLogin('Could not load from cache', { cause: e });
     }
+    if (this.sessionType !== (cache.sessionType ?? SessionType.DEFAULT)) {
+      throw new InvalidLogin('Token not valid');
+    }
+    if (!cache.stravaAthlete || !cache.stravaRefreshToken) {
+      throw new NeedsLogin('Loaded from cache, but athlete or refresh token is missing');
+    }
+    const currentEpochSeconds = Date.now() / 1e3;
+    if (cache.stravaExpiry && cache.stravaExpiry < currentEpochSeconds) {
+      delete cache.stravaAccessToken;
+    }
+    return cache;
   }
 
   /**
@@ -161,7 +161,8 @@ export default class RawStravaApi {
     let cache: Cache;
     try {
       cache = await this.loadCache();
-    } catch {
+    } catch (e) {
+      if (e instanceof InvalidLogin) throw e;
       await this.getAccessTokenFromBrowser();
       cache = await this.loadCache();
     }
