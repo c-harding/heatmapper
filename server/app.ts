@@ -1,4 +1,4 @@
-import { SERVER_DOMAIN, SERVER_PORT, VITE_APP_NAME } from '@strava-heatmapper/shared/config/dotenv';
+import { MOCK_STRAVA, SERVER_DOMAIN, SERVER_PORT, VITE_APP_NAME } from '@strava-heatmapper/shared/config/dotenv';
 import bodyParser from 'body-parser';
 import history from 'connect-history-api-fallback';
 import cookieParser from 'cookie-parser';
@@ -6,6 +6,7 @@ import express, { type RequestHandler } from 'express';
 import expressWs from 'express-ws';
 
 import apiRouter from './api';
+import mockStravaRouter from './mock-strava';
 
 const app = express();
 const wsInstance = expressWs(app);
@@ -24,6 +25,9 @@ const corsConfig: RequestHandler = (req, res, next) => {
 app.use(corsConfig);
 
 app.use('/api', apiRouter(SERVER_DOMAIN, wsInstance));
+
+// Before the history fallback, which would answer the consent form with the app
+if (MOCK_STRAVA) app.use('/mock-strava', mockStravaRouter());
 
 // Support history api
 app.use(

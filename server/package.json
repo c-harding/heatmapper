@@ -12,6 +12,7 @@
     "build": "yarn clear-built; tsc --build && yarn copy-for-deployment"
   },
   "dependencies": {
+    "@mapbox/polyline": "^1.2.1",
     "@strava-heatmapper/shared": "^0.1.0",
     "@types/proper-lockfile": "^4.1.4",
     "body-parser": "^1.20.3",
@@ -31,6 +32,7 @@
     "@types/cookie-parser": "^1.4.7",
     "@types/express": "^5.0.6",
     "@types/express-ws": "^3.0.6",
+    "@types/mapbox__polyline": "^1.0.5",
     "@types/node": "^26.6.5",
     "@types/node-fetch": "^2.6.13",
     "@typescript-eslint/eslint-plugin": "^8.71.2",
