@@ -6,7 +6,7 @@
     "jsx": "preserve",
     "jsxImportSource": "vue",
     "importHelpers": true,
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "experimentalDecorators": true,
     "allowJs": true,
     "esModuleInterop": true,
@@ -14,12 +14,11 @@
     "composite": true,
     "declarationMap": true,
     "sourceMap": true,
-    "baseUrl": ".",
     "lib": ["ESNext", "DOM", "DOM.Iterable", "ScriptHost"],
     "types": ["vite/client"],
     "outDir": "../dist",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["./src/*"]
     }
   },
   "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.vue"],

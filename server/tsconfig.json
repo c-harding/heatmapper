@@ -6,11 +6,15 @@
     "module": "NodeNext",
     "allowJs": true,
     "esModuleInterop": true,
-    "downlevelIteration": true,
     "moduleResolution": "nodenext",
     "allowSyntheticDefaultImports": true,
     "outDir": "../dist/server",
+    "strict": false,
     "strictNullChecks": true
+  },
+  "ts-node": {
+    // ts-node also compiles the shared package, which is outside this directory
+    "compilerOptions": { "rootDir": ".." }
   },
   "exclude": ["*.config.mjs"]
 }
