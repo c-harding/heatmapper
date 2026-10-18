@@ -38,7 +38,7 @@ export default function calendarRouter(domain: string): express.Router {
 
     for await (const activity of eagerIterator(strava.getStravaActivities())) {
       const startTime = moment(activity.start_date).tz(activity.timezone.split(' ')[1]);
-      const location = activity.start_latlng.join(', ');
+      const location = activity.start_latlng?.length ? activity.start_latlng.join(', ') : undefined;
 
       const twoDigits = (val: number) => String(val).padStart(2, '0');
 
