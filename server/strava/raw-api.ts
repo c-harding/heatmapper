@@ -392,6 +392,37 @@ export default class RawStravaApi {
     return slot;
   }
 
+  /**
+   * Whether Strava confirms it has withdrawn this app's access for an athlete, by refreshing one of
+   * their sessions: a webhook event alone can be forged. Throws if Strava cannot be asked.
+   */
+  static async isDeauthorised(domain: string, athlete: number): Promise<boolean> {
+    let user: UserCache;
+    try {
+      user = JSON.parse(await readFile(userCacheFile(athlete), 'utf-8'));
+    } catch {
+      return false;
+    }
+    const sessions: [string, SessionType][] = user.sessions.map((token) => [token, SessionType.DEFAULT]);
+    if (user.calendarSession) sessions.push([user.calendarSession, SessionType.CALENDAR]);
+
+    // Any session that still refreshes means access remains; one stale token proves nothing
+    let refused = false;
+    for (const [token, sessionType] of sessions) {
+      const api = new RawStravaApi(domain, token, null, undefined, sessionType);
+      try {
+        await api.getStravaToken(undefined, undefined, true);
+        return false;
+      } catch (e) {
+        // Not a 400/401 alone: Strava also answers 401 when this app's own credentials are wrong
+        if (e instanceof StravaError && e.errors.some((error) => error.resource === 'RefreshToken')) refused = true;
+        // A session whose file is gone cannot be asked about, but another may
+        else if (!(e instanceof LoginError)) throw e;
+      }
+    }
+    return refused;
+  }
+
   /** Deletes the athlete's calendar session, if they have one */
   async deleteCalendar(): Promise<void> {
     if (this.sessionType !== SessionType.DEFAULT) throw new InvalidLogin('Only a browser can delete a calendar');

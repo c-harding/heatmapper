@@ -111,6 +111,10 @@ export class Strava {
     return { https, webcal: https.replace(/^\w+(?=:\/\/)/, 'webcal') };
   }
 
+  static isDeauthorised(domain: string, athlete: number): Promise<boolean> {
+    return RawStravaApi.isDeauthorised(domain, athlete);
+  }
+
   createCalendar(): Promise<string> {
     return this.rawApi.createCalendar();
   }
