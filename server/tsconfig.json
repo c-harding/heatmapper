@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "lib": ["es2023"],
+    "lib": ["es2023", "esnext.temporal"],
     "types": ["node"],
     "target": "es2020",
     "module": "NodeNext",
