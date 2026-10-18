@@ -201,7 +201,9 @@ export default class RawStravaApi {
       // If we do not continue after login, return a never-resolving promise.
       // This prevents the subsequent request from completing.
       if (!continueAfterLogin) await new Promise(() => undefined);
-    } catch {
+    } catch (e) {
+      // A closed request cannot log in, and retrying would only wait on it again
+      if (this.abortSignal?.aborted) throw e;
       if (continueAfterLogin) {
         await this.getAccessTokenFromBrowser();
       }

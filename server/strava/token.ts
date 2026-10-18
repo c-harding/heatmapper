@@ -1,3 +1,5 @@
+import { AbortError } from 'node-fetch';
+
 interface OAuthCallbackResponse {
   code: string;
   state: string;
@@ -35,6 +37,11 @@ export function addCallback(
   const { timeout = CALLBACK_TIMEOUT, signal } = options ?? {};
 
   return new Promise((resolve, reject) => {
+    // An aborted signal never fires its abort event again
+    if (signal?.aborted) {
+      reject(new AbortError('Login aborted'));
+      return;
+    }
     // A later call for the same name replaces this callback, which must then be left in place
     const removeOwn = () => {
       if (callbacks.get(name) === callback) callbacks.delete(name);
@@ -56,7 +63,7 @@ export function addCallback(
       'abort',
       () => {
         removeOwn();
-        reject(new Error('Abort', { cause: signal.reason }));
+        reject(new AbortError('Login aborted'));
       },
       { once: true },
     );
