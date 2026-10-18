@@ -107,19 +107,39 @@ if ! scripts/load-styles; then
     echo 'Could not load the map styles, so the generated ones will not be available.' >&2
 fi
 
+SERVER_PORT="$(env_value .env SERVER_PORT)"
+SERVER_PORT="${SERVER_PORT:-8080}"
 VITE_DEV_PORT="$(env_value .env VITE_DEV_PORT)"
+VITE_DEV_PORT="${VITE_DEV_PORT:-8081}"
+
+SESSION_NAME="$(session_name)"
+SESSION_TARGET="$(session_target)"
+
+# Stopped before the ports are checked, as its own servers would fail the check. They take a
+# moment to let go of their ports once told to stop.
+if tmux kill-session -t "$SESSION_TARGET" 2>/dev/null; then
+    for _ in 1 2 3 4 5 6 7 8 9 10; do
+        port_listening "$SERVER_PORT" || port_listening "$VITE_DEV_PORT" || break
+        sleep 0.3
+    done
+fi
+
+# Otherwise the backend fails in its pane, where it is easily missed.
+for port in "$SERVER_PORT" "$VITE_DEV_PORT"; do
+    if port_listening "$port"; then
+        echo "Port $port is already in use:" >&2
+        lsof -nP -iTCP:"$port" -sTCP:LISTEN >&2
+        exit 1
+    fi
+done
 
 printf 'Serving %s' "$(branch_label)"
 if is_linked_worktree; then
     printf ' (worktree %s)' "$(relpath "$(primary_root)" "$PWD")"
 fi
-printf ' at http://localhost:%s/\n' "${VITE_DEV_PORT:-8081}"
+printf ' at http://localhost:%s/\n' "$VITE_DEV_PORT"
 
-SESSION_NAME="$(session_name)"
-SESSION_TARGET="$(session_target)"
 (
-    tmux kill-session -t "$SESSION_TARGET" 2>/dev/null || true
-
     # split-window needs to name the session: with -d there is no current session, so an
     # untargeted split lands in whichever session invoked this one. It takes a target-pane, where
     # the "=" of session_target is not accepted; the bare name is still safe, because tmux

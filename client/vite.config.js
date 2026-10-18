@@ -80,6 +80,9 @@ export default defineConfig(({ mode }) => {
     },
     server: {
       port: VITE_DEV_PORT,
+      // Or a taken port moves the server elsewhere, leaving the address serve gave pointing at
+      // whatever holds it
+      strictPort: true,
       proxy: {
         '^/api/': { target: `http://localhost:${SERVER_PORT}`, ws: true },
       },
