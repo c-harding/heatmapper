@@ -22,6 +22,6 @@ export function userCacheToUserInfo(user: UserCache): UserInfo {
     lastName: user.lastName,
     image62: user.image62,
     image124: user.image124,
-    sessionCount: user.sessions.length,
+    sessionCount: user.sessions.length + (user.calendarSession ? 1 : 0),
   };
 }
