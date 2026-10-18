@@ -1,8 +1,5 @@
-import 'moment-timezone';
-
 import express from 'express';
 import ical from 'ical-generator';
-import moment from 'moment-timezone';
 
 import eagerIterator from './eager-iterator';
 import { getSportIcon } from './sport-icons';
@@ -37,7 +34,16 @@ export default function calendarRouter(domain: string): express.Router {
     const cal = ical({ name: 'Strava activities' });
 
     for await (const activity of eagerIterator(strava.getStravaActivities())) {
-      const startTime = moment(activity.start_date).tz(activity.timezone.split(' ')[1]);
+      const startInstant = Temporal.Instant.from(activity.start_date);
+      let startTime: Temporal.ZonedDateTime;
+      let timezone: string | undefined;
+      try {
+        startTime = startInstant.toZonedDateTimeISO(activity.timezone.split(' ')[1]);
+        timezone = startTime.timeZoneId;
+      } catch {
+        // A zone Node does not know: give the times in UTC, without a zone
+        startTime = startInstant.toZonedDateTimeISO('UTC');
+      }
       const location = activity.start_latlng?.length ? activity.start_latlng.join(', ') : undefined;
 
       const twoDigits = (val: number) => String(val).padStart(2, '0');
@@ -70,9 +76,9 @@ export default function calendarRouter(domain: string): express.Router {
       cal.createEvent({
         summary: `${activity.name} ${getSportIcon(activity)}`,
         location: location,
-        timezone: startTime.tz(),
+        timezone,
         start: startTime,
-        end: moment(startTime).add(activity.elapsed_time, 'seconds'),
+        end: startTime.add({ seconds: activity.elapsed_time }),
         url: `https://strava.com/activities/${activity.id}`,
         description: descriptionData,
       });

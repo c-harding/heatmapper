@@ -1338,8 +1338,6 @@ __metadata:
     express-ws: "npm:^5.0.2"
     globals: "npm:^17.3.0"
     ical-generator: "npm:^11.1.2"
-    moment: "npm:^2.29.4"
-    moment-timezone: "npm:^0.5.40"
     node-fetch: "npm:^2.7.0"
     nodemon: "npm:^3.1.7"
     prettier: "npm:^3.8.1"
@@ -5992,22 +5990,6 @@ __metadata:
     pkg-types: "npm:^1.3.1"
     ufo: "npm:^1.6.1"
   checksum: 10c0/f174b844ae066c71e9b128046677868e2e28694f0bbeeffbe760b2a9d8ff24de0748d0fde6fabe706700c1d2e11d3c0d7a53071b5ea99671592fac03364604ab
-  languageName: node
-  linkType: hard
-
-"moment-timezone@npm:^0.5.40":
-  version: 0.5.48
-  resolution: "moment-timezone@npm:0.5.48"
-  dependencies:
-    moment: "npm:^2.29.4"
-  checksum: 10c0/ab14ec9d94bc33f29ac18e5417b7f8aca0b17130b952c5cc9697b8fea839e5ece9313af5fd3c9703a05db472b1560ddbfc7ad2aa24aac9afd047d6da6c3c6033
-  languageName: node
-  linkType: hard
-
-"moment@npm:^2.29.4":
-  version: 2.31.0
-  resolution: "moment@npm:2.31.0"
-  checksum: 10c0/3755b186b8ff62c565685ce69dde55bf46003c0329139be5c8dd7845cd567bfd7d02be3a13e379a25acb9e98f6b87136c4776745e440615a4f5ca8dd9a8815b9
   languageName: node
   linkType: hard
 
