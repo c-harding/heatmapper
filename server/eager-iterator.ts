@@ -12,7 +12,7 @@ export const sleep = (delay: number): Promise<void> => new Promise((resolve) => 
 export const tick = (): Promise<void> => sleep(0);
 
 const eagerIterator = <T>(asyncIterable: AsyncIterable<T>): AsyncIterableIterator<T> => {
-  const returned = false;
+  let returned = false;
 
   // Never rejects: a step fetched ahead may fail after the consumer has stopped reading, and a
   // rejection nobody awaits would end the process. The error is held until next() reaches it.
@@ -46,6 +46,7 @@ const eagerIterator = <T>(asyncIterable: AsyncIterable<T>): AsyncIterableIterato
     // Handle early termination.
     // A return/break in a for-await loop will call this, preventing further loading.
     async return(value = undefined) {
+      returned = true;
       iteratorPromise = Promise.resolve(undefined);
       return { done: true, value };
     },
