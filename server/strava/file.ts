@@ -46,7 +46,12 @@ export async function updateFile<T>(
         fileContents = initial;
       }
     }
-    const newContents = transformer(fileContents) ?? fileContents;
+    const transformed = transformer(fileContents);
+    if (transformed === null) {
+      await rm(file, { force: true });
+      return undefined;
+    }
+    const newContents = transformed ?? fileContents;
     await writeFile(file, JSON.stringify(newContents));
     return newContents;
   });
