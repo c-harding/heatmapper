@@ -1,5 +1,6 @@
 import { type RequestHandler } from 'express';
 
+import { InvalidLogin } from '../login-error';
 import { extractRequestToken } from '../request-utils';
 import { Strava } from '../strava';
 
@@ -17,6 +18,11 @@ export class UserHandler {
       const athlete = await stravaApi.getUserInfo();
       res.send(athlete);
     } catch (e) {
+      // Not 403, which the client takes as a request to log in
+      if (e instanceof InvalidLogin) {
+        res.status(401).send({ type: 'Unauthorized', error: e.message });
+        return;
+      }
       if (e) console.error('Got error fetching the user info:', e);
       res.status(500).send({ type: 'Internal Server Error', error: e });
     }
