@@ -261,6 +261,7 @@ export default class RawStravaApi {
       const atheleteId = athlete || (await this.loadCache()).stravaAthlete;
       const user = await deleteFile<UserCache>(userCacheFile(atheleteId), true);
       const sessions = new Set(user?.sessions).add(this.token);
+      if (user?.calendarSession) sessions.add(user.calendarSession);
 
       // Delete all sessions belonging to this user, including the current session
       await Promise.all(Array.from(sessions, (session) => deleteFile(sessionCacheFile(session))));
@@ -277,7 +278,7 @@ export default class RawStravaApi {
         // Remove the session from this file
         user.sessions = user.sessions?.filter((value) => value !== this.token) ?? [];
 
-        if (user.sessions.length > 0) {
+        if (user.sessions.length > 0 || user.calendarSession) {
           return user;
         } else {
           // null => delete the file
