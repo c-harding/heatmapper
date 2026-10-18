@@ -119,11 +119,12 @@ export default class RawStravaApi {
    */
   private async getStravaToken(): Promise<string>;
   private async getStravaToken(scope: string, authCode: string): Promise<string>;
-  private async getStravaToken(scope?: string, authCode?: string): Promise<string> {
+  private async getStravaToken(scope: undefined, authCode: undefined, refresh: true): Promise<string>;
+  private async getStravaToken(scope?: string, authCode?: string, refresh = false): Promise<string> {
     if (authCode) return await this.fetchTokens({ grant_type: 'authorization_code', code: authCode }, scope);
 
     const cache = await this.loadCache();
-    if (cache.stravaAccessToken) return cache.stravaAccessToken;
+    if (cache.stravaAccessToken && !refresh) return cache.stravaAccessToken;
 
     return await untilAborted(this.sharedRefresh(cache.stravaRefreshToken), this.abortSignal);
   }
@@ -413,5 +414,62 @@ export default class RawStravaApi {
     } catch {
       return undefined;
     }
+  }
+
+  /** Gives this browser session's athlete a calendar session, or returns the one they have */
+  async createCalendar(): Promise<string> {
+    if (this.sessionType !== SessionType.DEFAULT) throw new InvalidLogin('Only a browser can create a calendar');
+    await this.loadCache();
+    const existing = await this.getCalendar();
+    if (existing) return existing;
+
+    // Copy only tokens Strava still accepts, freshly refreshed
+    try {
+      await this.getStravaToken(undefined, undefined, true);
+    } catch (e) {
+      if (e instanceof StravaError && e.errors.some((error) => error.resource === 'RefreshToken')) {
+        throw new NeedsLogin('Strava no longer accepts this session', { cause: e });
+      }
+      throw e;
+    }
+    const cache = await this.loadCache();
+
+    const calendarToken = uuid();
+    await updateFile<Cache>(
+      sessionCacheFile(calendarToken),
+      {
+        stravaAthlete: cache.stravaAthlete,
+        stravaRefreshToken: cache.stravaRefreshToken,
+        stravaAccessToken: cache.stravaAccessToken,
+        stravaExpiry: cache.stravaExpiry,
+        stravaScope: cache.stravaScope,
+        sessionType: SessionType.CALENDAR,
+      },
+      () => undefined,
+    );
+
+    // Another request may have filled the slot since it was read
+    let slot = calendarToken;
+    const user = await updateFile<Partial<UserCache>>(userCacheFile(cache.stravaAthlete), undefined, (user) => {
+      if (user.calendarSession) slot = user.calendarSession;
+      else user.calendarSession = calendarToken;
+      return user;
+    });
+    if (!user || slot !== calendarToken) await deleteFile(sessionCacheFile(calendarToken));
+    if (!user) throw new NeedsLogin('No user record for this session');
+    return slot;
+  }
+
+  /** Deletes the athlete's calendar session, if they have one */
+  async deleteCalendar(): Promise<void> {
+    if (this.sessionType !== SessionType.DEFAULT) throw new InvalidLogin('Only a browser can delete a calendar');
+    const cache = await this.loadCache();
+    let calendarToken: string | undefined;
+    await updateFile<Partial<UserCache>>(userCacheFile(cache.stravaAthlete), undefined, (user) => {
+      calendarToken = user.calendarSession;
+      delete user.calendarSession;
+      return user;
+    });
+    if (calendarToken) await deleteFile(sessionCacheFile(calendarToken));
   }
 }
