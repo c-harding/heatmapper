@@ -83,7 +83,11 @@ export function validTokenCallback(data: Partial<OAuthCallbackResponse>): data i
   return validString(data.code) && validString(data.state) && validString(data.scope);
 }
 
-export function tokenExchange(data: OAuthCallbackResponse): boolean {
+/**
+ * Hand a login to everyone waiting on it, resolving once its code is exchanged and its session
+ * saved, so that whoever hears of the login next can use it
+ */
+export async function tokenExchange(data: OAuthCallbackResponse): Promise<boolean> {
   const waiting = waiters.get(data.state);
   if (!waiting) return false;
   waiters.delete(data.state);
@@ -101,5 +105,11 @@ export function tokenExchange(data: OAuthCallbackResponse): boolean {
     if (waiter.mapper) waiter.resolve(mapped);
     else waiter.resolve(data);
   }
-  return true;
+
+  try {
+    await mapped;
+    return true;
+  } catch {
+    return false;
+  }
 }

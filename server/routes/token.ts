@@ -3,10 +3,11 @@ import { createReadStream } from 'fs';
 
 import { tokenExchange, validTokenCallback } from '../strava/token';
 
-export const getToken: RequestHandler = (req, res) => {
+export const getToken: RequestHandler = async (req, res) => {
   let code: number, html: string;
   try {
-    const successful = validTokenCallback(req.query) && tokenExchange(req.query);
+    // The page tells the app the login worked, so is only sent once the session is saved
+    const successful = validTokenCallback(req.query) && (await tokenExchange(req.query));
     [code, html] = successful ? [200, 'static/auth.html'] : [400, 'static/auth-error.html'];
   } catch {
     [code, html] = [500, 'static/auth-error.html'];
