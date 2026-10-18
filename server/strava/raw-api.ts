@@ -25,6 +25,33 @@ interface Cache {
   stravaScope?: string[];
 }
 
+/** A reply from Strava that is not a success */
+export class StravaError extends Error {
+  name = 'StravaError';
+
+  constructor(
+    readonly status: number,
+    message: string,
+    /** What Strava says was wrong, e.g. `{ resource: 'RefreshToken', field: 'refresh_token', code: 'invalid' }` */
+    readonly errors: { resource?: string; field?: string; code?: string }[] = [],
+  ) {
+    super(message);
+  }
+
+  static async from(res: Response): Promise<StravaError> {
+    let message = res.statusText;
+    let errors: StravaError['errors'] = [];
+    try {
+      const body = (await res.json()) as { message?: string; errors?: StravaError['errors'] };
+      message = body.message ?? message;
+      errors = body.errors ?? errors;
+    } catch {
+      // Not JSON, so keep the status text
+    }
+    return new StravaError(res.status, `Strava replied ${res.status}: ${message}`, errors);
+  }
+}
+
 export default class RawStravaApi {
   private readonly token: string;
 
@@ -91,6 +118,7 @@ export default class RawStravaApi {
       // TODO: why such a hard exit?
       process.exit(1);
     }
+    if (!res.ok) throw await StravaError.from(res);
     const data = (await res.json()) as {
       expires_at: number;
       refresh_token: string;
@@ -280,10 +308,13 @@ export default class RawStravaApi {
         data = await this.retryStravaAPI(endpoint, query);
       }
     } catch (e) {
-      if (e instanceof NeedsLogin) {
+      // A refresh Strava refuses needs a login, as a missing session does
+      const refused = e instanceof StravaError && (e.status === 400 || e.status === 401);
+      if (e instanceof NeedsLogin || refused) {
         data = await this.retryStravaAPI(endpoint, query);
       } else throw e;
     }
+    if (!data.ok) throw await StravaError.from(data);
     const json = await data.json();
 
     return json as T;
