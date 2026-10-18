@@ -14,7 +14,7 @@
     "build": "yarn clear-built; tsc --build && yarn copy-for-deployment"
   },
   "devDependencies": {
-    "@types/node": "^20.19.33",
+    "@types/node": "^26.6.5",
     "eslint": "^9.39.3",
     "globals": "^17.3.0",
     "typescript": "^5.9.3",

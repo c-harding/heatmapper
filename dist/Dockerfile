@@ -1,7 +1,7 @@
-FROM node:24
+FROM node:26
 
+RUN npm install -g corepack pm2
 RUN corepack enable
-RUN npm install -g pm2
 
 WORKDIR /usr/src/app/dist
 
