@@ -104,12 +104,19 @@ export class Strava {
     return this.rawApi.hasToken();
   }
 
-  async getCalendarUrl() {
+  async getCalendarUrls(): Promise<{ https: string; webcal: string } | undefined> {
     const calendarSession = await this.rawApi.getCalendar();
-    if (calendarSession) {
-      const webcalDomain = this.domain.replace(/\w+(?=:\/\/)/, 'webcal');
-      return `${webcalDomain}/calendar/${calendarSession}.ics`;
-    }
+    if (!calendarSession) return undefined;
+    const https = `${this.domain}/calendar/${calendarSession}.ics`;
+    return { https, webcal: https.replace(/^\w+(?=:\/\/)/, 'webcal') };
+  }
+
+  createCalendar(): Promise<string> {
+    return this.rawApi.createCalendar();
+  }
+
+  deleteCalendar(): Promise<void> {
+    return this.rawApi.deleteCalendar();
   }
 
   async logout(global?: boolean);
