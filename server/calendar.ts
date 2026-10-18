@@ -40,9 +40,10 @@ export default function calendarRouter(domain: string): express.Router {
       const startTime = moment(activity.start_date).tz(activity.timezone.split(' ')[1]);
       const location = activity.start_latlng.join(', ');
 
-      const twoDigits = (val: number) => String(val.toFixed(0)).padStart(2, '0');
+      const twoDigits = (val: number) => String(val).padStart(2, '0');
 
-      const toHms = (totalSeconds: number) => {
+      const toHms = (exactSeconds: number) => {
+        const totalSeconds = Math.round(exactSeconds);
         const hours = Math.floor(totalSeconds / 60 / 60),
           minutes = Math.floor(totalSeconds / 60) % 60,
           seconds = totalSeconds % 60;
