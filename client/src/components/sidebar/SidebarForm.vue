@@ -69,11 +69,12 @@ async function loadButton() {
   try {
     await activityStore.load(partialLoad, start.value, end.value);
   } catch (cause) {
-    const message = `An error occurred when fetching the ${activityStore.useRoutes ? 'activities' : 'routes'}`;
+    const message = `An error occurred when fetching the ${activityStore.useRoutes ? 'routes' : 'activities'}`;
     console.error(message, cause);
     throw new TooltipError(message, { timeout: 0, cause });
+  } finally {
+    loading.value = false;
   }
-  loading.value = false;
   unchangedSinceLoad.value = true;
 }
 
