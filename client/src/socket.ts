@@ -74,7 +74,7 @@ export default class Socket {
     }));
   }
 
-  private async send(data: string | ArrayBuffer | SharedArrayBuffer | Blob | ArrayBufferView) {
+  private async send(data: string) {
     const connection = await this.connection;
     this.log('Socket', this.id, 'is in state', connection.readyState);
     if (connection.readyState !== connection.OPEN)
