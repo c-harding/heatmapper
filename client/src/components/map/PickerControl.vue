@@ -69,8 +69,14 @@ function isActive(choice: Choice): boolean {
 </script>
 
 <template>
-  <button ref="layerButton" :class="$style.layerButton" @click="clickedOpen = !clickedOpen">
-    <UIIcon icon="layers" />
+  <button
+    ref="layerButton"
+    :class="$style.layerButton"
+    aria-label="Map style"
+    title="Map style"
+    @click="clickedOpen = !clickedOpen"
+  >
+    <UIIcon icon="layers" aria-hidden="true" />
   </button>
   <div ref="layerPicker" :class="[$style.layerPicker, clickedOpen && $style.open]">
     <menu>
