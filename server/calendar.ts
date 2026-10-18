@@ -29,8 +29,6 @@ export default function calendarRouter(domain: string): express.Router {
   router.get('/:token.ics', async (req: express.Request, res: express.Response) => {
     const strava = new Strava(domain, req.params.token, mkRequestLogin(res));
 
-    res.type('text/calendar; charset=UTF-8');
-
     const cal = ical({ name: 'Strava activities' });
 
     for await (const activity of eagerIterator(strava.getStravaActivities())) {
