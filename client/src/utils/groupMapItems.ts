@@ -40,7 +40,7 @@ function groupLabel(group: GroupLevel, date: number) {
     case GroupLevel.WEEKLY_SA:
     case GroupLevel.WEEKLY_SU: {
       const endOfWeek = new Date(date);
-      endOfWeek.setDate(endOfWeek.getUTCDate() + 7);
+      endOfWeek.setUTCDate(endOfWeek.getUTCDate() + 7);
       return formatDateRange(date, +endOfWeek - 1);
     }
     case GroupLevel.MONTHLY:
