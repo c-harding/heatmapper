@@ -1,33 +1,103 @@
+import { VITE_APP_NAME } from '@strava-heatmapper/shared/config/dotenv';
 import express from 'express';
 import ical from 'ical-generator';
 
 import eagerIterator from './eager-iterator';
 import LoginError from './login-error';
+import { extractRequestToken } from './request-utils';
 import { getSportIcon } from './sport-icons';
 import { Strava } from './strava';
 import { type SummaryActivity } from './strava/model';
-import { SessionType } from './strava/raw-api';
+import { SessionType, StravaError } from './strava/raw-api';
+
+const escapeHtml = (text: string) => text.replace(/[&<>"']/g, (char) => `&#${char.charCodeAt(0)};`);
+
+const page = (body: string) => `<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Calendar – ${escapeHtml(VITE_APP_NAME)}</title>
+  </head>
+  <body>
+    <h1>Calendar</h1>
+    ${body}
+  </body>
+</html>
+`;
 
 export default function calendarRouter(domain: string): express.Router {
   const router = express.Router();
-  const host = new URL(domain).hostname;
+  const { hostname: host, origin } = new URL(domain);
 
-  const mkRequestLogin = (res: express.Response) => async () => {
-    res.status(403).send('Not logged in');
-    return false;
+  /** The browser's own session, if it is signed in */
+  const browserSession = async (req: express.Request) => {
+    const strava = new Strava(domain, extractRequestToken(req), null);
+    return (await strava.hasToken()) ? strava : undefined;
+  };
+
+  // Old cookies have no SameSite, so another site's form would still send them
+  const sameOrigin: express.RequestHandler = (req, res, next) => {
+    if (req.get('origin') === origin) next();
+    else res.status(403).send('Forbidden');
   };
 
   router.get('/', async (req: express.Request, res: express.Response) => {
-    const token = req.cookies.token;
-    const requestLogin = mkRequestLogin(res);
-    if (token && (await new Strava(domain, token, requestLogin).hasToken())) {
-      const webcalDomain = domain.replace(/\w+(?=:\/\/)/, 'webcal');
-      const pathWithSlash = req.originalUrl.replace(/\/?$/, '/');
-      const fullPath = webcalDomain + pathWithSlash + token + '.ics';
-      res.redirect(fullPath);
-    } else {
-      await requestLogin();
+    const strava = await browserSession(req);
+    if (!strava) {
+      res.send(page(`<p>Sign in to <a href="/">${escapeHtml(VITE_APP_NAME)}</a> first, then come back here.</p>`));
+      return;
     }
+    const urls = await strava.getCalendarUrls();
+    if (!urls) {
+      res.send(
+        page(`
+          <p>A calendar link lets a calendar app show your activities.</p>
+          <form method="post" action="${req.baseUrl}"><button>Create calendar link</button></form>`),
+      );
+      return;
+    }
+    const confirmDelete = 'Delete this calendar link? Calendars subscribed to it will stop updating.';
+    res.send(
+      page(`
+        <p>Subscribe in a calendar app: <a href="${escapeHtml(urls.webcal)}">${escapeHtml(urls.webcal)}</a></p>
+        <p>Or add it by address: <code>${escapeHtml(urls.https)}</code></p>
+        <form method="post" action="${req.baseUrl}/delete" onsubmit="return confirm('${confirmDelete}')">
+          <button>Delete calendar link</button>
+        </form>`),
+    );
+  });
+
+  router.post('/', sameOrigin, async (req: express.Request, res: express.Response) => {
+    const strava = await browserSession(req);
+    if (!strava) {
+      res.status(403).send('Not signed in');
+      return;
+    }
+    try {
+      await strava.createCalendar();
+    } catch (e) {
+      if (e instanceof LoginError) {
+        const app = `<a href="/">${escapeHtml(VITE_APP_NAME)}</a>`;
+        res
+          .status(403)
+          .send(page(`<p>Strava no longer accepts this sign-in. Sign in to ${app} again, then come back here.</p>`));
+      } else if (e instanceof StravaError) {
+        res.status(503).send(page('<p>Strava could not be reached. Try again later.</p>'));
+      } else throw e;
+      return;
+    }
+    res.redirect(303, req.baseUrl);
+  });
+
+  router.post('/delete', sameOrigin, async (req: express.Request, res: express.Response) => {
+    const strava = await browserSession(req);
+    if (!strava) {
+      res.status(403).send('Not signed in');
+      return;
+    }
+    await strava.deleteCalendar();
+    res.redirect(303, req.baseUrl);
   });
 
   router.get('/:token.ics', async (req: express.Request, res: express.Response) => {
