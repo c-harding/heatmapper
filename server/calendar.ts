@@ -101,7 +101,10 @@ export default function calendarRouter(domain: string): express.Router {
   });
 
   router.get('/:token.ics', async (req: express.Request, res: express.Response) => {
-    const strava = new Strava(domain, req.params.token, null, undefined, SessionType.CALENDAR);
+    // Stops paging through Strava once the calendar app has gone
+    const abortController = new AbortController();
+    res.on('close', () => abortController.abort());
+    const strava = new Strava(domain, req.params.token, null, abortController.signal, SessionType.CALENDAR);
 
     const activities: SummaryActivity[] = [];
     try {
@@ -115,6 +118,7 @@ export default function calendarRouter(domain: string): express.Router {
       }
       return;
     }
+    if (abortController.signal.aborted) return;
 
     const cal = ical({ name: 'Strava activities' });
 
