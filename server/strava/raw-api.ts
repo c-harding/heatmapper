@@ -184,7 +184,7 @@ export default class RawStravaApi {
       ),
       athlete &&
         updateFile<Partial<UserCache>, UserCache>(userCacheFile(athlete.id), {}, (oldUser) =>
-          this.athleteToUser(athlete, oldUser.sessions),
+          this.athleteToUser(athlete, oldUser),
         ),
     ]);
 
@@ -223,18 +223,19 @@ export default class RawStravaApi {
 
     const athlete = await this.get<SummaryAthlete>('/athlete');
     return await updateFile<Partial<UserCache>, UserCache>(userCacheFile(athlete.id), {}, (oldUser) =>
-      this.athleteToUser(athlete, oldUser.sessions),
+      this.athleteToUser(athlete, oldUser),
     );
   }
 
-  private athleteToUser(athlete: SummaryAthlete, existingSessions?: string[]): UserCache {
+  private athleteToUser(athlete: SummaryAthlete, oldUser: Partial<UserCache>): UserCache {
     return {
+      ...oldUser,
       id: athlete.id,
       firstName: athlete.firstname,
       lastName: athlete.lastname,
       image62: athlete.profile_medium,
       image124: athlete.profile,
-      sessions: Array.from(new Set<string>(existingSessions).add(this.token)),
+      sessions: Array.from(new Set<string>(oldUser.sessions).add(this.token)),
     };
   }
 
