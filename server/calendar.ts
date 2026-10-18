@@ -59,8 +59,8 @@ export default function calendarRouter(domain: string): express.Router {
         'Elevation gain': activity.total_elevation_gain && `${activity.total_elevation_gain.toFixed(0)} m`,
         'Average speed': activity.average_speed && !isRun && `${(activity.average_speed * 3.6).toFixed(1)} km/h`,
         'Average pace': activity.average_speed && isRun && `${toHms(1000 / activity.average_speed)}/km`,
-        'Average heart rate': activity.has_heartrate && `${activity.average_heartrate?.toFixed(0)} bpm`,
-        'Max heart rate': activity.has_heartrate && `${activity.max_heartrate?.toFixed(0)} bpm`,
+        'Average heart rate': activity.average_heartrate && `${activity.average_heartrate.toFixed(0)} bpm`,
+        'Max heart rate': activity.max_heartrate && `${activity.max_heartrate.toFixed(0)} bpm`,
       };
       const descriptionData = Object.entries(descriptionFields)
         .filter(([, value]) => value)
