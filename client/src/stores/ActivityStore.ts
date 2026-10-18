@@ -385,7 +385,8 @@ export const useActivityStore = defineStore('activity', () => {
 
     /**
      * A handler that asks for a login holds back its replies until the login is done, so its next
-     * reply proves it. Gear is fetched by separate handlers, which cannot vouch for this one.
+     * reply proves it. A gear reply already on its way could answer for another handler's login
+     * instead, but only if the session ends just as it is sent.
      */
     function confirmLogin(token = pendingLogin) {
       if (token === undefined) return;
@@ -409,7 +410,7 @@ export const useActivityStore = defineStore('activity', () => {
     const socket = new Socket(
       `${protocol}://${window.location.host}/api/activities`,
       (data: ResponseMessage) => {
-        if (data.type !== 'login' && data.type !== 'gear') confirmLogin();
+        if (data.type !== 'login') confirmLogin();
         switch (data.type) {
           case 'stats': {
             if (data.for === 'activities') {
