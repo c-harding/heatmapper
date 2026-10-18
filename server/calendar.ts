@@ -2,7 +2,6 @@ import { VITE_APP_NAME } from '@strava-heatmapper/shared/config/dotenv';
 import express from 'express';
 import ical from 'ical-generator';
 
-import eagerIterator from './eager-iterator';
 import LoginError from './login-error';
 import { extractRequestToken } from './request-utils';
 import { getSportIcon } from './sport-icons';
@@ -25,6 +24,18 @@ const page = (body: string) => `<!doctype html>
   </body>
 </html>
 `;
+
+const twoDigits = (val: number) => String(val).padStart(2, '0');
+
+const toHms = (exactSeconds: number) => {
+  const totalSeconds = Math.round(exactSeconds);
+  const hours = Math.floor(totalSeconds / 60 / 60),
+    minutes = Math.floor(totalSeconds / 60) % 60,
+    seconds = totalSeconds % 60;
+  return (hours ? [hours, twoDigits(minutes), twoDigits(seconds)] : [minutes, twoDigits(seconds)]).join(':');
+};
+
+const runTypes = new Set(['Run', 'TrailRun', 'VirtualRun']);
 
 export default function calendarRouter(domain: string): express.Router {
   const router = express.Router();
@@ -108,8 +119,9 @@ export default function calendarRouter(domain: string): express.Router {
 
     const activities: SummaryActivity[] = [];
     try {
-      for await (const activity of eagerIterator(strava.getStravaActivities())) activities.push(activity);
+      for await (const activity of strava.getStravaActivities()) activities.push(activity);
     } catch (e) {
+      if (abortController.signal.aborted) return;
       if (e instanceof LoginError) {
         res.status(404).send('No such calendar');
       } else {
@@ -135,17 +147,7 @@ export default function calendarRouter(domain: string): express.Router {
       }
       const location = activity.start_latlng?.length ? activity.start_latlng.join(', ') : undefined;
 
-      const twoDigits = (val: number) => String(val).padStart(2, '0');
-
-      const toHms = (exactSeconds: number) => {
-        const totalSeconds = Math.round(exactSeconds);
-        const hours = Math.floor(totalSeconds / 60 / 60),
-          minutes = Math.floor(totalSeconds / 60) % 60,
-          seconds = totalSeconds % 60;
-        return (hours ? [hours, twoDigits(minutes), twoDigits(seconds)] : [minutes, twoDigits(seconds)]).join(':');
-      };
-
-      const isRun = ['Run', 'TrailRun', 'VirtualRun'].includes(activity.sport_type);
+      const isRun = runTypes.has(activity.sport_type);
 
       const descriptionFields = {
         'Elapsed time': activity.elapsed_time && `${toHms(activity.elapsed_time)}`,
