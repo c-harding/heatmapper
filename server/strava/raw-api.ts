@@ -1,5 +1,7 @@
 import {
   SESSIONS_DIR,
+  STRAVA_BASE_URL,
+  STRAVA_BROWSER_BASE_URL,
   STRAVA_CLIENT_ID as stravaClientId,
   STRAVA_CLIENT_SECRET as stravaClientSecret,
 } from '@strava-heatmapper/shared/config/dotenv';
@@ -103,7 +105,7 @@ export default class RawStravaApi {
     }
 
     // get new tokens
-    const res = await fetch('https://www.strava.com/oauth/token', {
+    const res = await fetch(`${STRAVA_BASE_URL}/oauth/token`, {
       method: 'post',
       body: JSON.stringify({
         grant_type: 'refresh_token',
@@ -197,7 +199,7 @@ export default class RawStravaApi {
   }
 
   private async rawStravaAPI(endpoint: string, query: Record<string, string | number | undefined> = {}) {
-    const API_BASE = 'https://www.strava.com/api/v3';
+    const API_BASE = `${STRAVA_BASE_URL}/api/v3`;
     const queryString = (Object.entries(query).filter(([, value]) => value) as [string, string | number][])
       .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
       .join('&');
@@ -220,7 +222,7 @@ export default class RawStravaApi {
     const scope = ['read_all', 'activity:read', 'activity:read_all'].join(',');
     const continueAfterLogin = await this.loginCallback(
       this.token,
-      `http://www.strava.com/oauth/authorize?client_id=${stravaClientId}&response_type=code&redirect_uri=${redirectUrl}&state=${this.token}&approval_prompt=auto&scope=${scope}`,
+      `${STRAVA_BROWSER_BASE_URL}/oauth/authorize?client_id=${stravaClientId}&response_type=code&redirect_uri=${redirectUrl}&state=${this.token}&approval_prompt=auto&scope=${scope}`,
     );
 
     try {

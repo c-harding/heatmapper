@@ -80,6 +80,33 @@ const SERVER_DOMAIN = process.env.SERVER_DOMAIN || `http://localhost:${SERVER_PO
 
 const SESSIONS_DIR = resolve(ROOT_DIR, process.env.SESSIONS_DIR || 'server/sessions');
 
+// Serve a mock of Strava from the backend, and use it in place of Strava
+const MOCK_STRAVA = !['', '0', 'false', 'no', 'off'].includes(
+  (process.env.MOCK_STRAVA || '').trim().toLowerCase(),
+);
+const STRAVA_OVERRIDE = process.env.STRAVA_BASE_URL?.replace(/\/+$/, '');
+// The server reaches its own mock directly, while the browser has to go through SERVER_DOMAIN
+const STRAVA_BASE_URL =
+  STRAVA_OVERRIDE ||
+  (MOCK_STRAVA ? `http://localhost:${SERVER_PORT}/mock-strava` : 'https://www.strava.com');
+const STRAVA_BROWSER_BASE_URL =
+  STRAVA_OVERRIDE || (MOCK_STRAVA ? `${SERVER_DOMAIN}/mock-strava` : 'https://www.strava.com');
+// The mock's activities go back to this ISO date, or a year when blank
+const MOCK_OLDEST_ACTIVITY = process.env.MOCK_OLDEST_ACTIVITY || '';
+// The mock's present, as an ISO time, so that no new day's activity appears mid-run; now when blank
+const MOCK_NOW = Date.parse(process.env.MOCK_NOW || '') || undefined;
+const MOCK_ACTIVITY_TYPES = (process.env.MOCK_ACTIVITY_TYPES || 'Ride,Run,Walk')
+  .split(',')
+  .map((type) => type.trim())
+  .filter(Boolean);
+// How long the mock takes over a page of activities or routes, and over anything else
+const delay = (value, fallback) => {
+  const ms = Number(value?.trim() || fallback);
+  return Number.isFinite(ms) && ms >= 0 ? ms : fallback;
+};
+const MOCK_PAGE_DELAY_MS = delay(process.env.MOCK_PAGE_DELAY_MS, 10000);
+const MOCK_DELAY_MS = delay(process.env.MOCK_DELAY_MS, 500);
+
 module.exports = {
   STRAVA_CLIENT_ID,
   STRAVA_CLIENT_SECRET,
@@ -95,4 +122,12 @@ module.exports = {
   MAPBOX_STYLE,
   SESSIONS_DIR,
   ENV,
+  MOCK_STRAVA,
+  STRAVA_BASE_URL,
+  STRAVA_BROWSER_BASE_URL,
+  MOCK_OLDEST_ACTIVITY,
+  MOCK_NOW,
+  MOCK_ACTIVITY_TYPES,
+  MOCK_PAGE_DELAY_MS,
+  MOCK_DELAY_MS,
 };
