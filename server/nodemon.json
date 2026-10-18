@@ -1,5 +1,6 @@
 {
     "ignore": [
-        "sessions/*.json"
+        "sessions/*.json",
+        "sessions-mock/*.json"
     ]
 }

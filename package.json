@@ -11,6 +11,7 @@
     "build": "scripts/build",
     "buildbackend": "scripts/buildbackend",
     "serve": "scripts/serve",
+    "serve-mock": "scripts/serve --mock",
     "worktree": "scripts/worktree",
     "load-styles": "scripts/load-styles",
     "typecheck": "yarn --cwd=shared typecheck && yarn --cwd=client typecheck && yarn --cwd=server typecheck",

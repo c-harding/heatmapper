@@ -121,6 +121,12 @@ See [`yarn serve`](#yarn-serve-1) below for more information about how these ser
 To leave this running in the background, the default shortcut to detach from a tmux session is <kbd>^b</kbd> <kbd>d</kbd>.
 It can then be reentered with `tmux attach`.
 
+##### yarn serve-mock
+
+The same as `yarn serve`, but the backend serves a mock of Strava and uses it in place of Strava, so no Strava account is needed.
+The map still loads from Mapbox.
+Its consent form lets you untick permissions, its logins are kept in `server/sessions-mock`, and the `MOCK_*` settings in `sample.env` choose its data and delays.
+
 #### Scripts to be run inside each project
 
 The following scripts can be run in either the frontend or the backend projects.

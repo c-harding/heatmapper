@@ -37,6 +37,7 @@ cd "$(dirname "$0")/.."
 . scripts/lib
 
 DETACH_FLAG=''
+MOCK=0
 
 while (($#)); do
     case $1 in
@@ -45,17 +46,28 @@ while (($#)); do
             DETACH_FLAG='-d'
             shift
             ;;
+        -m | --mock)
+            MOCK=1
+            shift
+            ;;
         -h | --help)
             cat <<'EOF'
-Usage: yarn serve [-A]
+Usage: yarn serve [-A] [-m]
 
 Run the frontend and backend dev servers side by side in a tmux session. Ctrl-C in either pane
 stops both. Detach from the session with ^b d, and come back to it with "tmux attach".
 
 Options:
   -A, --no-attach  leave the servers running in the background instead of attaching to them
+  -m, --mock       serve a mock of Strava from the backend and use it in place of Strava, with
+                   its own sessions in server/sessions-mock (also "yarn serve-mock")
 EOF
             exit 0
+            ;;
+        -[!-]?*)
+            # Combined short options, such as -Am: split off the first, put the rest back. An
+            # option taking a value needs a case of its own above this one, for -x<value>.
+            set -- "${1:0:2}" "-${1:2}" "${@:2}"
             ;;
         *)
             echo "Unknown option $1" >&2
@@ -140,7 +152,15 @@ printf 'Serving %s' "$(branch_label)"
 if is_linked_worktree; then
     printf ' (worktree %s)' "$(relpath "$(primary_root)" "$PWD")"
 fi
-printf ' at http://localhost:%s/\n' "$VITE_DEV_PORT"
+printf ' at http://localhost:%s/' "$VITE_DEV_PORT"
+[ "$MOCK" -eq 1 ] && printf ' against a mock of Strava'
+printf '\n'
+
+# The mock's sessions are kept apart, so that its logins never replace real ones
+BACKEND=(yarn serve)
+if [ "$MOCK" -eq 1 ]; then
+    BACKEND=(env MOCK_STRAVA=true SESSIONS_DIR=server/sessions-mock yarn serve)
+fi
 
 (
     # split-window needs to name the session: with -d there is no current session, so an
@@ -148,7 +168,7 @@ printf ' at http://localhost:%s/\n' "$VITE_DEV_PORT"
     # the "=" of session_target is not accepted; the bare name is still safe, because tmux
     # resolves an exact session name before trying it as a prefix.
     tmux new-session $DETACH_FLAG -s "$SESSION_NAME" -c "$PWD/client" "$(wrap yarn serve)" \;\
-         split-window -v -t "$SESSION_NAME"          -c "$PWD/server" "$(wrap yarn serve)"
+         split-window -v -t "$SESSION_NAME"          -c "$PWD/server" "$(wrap "${BACKEND[@]}")"
 )
 
 if [ "$SWITCH" -eq 1 ]; then

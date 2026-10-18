@@ -6,6 +6,7 @@ node_modules
 /dist/.yarnrc.yml
 /dist/sessions
 /server/sessions
+/server/sessions-mock
 
 # Map styles vendored by scripts/load-styles
 /client/public/styles/generated/
