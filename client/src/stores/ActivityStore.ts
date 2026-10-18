@@ -34,7 +34,7 @@ import {
   saveFilterFields,
 } from '@/utils/storage';
 
-import { useContinueLoginStore } from './ContinueLoginStore';
+import { cookieToken, useContinueLoginStore } from './ContinueLoginStore';
 
 export interface LoadingStats {
   closed?: boolean;
@@ -377,9 +377,22 @@ export const useActivityStore = defineStore('activity', () => {
 
     let latestActivityDate = startTimestamp;
 
+    /** The token of a login this socket asked for, until the socket proves it succeeded */
+    let pendingLogin: string | undefined;
+
+    /**
+     * A handler that asks for a login holds back its replies until the login is done, so its next
+     * reply proves it. Gear is fetched by separate handlers, which cannot vouch for this one.
+     */
+    function confirmLogin(token = pendingLogin) {
+      if (token === undefined) return;
+      continueLoginStore.loggedIn(token, 'socket');
+      pendingLogin = undefined;
+    }
+
     function checkFinished(socket: Socket | undefined): boolean {
       const finished =
-        !continueLoginStore.continueLogin &&
+        pendingLogin === undefined &&
         (!activities || activityStats.value.finding?.finished === true) &&
         (!routes || routeStats.value.finding?.finished === true) &&
         Iterator.from(gear.values()).every(Boolean);
@@ -393,6 +406,7 @@ export const useActivityStore = defineStore('activity', () => {
     const socket = new Socket(
       `${protocol}://${window.location.host}/api/activities`,
       (data: ResponseMessage) => {
+        if (data.type !== 'login' && data.type !== 'gear') confirmLogin();
         switch (data.type) {
           case 'stats': {
             if (data.for === 'activities') {
@@ -436,7 +450,8 @@ export const useActivityStore = defineStore('activity', () => {
             break;
           }
           case 'login': {
-            continueLoginStore.waitForLogin(data.cookie, data.url);
+            pendingLogin = data.cookie;
+            void continueLoginStore.waitForLogin(data.cookie, data.url, 'socket');
             break;
           }
           default:
@@ -458,6 +473,9 @@ export const useActivityStore = defineStore('activity', () => {
       { handshake: true },
       'handshake',
     );
+    // The handshake is answered here, not by the message handler. Without a login, it proves the
+    // cookie's token, which an earlier socket may have closed while waiting on.
+    confirmLogin(pendingLogin ?? cookieToken());
 
     const store = getStoreMeta();
     if (store.version !== serverVersion || store.user !== user) {
