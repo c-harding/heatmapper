@@ -82,7 +82,9 @@ export default class RawStravaApi {
         ...calculatedParams,
       }),
       headers: { 'Content-Type': 'application/json' },
-      signal: this.abortSignal,
+      // A code serves every request waiting on its login and can only be used once, so is not
+      // given up with this request
+      signal: authCode ? undefined : this.abortSignal,
     });
     if (res.status >= 400 && authCode) {
       console.error('/token:', res.status, 'body:', await res.json());
