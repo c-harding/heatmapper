@@ -78,7 +78,8 @@ export default function calendarRouter(domain: string): express.Router {
       });
     }
 
-    cal.serve(res);
+    res.attachment('calendar.ics');
+    res.send(cal.toString());
   });
 
   return router;
