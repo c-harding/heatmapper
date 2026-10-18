@@ -35,8 +35,12 @@ export function addCallback(
   const { timeout = CALLBACK_TIMEOUT, signal } = options ?? {};
 
   return new Promise((resolve, reject) => {
-    callbacks.set(name, (data) => {
-      callbacks.delete(name);
+    // A later call for the same name replaces this callback, which must then be left in place
+    const removeOwn = () => {
+      if (callbacks.get(name) === callback) callbacks.delete(name);
+    };
+    const callback = (data: OAuthCallbackResponse) => {
+      removeOwn();
       if (!mapper) {
         resolve(data);
       } else {
@@ -46,16 +50,18 @@ export function addCallback(
           reject(e);
         }
       }
-    });
+    };
+    callbacks.set(name, callback);
     signal?.addEventListener(
       'abort',
       () => {
+        removeOwn();
         reject(new Error('Abort', { cause: signal.reason }));
       },
       { once: true },
     );
     setTimeout(() => {
-      callbacks.delete(name);
+      removeOwn();
       reject(new Error(`Timeout after ${timeout}ms`));
     }, timeout);
   });
