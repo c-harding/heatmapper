@@ -84,7 +84,7 @@ export default defineConfig(({ mode }) => {
       // whatever holds it
       strictPort: true,
       proxy: {
-        '^/(api|calendar)': { target: `http://localhost:${SERVER_PORT}`, ws: true },
+        '^/(api/|calendar(/|\\?|$))': { target: `http://localhost:${SERVER_PORT}`, ws: true },
       },
     },
     build: {
