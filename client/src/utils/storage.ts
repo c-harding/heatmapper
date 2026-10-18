@@ -22,10 +22,6 @@ export interface RouteStore {
   routes: Route[];
 }
 
-localforage.config({
-  name: 'heatmapper',
-});
-
 const gearStore = localforage.createInstance({
   storeName: 'gear',
 });
