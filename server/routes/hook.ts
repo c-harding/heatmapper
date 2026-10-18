@@ -37,7 +37,7 @@ export class HookHandler {
 
   readonly get: RequestHandler = async (req, res) => {
     const mode = req.query['hub.mode'];
-    const verifyToken = req.query['hub.hub.verify_token'];
+    const verifyToken = req.query['hub.verify_token'];
     const challenge = req.query['hub.challenge'];
 
     if (mode === 'subscribe' && verifyToken == this.verifyToken && typeof challenge === 'string') {
