@@ -1,9 +1,11 @@
 import { AbortError } from 'node-fetch';
 
-interface RecursiveIterator<T> {
-  next: IteratorResult<T>;
-  nextIterator?: Promise<RecursiveIterator<T>>;
-}
+type RecursiveIterator<T> =
+  | {
+      next: IteratorResult<T>;
+      nextIterator?: Promise<RecursiveIterator<T>>;
+    }
+  | { error: unknown };
 
 export const sleep = (delay: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, delay));
 
@@ -12,6 +14,8 @@ export const tick = (): Promise<void> => sleep(0);
 const eagerIterator = <T>(asyncIterable: AsyncIterable<T>): AsyncIterableIterator<T> => {
   const returned = false;
 
+  // Never rejects: a step fetched ahead may fail after the consumer has stopped reading, and a
+  // rejection nobody awaits would end the process. The error is held until next() reaches it.
   const eagerIteratorStep = async (asyncIterator: AsyncIterator<T>): Promise<RecursiveIterator<T>> => {
     if (returned) return { next: { done: true, value: undefined } };
     await tick();
@@ -21,7 +25,7 @@ const eagerIterator = <T>(asyncIterable: AsyncIterable<T>): AsyncIterableIterato
       return { next, nextIterator: eagerIteratorStep(asyncIterator) };
     } catch (e) {
       if (e instanceof AbortError) return { next: { done: true, value: undefined } };
-      else throw e;
+      else return { error: e };
     }
   };
 
@@ -31,8 +35,11 @@ const eagerIterator = <T>(asyncIterable: AsyncIterable<T>): AsyncIterableIterato
   return {
     async next() {
       const currentIteratorPromise = iteratorPromise;
-      iteratorPromise = currentIteratorPromise.then((currentIterator) => currentIterator?.nextIterator);
+      iteratorPromise = currentIteratorPromise.then((currentIterator) =>
+        currentIterator && 'next' in currentIterator ? currentIterator.nextIterator : undefined,
+      );
       const currentIterator = await currentIteratorPromise;
+      if (currentIterator && 'error' in currentIterator) throw currentIterator.error;
       return currentIterator?.next ?? { done: true, value: undefined };
     },
 
