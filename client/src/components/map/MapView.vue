@@ -448,9 +448,8 @@ map.on('click', (ev) => {
 map.on('dblclick', (ev) => {
   dblclick(ev);
 });
-map.once('idle', () => {
-  mapLoaded(map);
-});
+if (map.isStyleLoaded()) mapLoaded(map);
+else map.once('style.load', () => mapLoaded(map));
 </script>
 
 <template>
