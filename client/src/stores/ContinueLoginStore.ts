@@ -54,7 +54,9 @@ export const useContinueLoginStore = defineStore('continueLogin', () => {
     promptToken = token;
     continueLogin.value = (keepSignedIn = true) => {
       // Without a max-age, the cookie lasts until the browser closes
-      document.cookie = `token=${token}${keepSignedIn ? ';max-age=31536000' : ''}`;
+      const lifetime = keepSignedIn ? ';max-age=31536000' : '';
+      const secure = window.location.protocol === 'https:' ? ';Secure' : '';
+      document.cookie = `token=${token};SameSite=Lax${secure}${lifetime}`;
       if (!messageHandlers.has(token)) {
         const messageHandler = (e: MessageEvent<string>) => {
           if (e.data === 'heatmapper:logged-in') loggedIn(token);
