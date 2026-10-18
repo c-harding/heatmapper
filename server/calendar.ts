@@ -50,17 +50,15 @@ export default function calendarRouter(domain: string): express.Router {
         return (hours ? [hours, twoDigits(minutes), twoDigits(seconds)] : [minutes, twoDigits(seconds)]).join(':');
       };
 
+      const isRun = ['Run', 'TrailRun', 'VirtualRun'].includes(activity.sport_type);
+
       const descriptionFields = {
         'Elapsed time': activity.elapsed_time && `${toHms(activity.elapsed_time)}`,
         'Moving time': activity.moving_time && `${toHms(activity.moving_time)}`,
         Distance: activity.distance && `${(activity.distance / 1000).toFixed(2)} km`,
         'Elevation gain': activity.total_elevation_gain && `${activity.total_elevation_gain.toFixed(0)} m`,
-        'Average speed':
-          activity.average_speed &&
-          activity.sport_type !== 'Run' &&
-          `${(activity.average_speed * 3.6).toFixed(1)} km/h`,
-        'Average pace':
-          activity.average_speed && activity.sport_type === 'Run' && `${toHms(1000 / activity.average_speed)}/km`,
+        'Average speed': activity.average_speed && !isRun && `${(activity.average_speed * 3.6).toFixed(1)} km/h`,
+        'Average pace': activity.average_speed && isRun && `${toHms(1000 / activity.average_speed)}/km`,
         'Average heart rate': activity.has_heartrate && `${activity.average_heartrate?.toFixed(0)} bpm`,
         'Max heart rate': activity.has_heartrate && `${activity.max_heartrate?.toFixed(0)} bpm`,
       };
