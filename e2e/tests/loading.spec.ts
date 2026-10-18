@@ -1,5 +1,3 @@
-import { expect, test } from '@playwright/test';
-
 import { DAY, MOCK_NOW } from '../env';
 import {
   activityCount,
@@ -11,6 +9,7 @@ import {
   totals,
   waitForCache,
 } from './helpers';
+import { expect, test } from './test';
 
 test('every gear is fetched once', async ({ page }) => {
   const since = new Date();

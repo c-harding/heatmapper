@@ -1,6 +1,7 @@
 import { type Browser, type BrowserContextOptions } from '@playwright/test';
 
 import { CLIENT_URL, DAY, SERVER_URL } from '../env';
+import { newContext } from './test';
 
 /** The fields of the mock's Strava activities that the tests check against */
 export interface StravaActivity {
@@ -42,7 +43,7 @@ export const ALL_FILTER_FIELDS = [
 
 /** A browser context with every filter shown, as if switched on in the filter help */
 export async function contextWithAllFilters(browser: Browser, options?: BrowserContextOptions) {
-  const context = await browser.newContext({ ...CONTEXT_OPTIONS, ...options });
+  const context = await newContext(browser, { ...CONTEXT_OPTIONS, ...options });
   await context.addInitScript((fields) => {
     localStorage.setItem('filterFields', JSON.stringify(fields));
   }, ALL_FILTER_FIELDS);

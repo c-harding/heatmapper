@@ -1,4 +1,4 @@
-import { type Browser, type BrowserContext, expect, type Page, test } from '@playwright/test';
+import { type Browser, type BrowserContext, type Page } from '@playwright/test';
 
 import {
   CONTEXT_OPTIONS,
@@ -8,6 +8,7 @@ import {
   type StravaActivity,
 } from './data';
 import { activitiesAsShown, expectAllActivities, loadButton, logIn } from './helpers';
+import { expect, newContext, test } from './test';
 
 const LEVELS: [Grouping, string][] = [
   ['week-mon', 'Week (Mon–Sun)'],
@@ -37,7 +38,7 @@ async function shownGroups(page: Page) {
 }
 
 async function loadedPage(browser: Browser, timezoneId = 'UTC') {
-  const context = await browser.newContext({ ...CONTEXT_OPTIONS, timezoneId });
+  const context = await newContext(browser, { ...CONTEXT_OPTIONS, timezoneId });
   const page = await context.newPage();
   await page.goto('/');
   await loadButton(page).click();

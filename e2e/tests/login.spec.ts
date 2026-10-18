@@ -1,6 +1,5 @@
-import { expect, test } from '@playwright/test';
-
 import { expectAllActivities, loadButton, logIn, loginPrompt, openConsent } from './helpers';
+import { expect, newContext, test } from './test';
 
 test('logging in through the popup loads every activity', async ({ page }) => {
   await page.goto('/');
@@ -32,7 +31,7 @@ test('a login in another browser clears the prompt and finishes the load', async
   const url = consent.url();
   await consent.close();
 
-  const elsewhere = await browser.newContext();
+  const elsewhere = await newContext(browser);
   const other = await elsewhere.newPage();
   await other.goto(url);
   await other.getByRole('button', { name: 'Authorize' }).click();

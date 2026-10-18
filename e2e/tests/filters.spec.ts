@@ -1,4 +1,4 @@
-import { type BrowserContext, expect, type Page, test } from '@playwright/test';
+import { type BrowserContext, type Page } from '@playwright/test';
 
 import {
   activitiesText,
@@ -9,6 +9,7 @@ import {
   type StravaRoute,
 } from './data';
 import { activitiesAsShown, expectAllActivities, loadButton, logIn, totals } from './helpers';
+import { expect, newContext, test } from './test';
 
 /** A filter control, found by the name beside it */
 const field = (page: Page, name: string) =>
@@ -219,7 +220,7 @@ test.describe('route filters', () => {
 });
 
 test('a filter switched on in the filter help appears in the panel', async ({ browser }) => {
-  const context = await browser.newContext(CONTEXT_OPTIONS);
+  const context = await newContext(browser, CONTEXT_OPTIONS);
   const page = await context.newPage();
   await page.goto('/');
   await page.getByTitle('Filter').click();
