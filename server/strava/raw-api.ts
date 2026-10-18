@@ -336,12 +336,12 @@ export default class RawStravaApi {
   }
 
   async getCalendar(): Promise<string | undefined> {
-    let cache: UserCache;
     try {
-      cache = await this.getUserCache();
-    } catch (e) {
+      const { stravaAthlete } = await this.loadCache();
+      const user: UserCache = JSON.parse(await readFile(userCacheFile(stravaAthlete), 'utf-8'));
+      return user.calendarSession;
+    } catch {
       return undefined;
     }
-    return cache.calendarSession;
   }
 }
