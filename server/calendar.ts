@@ -2,8 +2,11 @@ import express from 'express';
 import ical from 'ical-generator';
 
 import eagerIterator from './eager-iterator';
+import LoginError from './login-error';
 import { getSportIcon } from './sport-icons';
 import { Strava } from './strava';
+import { type SummaryActivity } from './strava/model';
+import { SessionType } from './strava/raw-api';
 
 export default function calendarRouter(domain: string): express.Router {
   const router = express.Router();
@@ -28,11 +31,24 @@ export default function calendarRouter(domain: string): express.Router {
   });
 
   router.get('/:token.ics', async (req: express.Request, res: express.Response) => {
-    const strava = new Strava(domain, req.params.token, mkRequestLogin(res));
+    const strava = new Strava(domain, req.params.token, null, undefined, SessionType.CALENDAR);
+
+    const activities: SummaryActivity[] = [];
+    try {
+      for await (const activity of eagerIterator(strava.getStravaActivities())) activities.push(activity);
+    } catch (e) {
+      if (e instanceof LoginError) {
+        res.status(404).send('No such calendar');
+      } else {
+        console.error('Could not fetch the activities for a calendar:', e);
+        res.status(503).send('Strava could not be reached');
+      }
+      return;
+    }
 
     const cal = ical({ name: 'Strava activities' });
 
-    for await (const activity of eagerIterator(strava.getStravaActivities())) {
+    for (const activity of activities) {
       const startInstant = Temporal.Instant.from(activity.start_date);
       let startTime: Temporal.ZonedDateTime;
       let timezone: string | undefined;
