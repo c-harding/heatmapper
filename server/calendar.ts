@@ -7,6 +7,7 @@ import { Strava } from './strava';
 
 export default function calendarRouter(domain: string): express.Router {
   const router = express.Router();
+  const host = new URL(domain).hostname;
 
   const mkRequestLogin = (res: express.Response) => async () => {
     res.status(403).send('Not logged in');
@@ -72,6 +73,7 @@ export default function calendarRouter(domain: string): express.Router {
         .join('\n');
 
       cal.createEvent({
+        id: `${activity.id}@${host}`,
         summary: `${activity.name} ${getSportIcon(activity)}`,
         location: location,
         timezone,
