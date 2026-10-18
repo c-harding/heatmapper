@@ -12,6 +12,11 @@ interface HandshakeMessage {
 interface ActivitiesMessage {
   type: 'activities';
   activities: Activity[];
+  /**
+   * Everything since this time (unix seconds) is fetched once this page has arrived, as far as
+   * upload order allows telling. Counts the activities filtered out for having no map.
+   */
+  fetchedSince: number;
 }
 interface RoutesMessage {
   type: 'routes';

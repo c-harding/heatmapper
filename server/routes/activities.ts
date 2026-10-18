@@ -23,6 +23,17 @@ async function* chunkAsync<T>(array: Promise<T>[], n = 10): AsyncGenerator<T[]> 
   }
 }
 
+/** How many of a page's oldest uploads may have been uploaded late */
+const LATE_UPLOAD_ALLOWANCE = 5;
+
+/**
+ * Pages come newest upload first, so everything uploaded since the page's last uploads is fetched.
+ * Their dates stand in for when they were uploaded: the latest of a few, as one may have been late.
+ */
+function fetchedSince(page: Activity[]): number {
+  return Math.max(...page.slice(-LATE_UPLOAD_ALLOWANCE).map(({ date }) => date)) / 1000;
+}
+
 function allDefined(...dependencies: unknown[]): true | undefined {
   return dependencies.every((dependency) => dependency !== undefined) ? true : undefined;
 }
@@ -220,6 +231,7 @@ export class ActivitiesHandler {
           send({
             type: 'activities',
             activities: activities.filter((activity) => activity.map),
+            fetchedSince: fetchedSince(activities),
           });
           send(stats);
         }

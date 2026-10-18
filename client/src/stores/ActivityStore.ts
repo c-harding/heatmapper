@@ -377,6 +377,9 @@ export const useActivityStore = defineStore('activity', () => {
 
     let latestActivityDate = startTimestamp;
 
+    /** The start of the span that the pages so far have fetched completely */
+    let coveredFrom: number | undefined;
+
     /** The token of a login this socket asked for, until the socket proves it succeeded */
     let pendingLogin: string | undefined;
 
@@ -429,11 +432,12 @@ export const useActivityStore = defineStore('activity', () => {
             receiveActivities(data.activities, socket, start, end);
             checkFinished(socket);
 
-            // API returns roughly in descending order
-            const latestDate = new Date(data.activities[0].date).getTime() / 1000;
-            const earliestDate = new Date(data.activities[activityCount - 1].date).getTime() / 1000;
-            latestActivityDate = Math.max(latestActivityDate, latestDate);
-            void appendCachedActivities(data.activities, latestDate, earliestDate);
+            latestActivityDate = Math.max(
+              latestActivityDate,
+              ...data.activities.map((activity) => activity.date / 1000),
+            );
+            coveredFrom = Math.min(coveredFrom ?? latestActivityDate, data.fetchedSince);
+            void appendCachedActivities(data.activities, latestActivityDate, coveredFrom);
             break;
           }
           case 'routes': {
