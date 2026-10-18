@@ -2,10 +2,10 @@
 import { ref } from 'vue';
 
 const emit = defineEmits<{
-  login: [useCookie: boolean];
+  login: [keepSignedIn: boolean];
 }>();
 
-const useCookie = ref(true);
+const keepSignedIn = ref(true);
 </script>
 
 <template>
@@ -15,16 +15,16 @@ const useCookie = ref(true);
       <img
         :class="$style.connectToStrava"
         src="@/assets/connect-to-strava.svg"
-        @click="emit('login', useCookie)"
+        @click="emit('login', keepSignedIn)"
       />
 
       <label>
-        <input v-model="useCookie" type="checkbox" />
+        <input v-model="keepSignedIn" type="checkbox" />
         <div>
-          <p>Keep me logged in</p>
+          <p>Keep me signed in</p>
           <p :class="$style.small">
-            This will use a cookie to remember who you are logged in as, which you can clear at any
-            time by clicking "Clear Cache".
+            A cookie remembers your login for a year. Otherwise you will be signed out when you
+            close your browser. Sign out under User to remove it.
           </p>
         </div>
       </label>

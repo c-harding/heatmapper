@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 
-export type ContinueLogin = (withCookies: boolean) => void;
+export type ContinueLogin = (keepSignedIn: boolean) => void;
 
 /** What asked for a login: each can only prove its own login has gone through */
 export type LoginOrigin = 'user' | 'socket';
@@ -52,10 +52,9 @@ export const useContinueLoginStore = defineStore('continueLogin', () => {
 
   function waitForLogin(token: string, location: string, origin: LoginOrigin) {
     promptToken = token;
-    continueLogin.value = (withCookies = true) => {
-      if (withCookies) {
-        document.cookie = `token=${token};max-age=31536000`;
-      }
+    continueLogin.value = (keepSignedIn = true) => {
+      // Without a max-age, the cookie lasts until the browser closes
+      document.cookie = `token=${token}${keepSignedIn ? ';max-age=31536000' : ''}`;
       if (!messageHandlers.has(token)) {
         const messageHandler = (e: MessageEvent<string>) => {
           if (e.data === 'heatmapper:logged-in') loggedIn(token);
