@@ -155,6 +155,24 @@ alloc_ports() {
   return 1
 }
 
+# Fails, saying why, unless the node on PATH meets the minimum in package.json's engines field.
+# Yarn does not check engines itself.
+check_node_version() {
+  if ! command -v node > /dev/null 2>&1; then
+    echo 'Please install node to continue' >&2
+    return 1
+  fi
+  node -e '
+    const want = require("./package.json").engines.node.match(/[\d.]+/)[0];
+    const [a, b] = [process.versions.node, want].map((v) => v.split(".").map(Number));
+    const cmp = [0, 1, 2].map((i) => (a[i] ?? 0) - (b[i] ?? 0)).find((d) => d !== 0) ?? 0;
+    if (cmp < 0) {
+      console.error(`Node ${want} or newer is needed, but this is ${process.version}; try "nvm use".`);
+      process.exit(1);
+    }
+  '
+}
+
 # A docker compose project name unique to this checkout, optionally qualified by an environment.
 # Without it every worktree inherits the compose file's directory name and they fight over the
 # same containers. Compose accepts only lowercase letters, digits, dashes and underscores.

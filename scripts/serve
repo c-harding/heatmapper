@@ -71,6 +71,9 @@ then
     exit 1
 fi
 
+# The panes run the node on this PATH, so an older one would only fail once the server is up.
+check_node_version || exit 1
+
 # tmux will not create a session from inside one, so create it detached and move the client
 # there instead: the same end state, reached the only way tmux allows.
 SWITCH=0
