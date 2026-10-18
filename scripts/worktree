@@ -401,10 +401,23 @@ do_list() {
     done < <(git worktree list --porcelain)
 }
 
+# A word for pasting into bash or zsh. Branch names may hold characters either would expand, and
+# zsh expands even a leading "=", which printf %q leaves alone, so anything unusual is single-quoted.
+shell_quote() {
+    case $1 in
+        # sed, not ${1//...}, which bash 3.2 quotes differently. Git forbids newlines in names.
+        *[!A-Za-z0-9._/-]*) printf "'%s'" "$(printf '%s' "$1" | sed "s/'/'\\\\''/g")" ;;
+        *) printf '%s' "$1" ;;
+    esac
+}
+
 do_remove() {
-    local root session dirty
+    local root session dirty branch head
     root="$(target_root "$1")"
     [ "$root" != "$(primary_root)" ] || die "Refusing to remove the main checkout."
+    # Read now, as the worktree it comes from is about to go
+    branch="$(git -C "$root" branch --show-current 2> /dev/null || true)"
+    head="$(git -C "$root" rev-parse --short HEAD 2> /dev/null || true)"
 
     if [ "$FORCE" -eq 0 ]; then
         dirty="$(git -C "$root" status --porcelain)"
@@ -443,7 +456,19 @@ do_remove() {
     fi
     git worktree prune
     echo "Removed $(relpath "$CALLER_DIR" "$root")."
-    echo 'Its branch is untouched; "git branch -d <branch>" if you are done with it.'
+    # Only a branch that still exists can be deleted: an orphan branch has no commits yet
+    if [ -n "$branch" ] && git show-ref --verify --quiet "refs/heads/$branch"; then
+        printf 'Its branch %s is untouched; "git branch -d %s" if you are done with it.\n' \
+            "$branch" "$(shell_quote "$branch")"
+    else
+        # Mid-rebase or mid-bisect a branch may still exist, just not as the checked-out one. The
+        # commit is printed as nothing else may point to it once the worktree has gone.
+        if [ -n "$head" ]; then
+            echo "It was not on a branch, and was at commit $head."
+        else
+            echo 'It was not on a branch.'
+        fi
+    fi
 }
 
 do_add() {
