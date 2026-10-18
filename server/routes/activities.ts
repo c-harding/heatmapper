@@ -182,8 +182,16 @@ export class ActivitiesHandler {
         gear: convertGear(gear),
       });
 
+    /** How many of each kind of request are being handled, to report what a close cuts short */
+    const inProgress = new Map<string, number>();
+
     ws.on('close', (code, reason) => {
       abortController.abort([code, reason.toString('utf-8')].join(' '));
+      // Every request still being handled is aborted by this one close, so is reported with it
+      if (inProgress.size) {
+        const requests = Array.from(inProgress, ([kind, count]) => (count > 1 ? `${count} ${kind}` : kind));
+        console.info('Requests aborted by the connection closing:', requests.join(', '));
+      }
     });
 
     /**
@@ -272,21 +280,30 @@ export class ActivitiesHandler {
       sendGear(await strava.getGearById(gear));
     };
 
+    /** Count a request as in progress while it is handled */
+    const track = async (kind: string, handling: Promise<void>) => {
+      inProgress.set(kind, (inProgress.get(kind) ?? 0) + 1);
+      try {
+        await handling;
+      } finally {
+        const count = (inProgress.get(kind) ?? 1) - 1;
+        if (count) inProgress.set(kind, count);
+        else inProgress.delete(kind);
+      }
+    };
+
     ws.on('message', async (data) => {
       try {
         const message: RequestMessage = JSON.parse(data.toString());
         await Promise.all([
-          message.handshake && handleHandshake(),
-          message.activities && handleActivities(message.activities),
-          message.routes && handleRoutes(),
-          message.gear && handleGear(message.gear),
+          message.handshake && track('handshake', handleHandshake()),
+          message.activities && track('activities', handleActivities(message.activities)),
+          message.routes && track('routes', handleRoutes()),
+          message.gear && track('gear', handleGear(message.gear)),
         ]);
       } catch (e: unknown) {
-        if (e instanceof AbortError) {
-          console.info('Request aborted');
-        } else {
-          console.trace('Encountered error:', e);
-        }
+        // An abort comes from the connection closing, which reports it
+        if (!(e instanceof AbortError)) console.trace('Encountered error:', e);
       }
     });
   };
