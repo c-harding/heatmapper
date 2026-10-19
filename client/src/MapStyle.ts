@@ -2,6 +2,7 @@ import { type StyleSpecification } from 'mapbox-gl';
 import { computed, ref } from 'vue';
 
 import config from '@/utils/config';
+import { readStored, writeStored } from '@/utils/storage';
 
 import { type DropdownChoice } from './components/map/PickerControl.vue';
 
@@ -123,10 +124,10 @@ function followsSystem(choice: MapStyleSelection): choice is SystemStyle {
  * @returns a ref to the map style
  */
 export function useMapStyle() {
-  const storedName = localStorage.getItem(STYLE_NAME_KEY);
+  const storedName = readStored(STYLE_NAME_KEY);
   const chosenName = storedName || config.MAPBOX_STYLE;
   const styleName = renamedStyles[chosenName] ?? chosenName;
-  if (storedName && styleName !== storedName) localStorage.setItem(STYLE_NAME_KEY, styleName);
+  if (storedName && styleName !== storedName) writeStored(STYLE_NAME_KEY, styleName);
 
   const initialStyle: MapStyleSelection = validateMapChoice(styleName) ? styleName : FALLBACK_STYLE;
   const mapChoice = ref(initialStyle);
@@ -153,7 +154,7 @@ export function useMapStyle() {
   // Written once a style has drawn rather than as it is picked, so that what is stored is the
   // last one that worked.
   const rememberStyle = () => {
-    localStorage.setItem(STYLE_NAME_KEY, mapChoice.value);
+    writeStored(STYLE_NAME_KEY, mapChoice.value);
   };
 
   return { mapChoice, mapStyle, mapStyleUrl, mapStyleChoices, rememberStyle };
