@@ -38,6 +38,56 @@ const toHms = (exactSeconds: number) => {
 
 const runTypes = new Set(runningSportGroup.split(','));
 
+/** An activity's time zone, if Node knows it; Strava gives e.g. "(GMT+01:00) Europe/Berlin" */
+function activityZone(activity: SummaryActivity): string | undefined {
+  const zone = activity.timezone.split(' ')[1];
+  try {
+    return Temporal.Instant.from(activity.start_date).toZonedDateTimeISO(zone).timeZoneId;
+  } catch {
+    return undefined;
+  }
+}
+
+const icalDateTime = (time: Temporal.ZonedDateTime) =>
+  time.toPlainDateTime().toString({ smallestUnit: 'second' }).replace(/[-:]/g, '');
+const icalOffset = (offset: string) => offset.replace(':', '');
+
+/**
+ * A VTIMEZONE for a zone from Node's own time zone data, which RFC 5545 needs for every TZID used:
+ * one observance per change of offset between `from` and `to`, given by date rather than rule.
+ */
+function vtimezone(zone: string, from: Temporal.Instant, to: Temporal.Instant): string | null {
+  let time: Temporal.ZonedDateTime;
+  try {
+    time = from.toZonedDateTimeISO(zone);
+  } catch {
+    return null;
+  }
+  const observance = (start: Temporal.ZonedDateTime, offsetFrom: string) => {
+    // Daylight saving is whichever offset is above the lower one of that year
+    const offsetIn = (month: number) =>
+      Temporal.PlainDateTime.from({ year: start.year, month, day: 1 }).toZonedDateTime(zone).offsetNanoseconds;
+    const kind = start.offsetNanoseconds > Math.min(offsetIn(1), offsetIn(7)) ? 'DAYLIGHT' : 'STANDARD';
+    // An observance starts at the local time it replaces
+    const localStart = start.toInstant().toZonedDateTimeISO(offsetFrom);
+    return [
+      `BEGIN:${kind}`,
+      `DTSTART:${icalDateTime(localStart)}`,
+      `TZOFFSETFROM:${icalOffset(offsetFrom)}`,
+      `TZOFFSETTO:${icalOffset(start.offset)}`,
+      `END:${kind}`,
+    ];
+  };
+
+  const lines = ['BEGIN:VTIMEZONE', `TZID:${zone}`, ...observance(time, time.offset)];
+  for (let next = time.getTimeZoneTransition('next'); next && Temporal.Instant.compare(next.toInstant(), to) <= 0; ) {
+    lines.push(...observance(next, next.subtract({ nanoseconds: 1 }).offset));
+    next = next.getTimeZoneTransition('next');
+  }
+  lines.push('END:VTIMEZONE');
+  return lines.join('\r\n');
+}
+
 export default function calendarRouter(domain: string): express.Router {
   const router = express.Router();
   const { hostname: host, origin } = new URL(domain);
@@ -134,18 +184,22 @@ export default function calendarRouter(domain: string): express.Router {
     if (abortController.signal.aborted) return;
 
     const cal = ical({ name: 'Strava activities' });
+    const newestFirst = activities.toSorted((a, b) => b.start_date.localeCompare(a.start_date));
+    if (newestFirst.length) {
+      const from = Temporal.Instant.from(newestFirst.at(-1)!.start_date);
+      // A day past the newest start covers its end
+      const to = Temporal.Instant.from(newestFirst[0].start_date).add({ hours: 24 });
+      // A name here would also apply to DTSTAMP and zoneless events, which must stay in UTC
+      cal.timezone({ name: null, generator: (zone) => vtimezone(zone, from, to) });
+      // The calendar takes the zone of the most recent activity
+      const recentZone = newestFirst.map(activityZone).find((zone) => zone);
+      if (recentZone) cal.x('X-WR-TIMEZONE', recentZone);
+    }
 
     for (const activity of activities) {
-      const startInstant = Temporal.Instant.from(activity.start_date);
-      let startTime: Temporal.ZonedDateTime;
-      let timezone: string | undefined;
-      try {
-        startTime = startInstant.toZonedDateTimeISO(activity.timezone.split(' ')[1]);
-        timezone = startTime.timeZoneId;
-      } catch {
-        // A zone Node does not know: give the times in UTC, without a zone
-        startTime = startInstant.toZonedDateTimeISO('UTC');
-      }
+      const timezone = activityZone(activity);
+      // A zone Node does not know: the times are given in UTC
+      const startTime = Temporal.Instant.from(activity.start_date).toZonedDateTimeISO(timezone ?? 'UTC');
       const location = activity.start_latlng?.length ? activity.start_latlng.join(', ') : undefined;
 
       const isRun = runTypes.has(activity.sport_type);
