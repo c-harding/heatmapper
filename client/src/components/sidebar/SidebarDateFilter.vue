@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 
 import { formatDate, formatDateRange } from '@/utils/numberFormat';
 
@@ -18,6 +18,11 @@ const end = defineModel<Date>('end');
 const isActive = computed(() => !!start.value || !!end.value);
 
 const cleared = ref<{ start?: Date; end?: Date }>();
+
+// Dates chosen since the clear replace it, so that emptying them again does not offer it back
+watch(isActive, (active) => {
+  if (active) cleared.value = undefined;
+});
 
 const clearState = computed(() => (isActive.value ? 'clear' : cleared.value ? 'undo' : 'initial'));
 

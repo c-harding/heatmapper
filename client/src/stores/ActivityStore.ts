@@ -540,6 +540,7 @@ export const useActivityStore = defineStore('activity', () => {
     devices,
 
     mapItems: visibleMapItems,
+    allMapItems,
     backgroundMapItems,
     availableSports,
 
