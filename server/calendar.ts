@@ -182,7 +182,8 @@ export default function calendarRouter(domain: string): express.Router {
     }
     if (abortController.signal.aborted) return;
 
-    const cal = ical({ name: 'Strava activities' });
+    // Asks calendar apps to poll every six hours, as each poll costs Strava requests
+    const cal = ical({ name: 'Strava activities', ttl: 6 * 60 * 60 });
     const newestFirst = activities.toSorted((a, b) => b.start_date.localeCompare(a.start_date));
     if (newestFirst.length) {
       const from = Temporal.Instant.from(newestFirst.at(-1)!.start_date);
