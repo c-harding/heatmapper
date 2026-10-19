@@ -170,7 +170,8 @@ export default function calendarRouter(domain: string): express.Router {
 
     const activities: SummaryActivity[] = [];
     try {
-      for await (const activity of strava.getStravaActivities()) activities.push(activity);
+      // Strava takes seconds over each page, and a calendar app waits for the whole history
+      for await (const activity of strava.getStravaActivities(undefined, undefined, 4)) activities.push(activity);
     } catch (e) {
       if (abortController.signal.aborted) return;
       if (e instanceof LoginError) {

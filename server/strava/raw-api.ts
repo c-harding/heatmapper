@@ -119,12 +119,11 @@ export default class RawStravaApi {
    */
   private async getStravaToken(): Promise<string>;
   private async getStravaToken(scope: string, authCode: string): Promise<string>;
-  private async getStravaToken(scope: undefined, authCode: undefined, refresh: true): Promise<string>;
-  private async getStravaToken(scope?: string, authCode?: string, refresh = false): Promise<string> {
+  private async getStravaToken(scope?: string, authCode?: string): Promise<string> {
     if (authCode) return await this.fetchTokens({ grant_type: 'authorization_code', code: authCode }, scope);
 
     const cache = await this.loadCache();
-    if (cache.stravaAccessToken && !refresh) return cache.stravaAccessToken;
+    if (cache.stravaAccessToken) return cache.stravaAccessToken;
 
     return await untilAborted(this.sharedRefresh(cache.stravaRefreshToken), this.abortSignal);
   }
@@ -428,7 +427,7 @@ export default class RawStravaApi {
 
     // Copy only tokens Strava still accepts, freshly refreshed
     try {
-      await this.getStravaToken(undefined, undefined, true);
+      await this.refreshTokens();
     } catch (e) {
       if (e instanceof StravaError && e.errors.some((error) => error.resource === 'RefreshToken')) {
         throw new NeedsLogin('Strava no longer accepts this session', { cause: e });

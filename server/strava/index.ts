@@ -44,23 +44,42 @@ export class Strava {
 
   /**
    * Fetches your data from the Strava API
+   *
+   * @param inFlight How many pages to ask for at once. Up to this many, less one, are wasted past
+   *   the end, which isn't known until a page comes back short.
    */
-  async *getStravaActivitiesPages(start?: number, end?: number): AsyncGenerator<SummaryActivity[], void, undefined> {
+  async *getStravaActivitiesPages(
+    start?: number,
+    end?: number,
+    inFlight = 1,
+  ): AsyncGenerator<SummaryActivity[], void, undefined> {
     const pageSize = 200;
-    let i = 1;
-    while (true) {
-      const page = await this.getActivitiesPage(i, pageSize, start, end);
+    const pages: Promise<SummaryActivity[]>[] = [];
+    const request = () => {
+      const page = this.getActivitiesPage(pages.length + 1, pageSize, start, end);
+      // One still running after the loop has stopped would otherwise fail unhandled
+      page.catch(() => undefined);
+      pages.push(page);
+    };
+    for (let i = 0; i < inFlight; i++) request();
+
+    for (let i = 0; ; i++) {
+      const page = await pages[i];
       if (page.length) yield page;
       if (page.length < pageSize) break;
-      i += 1;
+      request();
     }
   }
 
   /**
    * Fetches your data from the Strava API
    */
-  async *getStravaActivities(start?: number, end?: number): AsyncGenerator<SummaryActivity, void, undefined> {
-    for await (const page of this.getStravaActivitiesPages(start, end)) {
+  async *getStravaActivities(
+    start?: number,
+    end?: number,
+    inFlight?: number,
+  ): AsyncGenerator<SummaryActivity, void, undefined> {
+    for await (const page of this.getStravaActivitiesPages(start, end, inFlight)) {
       yield* page;
     }
   }
