@@ -160,8 +160,7 @@ test.describe('activity filters', () => {
 
     // The Filter tab's own Clear, beside its heading, not the one at the top that discards the cache
     const clearOrUndo = page
-      .locator('[class*="_uiVerticalTab_"]')
-      .filter({ has: page.getByTitle('Filter', { exact: true }) })
+      .getByRole('region', { name: 'Filter', exact: true })
       .getByRole('button', { name: /^(delete Clear|undo Undo)$/ });
     await clearOrUndo.click();
     await expect(totals(page)).toHaveText(activitiesText(activities.length));

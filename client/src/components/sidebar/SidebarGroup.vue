@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, ref, useId } from 'vue';
 
 import { useExpandableGroup } from '@/services/useExpandableGroups';
 import useStickyHeader from '@/services/useStickyHeader';
@@ -21,6 +21,8 @@ const emit = defineEmits<{
 }>();
 
 const isExpanded = useExpandableGroup();
+
+const nameId = useId();
 
 const allSelected = computed(() =>
   group.items.every((item) => selectionStore.selected.has(item.id)),
@@ -75,6 +77,8 @@ function clickGroup(e: MouseEvent) {
 <template>
   <div
     ref="groupRef"
+    role="group"
+    :aria-labelledby="nameId"
     :class="[
       $style.sidebarGroup,
       allSelected && $style.allSelected,
@@ -92,7 +96,7 @@ function clickGroup(e: MouseEvent) {
         ><UIIcon icon="keyboard_arrow_right" :rotation="isExpanded ? 90 : 0"
       /></a>
       <div :class="$style.sideBarGroupInfo">
-        <div :class="$style.sidebarGroupHeaderName" v-text="group.date" />
+        <div :id="nameId" :class="$style.sidebarGroupHeaderName" v-text="group.date" />
         <SidebarItemCount :counts="group.stats" />
         <SidebarItemStats :item="group.stats" />
       </div>

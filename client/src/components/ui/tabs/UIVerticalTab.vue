@@ -49,7 +49,7 @@ const summary = computed(() =>
 </script>
 
 <template>
-  <div :class="[style.uiVerticalTab, tab.isOpen && style.selected]">
+  <section :class="[style.uiVerticalTab, tab.isOpen && style.selected]" :aria-label="heading">
     <div :class="style.tab">
       <button :class="style.button" :title="heading" @click="tab.toggle()">
         <div :class="style.buttonContent">
@@ -94,5 +94,5 @@ const summary = computed(() =>
         <slot name="expanded" :toggle="tab.toggle" />
       </div>
     </details>
-  </div>
+  </section>
 </template>

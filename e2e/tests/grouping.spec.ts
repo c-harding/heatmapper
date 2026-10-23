@@ -24,16 +24,24 @@ const groupBy = (page: Page) =>
     .filter({ has: page.locator('xpath=./span[normalize-space()="Group by"]') })
     .locator('select');
 
-/** The group headers; their label and count have no classes of their own to find them by */
-const headers = (page: Page) => page.locator('[class*="_sidebarGroupHeader_"]');
+/** The sidebar's groups, which the tabs' own details elements, groups too, have no label to match */
+const groups = (page: Page) => page.locator('[role="group"][aria-labelledby]');
 
 /** Each group's label and count, as the sidebar shows them */
 async function shownGroups(page: Page) {
   return Promise.all(
-    (await headers(page).all()).map(async (header) => ({
-      label: normaliseSpaces((await header.locator('xpath=./div/div[1]').textContent()) ?? ''),
-      count: (await header.getByText(/^[\d,]+ activit(y|ies)$/).textContent())?.trim(),
-    })),
+    (await groups(page).all()).map(async (group) => {
+      const name = page.locator(`[id="${await group.getAttribute('aria-labelledby')}"]`);
+      return {
+        label: normaliseSpaces((await name.textContent()) ?? ''),
+        count: (
+          await group
+            .getByText(/^[\d,]+ activit(y|ies)$/)
+            .first()
+            .textContent()
+        )?.trim(),
+      };
+    }),
   );
 }
 
@@ -68,10 +76,10 @@ test.describe('grouping', () => {
     test(`by ${label}`, async () => {
       await groupBy(page).selectOption({ label });
       const expected = expectedGroups(activities, grouping);
-      await expect(headers(page)).toHaveCount(expected.length);
+      await expect(groups(page)).toHaveCount(expected.length);
       expect(await shownGroups(page)).toEqual(expected);
       await groupBy(page).selectOption({ label: 'None' });
-      await expect(headers(page)).toHaveCount(0);
+      await expect(groups(page)).toHaveCount(0);
     });
   }
 
@@ -87,7 +95,7 @@ test.describe('grouping', () => {
 
     const rides = activities.filter((activity) => activity.sport_type === 'Ride');
     const expected = expectedGroups(rides, 'month');
-    await expect(headers(page)).toHaveCount(expected.length);
+    await expect(groups(page)).toHaveCount(expected.length);
     expect(await shownGroups(page)).toEqual(expected);
   });
 });
@@ -99,7 +107,7 @@ test('weeks are UTC weeks of seven days, in a timezone well behind UTC', async (
   await groupBy(page).selectOption({ label: 'Week (Mon–Sun)' });
 
   const expected = expectedGroups(activities, 'week-mon');
-  await expect(headers(page)).toHaveCount(expected.length);
+  await expect(groups(page)).toHaveCount(expected.length);
   expect(await shownGroups(page)).toEqual(expected);
   await context.close();
 });
