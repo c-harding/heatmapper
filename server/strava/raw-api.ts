@@ -115,14 +115,17 @@ export default class RawStravaApi {
     const cache = await this.loadCache();
     if (cache.stravaAccessToken) return cache.stravaAccessToken;
 
+    return await untilAborted(this.sharedRefresh(cache.stravaRefreshToken), this.abortSignal);
+  }
+
+  /** The session's refresh under way, or a new one that later requests will wait on in turn */
+  private sharedRefresh(refreshToken: string): Promise<string> {
     let refresh = refreshes.get(this.token);
     if (!refresh) {
-      refresh = this.fetchTokens({ refresh_token: cache.stravaRefreshToken }).finally(() =>
-        refreshes.delete(this.token),
-      );
+      refresh = this.fetchTokens({ refresh_token: refreshToken }).finally(() => refreshes.delete(this.token));
       refreshes.set(this.token, refresh);
     }
-    return await untilAborted(refresh, this.abortSignal);
+    return refresh;
   }
 
   /**
@@ -264,6 +267,40 @@ export default class RawStravaApi {
         await this.getAccessTokenFromBrowser();
       }
     }
+  }
+
+  /** Asks Strava for new tokens even when the cached access token is still good */
+  private async refreshTokens(): Promise<string> {
+    const { stravaRefreshToken } = await this.loadCache();
+    return await this.sharedRefresh(stravaRefreshToken);
+  }
+
+  /**
+   * Whether Strava confirms it has withdrawn this app's access for an athlete, by refreshing one of
+   * their sessions: a webhook event alone can be forged. Throws if Strava cannot be asked.
+   */
+  static async isDeauthorised(domain: string, athlete: number): Promise<boolean> {
+    let user: UserCache;
+    try {
+      user = JSON.parse(await readFile(userCacheFile(athlete), 'utf-8'));
+    } catch {
+      return false;
+    }
+
+    // Any session that still refreshes means access remains. With none left to ask, there are no
+    // credentials to protect, so the record goes.
+    for (const token of user.sessions) {
+      try {
+        await new RawStravaApi(domain, token, null).refreshTokens();
+        return false;
+      } catch (e) {
+        // Not a 400/401 alone: Strava also answers 401 when this app's own credentials are wrong
+        const refused = e instanceof StravaError && e.errors.some((error) => error.resource === 'RefreshToken');
+        // A session whose file is gone cannot be asked about, but another may
+        if (!refused && !(e instanceof LoginError)) throw e;
+      }
+    }
+    return true;
   }
 
   async logoutGlobal(athlete?: number) {

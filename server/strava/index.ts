@@ -99,6 +99,10 @@ export class Strava {
     return await this.rawApi.get(`/activities/${id}`);
   }
 
+  static isDeauthorised(domain: string, athlete: number): Promise<boolean> {
+    return RawStravaApi.isDeauthorised(domain, athlete);
+  }
+
   async logout(global?: boolean);
   async logout(global: true, athlete: number);
   async logout(global = false, athlete?: number) {
