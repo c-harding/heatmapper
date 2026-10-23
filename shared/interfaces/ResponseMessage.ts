@@ -13,8 +13,8 @@ interface ActivitiesMessage {
   type: 'activities';
   activities: Activity[];
   /**
-   * Everything since this time (unix seconds) is fetched once this page has arrived, as far as
-   * upload order allows telling. Counts the activities filtered out for having no map.
+   * Everything from this time (unix seconds) on is fetched once this page has arrived. Counts the
+   * activities filtered out for having no map.
    */
   fetchedSince: number;
 }
