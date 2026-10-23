@@ -1272,7 +1272,6 @@ __metadata:
     "@vue/runtime-dom": "npm:^3.5.28"
     eslint: "npm:^9.39.3"
     eslint-config-prettier: "npm:^9.1.2"
-    eslint-gitignore: "npm:^0.1.0"
     eslint-import-resolver-typescript: "npm:^4.4.4"
     eslint-plugin-babel: "npm:^5.3.1"
     eslint-plugin-import: "npm:^2.32.0"
@@ -1305,7 +1304,6 @@ __metadata:
     "@playwright/test": "npm:1.63.0"
     "@types/node": "npm:^26.6.5"
     eslint: "npm:^9.39.3"
-    eslint-gitignore: "npm:^0.1.0"
     globals: "npm:^17.3.0"
     prettier: "npm:^3.8.1"
     typescript: "npm:~6.0.3"
@@ -1359,7 +1357,6 @@ __metadata:
     cookie-parser: "npm:^1.4.7"
     eslint: "npm:^9.39.3"
     eslint-config-prettier: "npm:^9.1.2"
-    eslint-gitignore: "npm:^0.1.0"
     eslint-plugin-prettier: "npm:^5.5.5"
     eslint-plugin-unused-imports: "npm:^4.4.1"
     express: "npm:^5.2.1"
@@ -2536,18 +2533,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"array.prototype.flatmap@npm:^1.2.3":
-  version: 1.3.2
-  resolution: "array.prototype.flatmap@npm:1.3.2"
-  dependencies:
-    call-bind: "npm:^1.0.2"
-    define-properties: "npm:^1.2.0"
-    es-abstract: "npm:^1.22.1"
-    es-shim-unscopables: "npm:^1.0.0"
-  checksum: 10c0/67b3f1d602bb73713265145853128b1ad77cc0f9b833c7e1e056b323fbeac41a4ff1c9c99c7b9445903caea924d9ca2450578d9011913191aa88cc3c3a4b54f4
-  languageName: node
-  linkType: hard
-
 "array.prototype.flatmap@npm:^1.3.3":
   version: 1.3.3
   resolution: "array.prototype.flatmap@npm:1.3.3"
@@ -3223,7 +3208,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"debug@npm:^4, debug@npm:^4.1.1, debug@npm:^4.3.2, debug@npm:^4.3.4":
+"debug@npm:^4, debug@npm:^4.3.2, debug@npm:^4.3.4":
   version: 4.3.7
   resolution: "debug@npm:4.3.7"
   dependencies:
@@ -3607,7 +3592,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"es-shim-unscopables@npm:^1.0.0, es-shim-unscopables@npm:^1.0.2":
+"es-shim-unscopables@npm:^1.0.2":
   version: 1.0.2
   resolution: "es-shim-unscopables@npm:1.0.2"
   dependencies:
@@ -3772,19 +3757,6 @@ __metadata:
   bin:
     eslint-config-prettier: bin/cli.js
   checksum: 10c0/d2e9dc913b1677764a4732433d83d258f40820458c65d0274cb9e3eaf6559b39f2136446f310c05abed065a4b3c2e901807ccf583dff76c6227eaebf4132c39a
-  languageName: node
-  linkType: hard
-
-"eslint-gitignore@npm:^0.1.0":
-  version: 0.1.0
-  resolution: "eslint-gitignore@npm:0.1.0"
-  dependencies:
-    array.prototype.flatmap: "npm:^1.2.3"
-    debug: "npm:^4.1.1"
-    fast-glob: "npm:^3.2.2"
-  peerDependencies:
-    eslint: ">=6.7.0"
-  checksum: 10c0/6a0abbae8dc69cc43de95becbf740847dc7346534c060a96ca2cc381794cd64eeab59d30393b500dd7959d9c083b8615c16a62a896bb32bf2a496942efcd3d27
   languageName: node
   linkType: hard
 
@@ -4241,19 +4213,6 @@ __metadata:
   version: 1.3.0
   resolution: "fast-diff@npm:1.3.0"
   checksum: 10c0/5c19af237edb5d5effda008c891a18a585f74bf12953be57923f17a3a4d0979565fc64dbc73b9e20926b9d895f5b690c618cbb969af0cf022e3222471220ad29
-  languageName: node
-  linkType: hard
-
-"fast-glob@npm:^3.2.2":
-  version: 3.3.2
-  resolution: "fast-glob@npm:3.3.2"
-  dependencies:
-    "@nodelib/fs.stat": "npm:^2.0.2"
-    "@nodelib/fs.walk": "npm:^1.2.3"
-    glob-parent: "npm:^5.1.2"
-    merge2: "npm:^1.3.0"
-    micromatch: "npm:^4.0.4"
-  checksum: 10c0/42baad7b9cd40b63e42039132bde27ca2cb3a4950d0a0f9abe4639ea1aa9d3e3b40f98b1fe31cbc0cc17b664c9ea7447d911a152fa34ec5b72977b125a6fc845
   languageName: node
   linkType: hard
 
@@ -5805,7 +5764,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"micromatch@npm:^4.0.4, micromatch@npm:^4.0.8":
+"micromatch@npm:^4.0.8":
   version: 4.0.8
   resolution: "micromatch@npm:4.0.8"
   dependencies:
