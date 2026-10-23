@@ -56,6 +56,24 @@ test('an access token past its expiry is refreshed without logging in again', as
   expect(session.stravaExpiry).toBeGreaterThan(Date.now() / 1000);
 });
 
+test('loads that find the access token expired together refresh it once', async ({
+  page,
+  context,
+}) => {
+  await editSession(context, (session) => {
+    session.stravaExpiry = 1;
+  });
+
+  const other = await context.newPage();
+  await Promise.all([page.reload(), other.goto('/')]);
+  const since = new Date();
+  await Promise.all([loadButton(page).click(), loadButton(other).click()]);
+  await expectAllActivities(page);
+  await expectAllActivities(other);
+
+  expect(await mockRequests(since, '/oauth/token')).toHaveLength(1);
+});
+
 test('an access token Strava has expired means logging in again', async ({ page, context }) => {
   // Expired as far as Strava knows, though the session still expects it to last
   await editSession(context, (session) => {

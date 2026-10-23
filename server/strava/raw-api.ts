@@ -7,7 +7,7 @@ import {
 } from '@strava-heatmapper/shared/config/dotenv';
 import { type UserCache } from '@strava-heatmapper/shared/interfaces';
 import { readFile } from 'fs/promises';
-import fetch, { type Response } from 'node-fetch';
+import fetch, { AbortError, type Response } from 'node-fetch';
 import { join } from 'path';
 import { v4 as uuid, validate as validateUUID } from 'uuid';
 
@@ -21,6 +21,24 @@ const userCacheFile = (userId: number) => join(SESSIONS_DIR, `user-${userId}.jso
 
 /** How long before its expiry an access token is replaced, so that one sent can't expire on the way */
 const EXPIRY_MARGIN = 5 * 60;
+
+/** The refresh under way for each session, which every request finding its token expired waits on */
+const refreshes = new Map<string, Promise<string>>();
+
+/** How long Strava has to answer for tokens, as no one request's closing gives up on them */
+const TOKEN_TIMEOUT = 30_000;
+
+/** Waits for a promise, unless the signal aborts first */
+function untilAborted<T>(promise: Promise<T>, signal?: AbortSignal): Promise<T> {
+  if (!signal) return promise;
+  return new Promise((resolve, reject) => {
+    const onAbort = () => reject(new AbortError('Request aborted'));
+    // An aborted signal never fires its abort event again
+    if (signal.aborted) onAbort();
+    signal.addEventListener('abort', onAbort, { once: true });
+    promise.then(resolve, reject).finally(() => signal.removeEventListener('abort', onAbort));
+  });
+}
 
 interface Cache {
   stravaRefreshToken: string;
@@ -92,31 +110,39 @@ export default class RawStravaApi {
   private async getStravaToken(): Promise<string>;
   private async getStravaToken(scope: string, authCode: string): Promise<string>;
   private async getStravaToken(scope?: string, authCode?: string): Promise<string> {
-    let calculatedParams: { refresh_token: string } | { code: string; grant_type: string };
+    if (authCode) return await this.fetchTokens({ grant_type: 'authorization_code', code: authCode }, scope);
 
-    if (authCode) calculatedParams = { grant_type: 'authorization_code', code: authCode };
-    else {
-      const cache = await this.loadCache();
-      if (cache.stravaAccessToken) return cache.stravaAccessToken;
+    const cache = await this.loadCache();
+    if (cache.stravaAccessToken) return cache.stravaAccessToken;
 
-      calculatedParams = {
-        refresh_token: cache.stravaRefreshToken,
-      };
+    let refresh = refreshes.get(this.token);
+    if (!refresh) {
+      refresh = this.fetchTokens({ refresh_token: cache.stravaRefreshToken }).finally(() =>
+        refreshes.delete(this.token),
+      );
+      refreshes.set(this.token, refresh);
     }
+    return await untilAborted(refresh, this.abortSignal);
+  }
 
-    // get new tokens
+  /**
+   * Gets new tokens and saves them to the session. A code serves every request waiting on its login,
+   * and a refresh every request on the session, so neither is given up with this request.
+   */
+  private async fetchTokens(
+    params: { refresh_token: string } | { code: string; grant_type: string },
+    scope?: string,
+  ): Promise<string> {
     const res = await fetch(`${STRAVA_BASE_URL}/oauth/token`, {
       method: 'post',
       body: JSON.stringify({
         grant_type: 'refresh_token',
         client_id: stravaClientId,
         client_secret: stravaClientSecret,
-        ...calculatedParams,
+        ...params,
       }),
       headers: { 'Content-Type': 'application/json' },
-      // A code serves every request waiting on its login and can only be used once, so is not
-      // given up with this request
-      signal: authCode ? undefined : this.abortSignal,
+      signal: AbortSignal.timeout(TOKEN_TIMEOUT),
     });
     if (!res.ok) throw await StravaError.from(res);
     const data = (await res.json()) as {
