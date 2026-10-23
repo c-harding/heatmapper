@@ -45,9 +45,15 @@ export async function openConsent(page: Page, { keepSignedIn = true } = {}) {
   return consent;
 }
 
-/** Log in through the popup, as most people do */
-export async function logIn(page: Page, options?: { keepSignedIn?: boolean }) {
+/** Log in through the popup, as most people do, leaving out any scopes in `untick` */
+export async function logIn(
+  page: Page,
+  { untick = [], ...options }: { keepSignedIn?: boolean; untick?: string[] } = {},
+) {
   const consent = await openConsent(page, options);
+  for (const scope of untick) {
+    await consent.locator(`input[type=checkbox][value="${scope}"]`).uncheck();
+  }
   // Listened for first, as the popup can close before the click returns
   const closed = consent.waitForEvent('close');
   await consent.getByRole('button', { name: 'Authorize' }).click();

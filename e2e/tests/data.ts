@@ -73,6 +73,15 @@ async function token(): Promise<string> {
   return ((await response.json()) as { access_token: string }).access_token;
 }
 
+/** One request to the mock's API, as the backend would make it */
+export async function mockApi<T>(path: string, query: Record<string, string | number>): Promise<T> {
+  const params = new URLSearchParams(Object.entries(query).map(([k, v]) => [k, String(v)]));
+  const response = await fetch(`${SERVER_URL}/mock-strava/api/v3${path}?${params}`, {
+    headers: { Authorization: `Bearer ${await token()}` },
+  });
+  return (await response.json()) as T;
+}
+
 async function allPages<T>(path: string): Promise<T[]> {
   const headers = { Authorization: `Bearer ${await token()}` };
   const items: T[] = [];
