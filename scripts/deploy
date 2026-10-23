@@ -35,3 +35,17 @@ fi
 
   ssh $DEPLOY_FLAG "$DEPLOY_TARGET" "$DEPLOY_COMMAND"
 )
+
+# The container starts detached, and pm2 restarts a crashing app inside it, so neither shows whether
+# the app came up: ask the site itself
+if [ -n "$SERVER_DOMAIN" ]; then
+  deadline=$((SECONDS + 30))
+  until status="$(curl -s -o /dev/null -w '%{http_code}' --max-time 5 "$SERVER_DOMAIN/")" && [ "$status" = 200 ]; do
+    if ((SECONDS >= deadline)); then
+      printf '%s still answered %s 30 seconds after deploying.\n' "$SERVER_DOMAIN" "$status" >&2
+      exit 1
+    fi
+    sleep 1
+  done
+  echo "$SERVER_DOMAIN is up."
+fi
