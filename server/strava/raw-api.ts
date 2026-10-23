@@ -17,6 +17,9 @@ import { addCallback } from './token';
 const sessionCacheFile = (token: string) => join(SESSIONS_DIR, `${token}.json`);
 const userCacheFile = (userId: number) => join(SESSIONS_DIR, `user-${userId}.json`);
 
+/** How long before its expiry an access token is replaced, so that one sent can't expire on the way */
+const EXPIRY_MARGIN = 5 * 60;
+
 interface Cache {
   stravaRefreshToken: string;
   stravaAthlete: number;
@@ -72,7 +75,7 @@ export default class RawStravaApi {
         throw new NeedsLogin('Loaded from cache, but athlete or refresh token is missing');
       }
       const currentEpochSeconds = Date.now() / 1e3;
-      if (cache.stravaExpiry && cache.stravaExpiry < currentEpochSeconds) {
+      if (cache.stravaExpiry && cache.stravaExpiry < currentEpochSeconds + EXPIRY_MARGIN) {
         delete cache.stravaAccessToken;
       }
       return cache;
