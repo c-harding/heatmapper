@@ -1,18 +1,19 @@
 import { userCacheToUserInfo, type UserInfo } from '@strava-heatmapper/shared/interfaces';
 
 import { type DetailedGear, type SummaryActivity, type SummaryRoute } from './model';
-import RawStravaApi from './raw-api';
+import RawStravaApi, { type SessionType } from './raw-api';
 
 export class Strava {
   private rawApi: RawStravaApi;
 
   constructor(
-    domain: string,
+    private readonly domain: string,
     requestToken: string | undefined,
     loginCallback: ((token: string, url: string) => Promise<boolean>) | null,
     abortSignal?: AbortSignal,
+    sessionType?: SessionType,
   ) {
-    this.rawApi = new RawStravaApi(domain, requestToken, loginCallback, abortSignal);
+    this.rawApi = new RawStravaApi(domain, requestToken, loginCallback, abortSignal, sessionType);
   }
 
   private async getActivitiesPage(
@@ -58,7 +59,7 @@ export class Strava {
   /**
    * Fetches your data from the Strava API
    */
-  async *getStravaActivities(start?: number, end?: number): AsyncGenerator<unknown, void, undefined> {
+  async *getStravaActivities(start?: number, end?: number): AsyncGenerator<SummaryActivity, void, undefined> {
     for await (const page of this.getStravaActivitiesPages(start, end)) {
       yield* page;
     }
@@ -97,6 +98,29 @@ export class Strava {
 
   async getActivity(id: number | string): Promise<SummaryActivity> {
     return await this.rawApi.get(`/activities/${id}`);
+  }
+
+  hasToken(): Promise<boolean> {
+    return this.rawApi.hasToken();
+  }
+
+  async getCalendarUrls(): Promise<{ https: string; webcal: string } | undefined> {
+    const calendarSession = await this.rawApi.getCalendar();
+    if (!calendarSession) return undefined;
+    const https = `${this.domain}/calendar/${calendarSession}.ics`;
+    return { https, webcal: https.replace(/^\w+(?=:\/\/)/, 'webcal') };
+  }
+
+  static isDeauthorised(domain: string, athlete: number): Promise<boolean> {
+    return RawStravaApi.isDeauthorised(domain, athlete);
+  }
+
+  createCalendar(): Promise<string> {
+    return this.rawApi.createCalendar();
+  }
+
+  deleteCalendar(): Promise<void> {
+    return this.rawApi.deleteCalendar();
   }
 
   async logout(global?: boolean);

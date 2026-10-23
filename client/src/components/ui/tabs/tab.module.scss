@@ -1,3 +1,6 @@
+// Above and below every row, in both of its columns, so an icon stays level with its heading
+$row-padding: 0.25rem;
+
 .filterGrid {
   display: grid;
   grid-template-columns: [tab] max-content [content] 1fr;
@@ -8,14 +11,19 @@
   grid-template-columns: subgrid;
   grid-column: span 2;
 
-  .topRightButton {
-    float: inline-end;
-    margin-inline-start: 0.25rem !important;
-    cursor: pointer;
-  }
+  .meta {
+    margin-inline-start: auto;
+    align-self: stretch;
+    display: flex;
+    font-size: 0.75em;
 
-  .helpButton {
-    cursor: help;
+    // Stretched to the row and no further, so the target does not reach into the row above.
+    // [class] for weight: ghost strips padding and margin at an even match.
+    > button[class] {
+      align-self: stretch;
+      padding-inline: 0.25rem;
+      margin-block: -$row-padding;
+    }
   }
 }
 
@@ -32,8 +40,12 @@
     height: 100%;
     flex-direction: column;
 
+    // Takes in the padding beside it, so the target is wider than the icon without moving it
+    padding-inline-start: var(--form-inline-padding, 0px);
+    margin-inline-start: calc(-1 * var(--form-inline-padding, 0px));
+
     .buttonContent {
-      padding-block: 0.125rem;
+      padding-block: $row-padding;
       display: flex;
       align-items: center;
     }
@@ -64,6 +76,11 @@
   }
 }
 
+// After .selected, since being open is shown by the box around the tab and not by its colour
+.uiVerticalTab.active .tab {
+  color: var(--bold-color);
+}
+
 .content {
   grid-column: content;
   padding-left: 0.25rem;
@@ -78,10 +95,18 @@
 }
 
 .summary {
+  min-width: 0;
   font-size: 0.9em;
   font-style: italic;
 }
 
 .summaryRow {
   list-style: none;
+  padding-block: $row-padding;
+
+  // flex, so the button can take the full height
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  min-width: 0;
 }

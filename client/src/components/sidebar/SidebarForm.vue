@@ -153,7 +153,10 @@ watch([start, end, () => activityStore.useRoutes], () => {
 
 <style module lang="scss">
 .sidebarForm {
-  padding-inline: 1em;
+  // Named so a control at the edge can reach back into it for a wider target
+  --form-inline-padding: 1rem;
+
+  padding-inline: var(--form-inline-padding);
   display: flex;
   flex-direction: column;
   gap: 0.5em;

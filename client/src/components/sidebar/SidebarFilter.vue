@@ -153,6 +153,8 @@ const savedFilter = ref<FilterModel>(loadFilterModel() ?? blankFilter);
 
 const isSaved = computed(() => compareFilters(activityStore.filterModel, savedFilter.value));
 
+const isActive = computed(() => !compareFilters(activityStore.filterModel, blankFilter));
+
 const hideResetToSaved = computed(() => compareFilters(blankFilter, savedFilter.value));
 const canResetToSaved = computed(() =>
   compareFilters(activityStore.filterModel, savedFilter.value),
@@ -226,6 +228,10 @@ const filterSummary = computed(() =>
 );
 
 const showHelp = ref(false);
+
+function openHelp() {
+  showHelp.value = true;
+}
 </script>
 
 <template>
@@ -236,8 +242,22 @@ const showHelp = ref(false);
     heading="Filter"
     :summary="filterSummary"
     summaryEmpty="none set"
-    @help="showHelp = true"
+    :isActive
   >
+    <template #meta>
+      <UIButton ghost icon="help" @click="openHelp">Fields</UIButton>
+      <UIButton
+        ghost
+        :disabled="filterState === 'initial'"
+        :icon="filterState === 'canUndo' ? 'undo' : 'delete'"
+        @click="revertFilter"
+      >
+        <UIMultiText
+          :texts="{ clear: 'Clear', undo: 'Undo' }"
+          :selected="filterState === 'canUndo' ? 'undo' : 'clear'"
+        />
+      </UIButton>
+    </template>
     <template #expanded>
       <div :class="controlsStyle.grid">
         <label v-if="activityStore.filterFields.has('sportType')">
@@ -345,27 +365,20 @@ const showHelp = ref(false);
           </SegmentedControl>
         </div>
 
-        <div :class="controlsStyle.buttons">
-          <em v-if="activityStore.filterFields.size === 0">All filters are hidden</em>
-          <UIButtonGroup v-else>
+        <div v-if="activityStore.filterFields.size === 0" :class="controlsStyle.buttons">
+          <em>All filters are hidden</em>
+        </div>
+        <div v-else :class="controlsStyle.label">
+          <span>Default filter</span>
+          <UIButtonGroup>
             <UIButton icon="save" :disabled="isSaved" @click="saveFilter"> Save </UIButton>
-            <UIButton
-              :disabled="filterState === 'initial'"
-              :icon="filterState === 'canUndo' ? 'undo' : 'delete'"
-              @click="revertFilter"
-            >
-              <UIMultiText
-                :texts="{ clear: 'Clear', undo: 'Undo' }"
-                :selected="filterState === 'canUndo' ? 'undo' : 'clear'"
-              />
-            </UIButton>
             <UIButton
               v-if="!hideResetToSaved"
               :disabled="canResetToSaved"
               icon="settings_backup_restore"
               @click="resetToSaved"
             >
-              Reset
+              Restore
             </UIButton>
           </UIButtonGroup>
         </div>

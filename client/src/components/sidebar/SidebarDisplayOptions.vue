@@ -15,13 +15,11 @@ const summary = computed(() =>
   [
     activityStore.useRoutes &&
       activityStore.displayOptions.showActivities &&
-      'show past activities',
+      'showing past activities',
   ].filter((string): string is string => !!string),
 );
 
-function reset() {
-  activityStore.displayOptions.showActivities = false;
-}
+const isActive = computed(() => activityStore.displayOptions.showActivities);
 </script>
 
 <template>
@@ -31,8 +29,7 @@ function reset() {
     icon="visibility"
     heading="Display"
     :summary
-    :resetDisabled="!activityStore.displayOptions.showActivities"
-    @reset="reset"
+    :isActive
   >
     <template #expanded>
       <UICheckbox

@@ -8,6 +8,47 @@ import localforage from 'localforage';
 
 import { type FilterField, type FilterModel } from '@/types/FilterModel';
 
+/**
+ * localStorage, which can throw on any access when blocked, as in some private windows, and hold
+ * anything at all. A failure loses only what it stored, rather than stopping the app from starting.
+ */
+export function readStored(key: string): string | undefined {
+  try {
+    return localStorage.getItem(key) ?? undefined;
+  } catch (e) {
+    console.warn('Cannot read', key, 'from localStorage', e);
+    return undefined;
+  }
+}
+
+export function writeStored(key: string, value: string) {
+  try {
+    localStorage.setItem(key, value);
+  } catch (e) {
+    console.warn('Cannot write', key, 'to localStorage', e);
+  }
+}
+
+/** For a stored value that must be a plain object, as arrays and null pass `typeof` */
+function asObject<T>(value: unknown): T {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+    throw new TypeError('Not an object');
+  }
+  return value as T;
+}
+
+/** A stored JSON value, passed through `read` so that one of the wrong shape counts as corrupt */
+function readStoredJson<T>(key: string, read: (value: unknown) => T): T | undefined {
+  const json = readStored(key);
+  if (json === undefined) return undefined;
+  try {
+    return read(JSON.parse(json));
+  } catch (e) {
+    console.warn('Ignoring a corrupt', key, 'in localStorage', e);
+    return undefined;
+  }
+}
+
 export interface StoreMeta {
   version: number;
   user: number;
@@ -61,26 +102,53 @@ export async function getCachedGear(id: string): Promise<Gear | undefined> {
 }
 
 export function loadFilterModel() {
-  const json = localStorage.getItem('filter');
-  if (json) return JSON.parse(json) as FilterModel;
+  return readStoredJson('filter', asObject<FilterModel>);
 }
 
 export function saveFilterModel(filter: FilterModel) {
-  localStorage.setItem('filter', JSON.stringify(filter));
+  writeStored('filter', JSON.stringify(filter));
 }
 
 export function loadFilterFields() {
-  const json = localStorage.getItem('filterFields');
-  if (json) return new Set(JSON.parse(json) as FilterField[]);
+  return readStoredJson('filterFields', (value) => {
+    if (!Array.isArray(value)) throw new TypeError('Not an array');
+    return new Set(value as FilterField[]);
+  });
 }
 
 export function saveFilterFields(filter: Set<FilterField>) {
-  localStorage.setItem('filterFields', JSON.stringify(Array.from(filter)));
+  writeStored('filterFields', JSON.stringify(Array.from(filter)));
 }
 
+// returns a string to be validated by the consumer
+export function loadGroupLevel(): string | undefined {
+  return readStored('groupLevel');
+}
+
+export function saveGroupLevel(level: string) {
+  writeStored('groupLevel', level);
+}
+
+export interface StoredDisplayOptions {
+  showActivities?: boolean;
+}
+
+export function loadDisplayOptions(): StoredDisplayOptions | undefined {
+  return readStoredJson('displayOptions', asObject<StoredDisplayOptions>);
+}
+
+export function saveDisplayOptions(options: StoredDisplayOptions) {
+  writeStored('displayOptions', JSON.stringify(options));
+}
+
+/**
+ * The meta last written, for when storage will not keep it: otherwise every load would look like a
+ * new version, and throw away what is loaded
+ */
+let writtenMeta: StoreMeta | undefined;
+
 export function getStoreMeta(): StoreMeta {
-  const rawCache = localStorage.getItem('meta');
-  const cache = rawCache ? (JSON.parse(rawCache) as Partial<StoreMeta>) : undefined;
+  const cache = readStoredJson('meta', asObject<Partial<StoreMeta>>) ?? writtenMeta;
   return {
     version: cache?.version ?? 0,
     user: cache?.user ?? -1,
@@ -107,13 +175,18 @@ export async function getRouteStore(): Promise<RouteStore> {
 }
 
 export async function resetStore(version: number, user: number) {
-  // Remove legacy localStorage items
-  localStorage.removeItem('activities');
-  localStorage.removeItem('routes');
-  Object.keys(localStorage)
-    .filter((key) => key.startsWith('gear:') || key.startsWith('map:'))
-    .forEach((key) => localStorage.removeItem(key));
-  localStorage.setItem('meta', JSON.stringify({ version, user } satisfies StoreMeta));
+  try {
+    // Remove legacy localStorage items
+    localStorage.removeItem('activities');
+    localStorage.removeItem('routes');
+    Object.keys(localStorage)
+      .filter((key) => key.startsWith('gear:') || key.startsWith('map:'))
+      .forEach((key) => localStorage.removeItem(key));
+  } catch (e) {
+    console.warn('Cannot remove legacy items from localStorage', e);
+  }
+  writtenMeta = { version, user };
+  writeStored('meta', JSON.stringify(writtenMeta));
   await Promise.all([
     gearStore.clear(),
     serializeStoreWrite(activityStore, () => activityStore.clear()),

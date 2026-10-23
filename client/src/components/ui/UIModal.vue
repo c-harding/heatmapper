@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref, watch } from 'vue';
+import { nextTick, onMounted, ref, watch } from 'vue';
 
 import UIIcon from './UIIcon.vue';
 
@@ -8,6 +8,9 @@ const open = defineModel<boolean>({ default: false });
 defineProps<{ heading?: string }>();
 
 const modal = ref<HTMLDialogElement>();
+const contents = ref<HTMLDivElement>();
+
+const CONTROL = 'a[href], button, input, select, textarea, [tabindex]:not([tabindex="-1"])';
 
 const mountedPromise = new Promise<void>((resolve) => {
   onMounted(resolve);
@@ -19,6 +22,8 @@ watch(
     await mountedPromise;
     if (isOpen) {
       modal.value?.showModal();
+      await nextTick();
+      contents.value?.querySelector<HTMLElement>(CONTROL)?.focus();
     } else {
       modal.value?.close();
     }
@@ -29,13 +34,16 @@ watch(
 
 <template>
   <dialog ref="modal" :class="$style.uiModal" @close="open = false" @click="open = false">
-    <a :class="$style.closeButton" @click.stop.prevent="open = false"><UIIcon icon="close" /></a>
     <h2 :class="$style.heading" @click.stop>
       <slot v-if="open" name="heading">{{ heading }}</slot>
     </h2>
-    <div :class="$style.dialogContents" @click.stop>
+    <div ref="contents" :class="$style.dialogContents" @click.stop>
       <slot v-if="open" />
     </div>
+    <!-- Last, so that opening focuses the contents first -->
+    <button type="button" :class="$style.closeButton" aria-label="Close" @click.stop="open = false">
+      <UIIcon icon="close" />
+    </button>
   </dialog>
 </template>
 
@@ -62,13 +70,28 @@ dialog.uiModal {
   }
 
   .closeButton {
+    // The padding is the hit area; the offset keeps the cross in the corner
+    $inset: 0.5rem;
+    $padding: 10px; // a 24px glyph plus twice this is 44px
+
+    all: unset;
     position: absolute;
-    top: 0.5rem;
-    right: 0.5rem;
+    top: calc($inset - $padding);
+    right: calc($inset - $padding);
+    padding: $padding;
+    display: flex;
+    cursor: pointer;
     color: var(--color-strong);
 
     &:hover {
       color: var(--bold-color);
+    }
+
+    &:focus-visible {
+      color: AccentColor;
+      border-radius: 50%;
+      outline: 2px solid AccentColor;
+      outline-offset: -6px;
     }
   }
 
@@ -76,7 +99,8 @@ dialog.uiModal {
     margin: 0;
     padding-top: 1rem;
     padding-left: 1rem;
-    padding-right: 1.5rem;
+    // Enough to clear the close button
+    padding-right: 3rem;
     padding-bottom: 0;
   }
 

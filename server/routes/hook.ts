@@ -49,11 +49,19 @@ export class HookHandler {
 
   readonly post: RequestHandler = async (req, res) => {
     const body = req.body as HookUpdate;
-    const strava = new Strava(this.domain, undefined, null);
+    // Strava allows two seconds for the reply, so the work happens after it
+    res.status(204).send();
 
     if (body.object_type === 'athlete' && body.updates.authorized === 'false') {
-      strava.logout(true, body.object_id);
+      this.deauthorise(body.object_id).catch((e) => console.error('Could not handle a deauthorisation:', e));
     }
-    res.status(204).send();
   };
+
+  private async deauthorise(athlete: number) {
+    if (!(await Strava.isDeauthorised(this.domain, athlete))) {
+      console.warn(`Ignored a deauthorisation of athlete ${athlete} that Strava does not confirm`);
+      return;
+    }
+    await new Strava(this.domain, undefined, null).logout(true, athlete);
+  }
 }
