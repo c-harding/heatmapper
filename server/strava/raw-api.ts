@@ -309,11 +309,14 @@ export default class RawStravaApi {
       return false;
     }
 
+    const sessions: [string, SessionType][] = user.sessions.map((token) => [token, SessionType.DEFAULT]);
+    if (user.calendarSession) sessions.push([user.calendarSession, SessionType.CALENDAR]);
+
     // Any session that still refreshes means access remains. With none left to ask, there are no
     // credentials to protect, so the record goes.
-    for (const token of user.sessions) {
+    for (const [token, sessionType] of sessions) {
       try {
-        await new RawStravaApi(domain, token, null).refreshTokens();
+        await new RawStravaApi(domain, token, null, undefined, sessionType).refreshTokens();
         return false;
       } catch (e) {
         // Not a 400/401 alone: Strava also answers 401 when this app's own credentials are wrong
