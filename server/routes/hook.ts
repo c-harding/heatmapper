@@ -27,10 +27,14 @@ type HookUpdate = ActivityUpdate | AthleteUpdate;
 curl -X POST https://www.strava.com/api/v3/push_subscriptions \
     -F client_id=$STRAVA_CLIENT_ID \
     -F client_secret=$STRAVA_CLIENT_SECRET \
-    -F callback_url=${WEBHOOK_RECEIVER}/api/hook \
+    -F callback_url=${WEBHOOK_RECEIVER}/api/hook/${STRAVA_WEBHOOK_TOKEN} \
     -F verify_token=1954fb70-c27a-4493-b846-2f3624187b78
 */
 
+/**
+ * Strava's end of the webhook. Anything that isn't Strava's, whichever part is wrong, is passed on to
+ * the server's ordinary 404, as if the route didn't exist.
+ */
 export class HookHandler {
   private readonly verifyToken = '1954fb70-c27a-4493-b846-2f3624187b78';
 
@@ -39,21 +43,36 @@ export class HookHandler {
     private readonly relay: WebhookRelay,
   ) {}
 
+  private atStravaAddress(req: Parameters<RequestHandler>[0]): boolean {
+    return this.relay.isStravaAddress(req.params.token as string | undefined);
+  }
+
   /** Strava's handshake on creating a subscription */
-  readonly get: RequestHandler = (req, res) => {
+  readonly get: RequestHandler = (req, res, next) => {
     const challenge = req.query['hub.challenge'];
+    // Every part checked whichever fails, so that the time taken doesn't show which
+    const atAddress = this.atStravaAddress(req);
     const verified = req.query['hub.verify_token'] === this.verifyToken;
-    if (verified && req.query['hub.mode'] === 'subscribe' && typeof challenge === 'string') {
+    if (atAddress && verified && req.query['hub.mode'] === 'subscribe' && typeof challenge === 'string') {
       res.send({ 'hub.challenge': challenge });
     } else {
-      res.status(400).send();
+      next();
     }
   };
 
-  /** An event from Strava, which only the receiver takes */
+  /** An event from Strava, taken only with both the secret address and this app's subscription ID */
   readonly post: RequestHandler = (req, res, next) => {
     const body = req.body as HookUpdate;
-    if (!this.relay.isReceiver) {
+    const accepts = this.relay.isReceiver;
+    const atAddress = this.atStravaAddress(req);
+    const ours = this.relay.isOurSubscription(body?.subscription_id);
+    if (!(accepts && atAddress && ours)) {
+      // Logged only once the 404 has gone, so that it takes no longer than any other
+      if (accepts && atAddress) {
+        res.once('finish', () => {
+          console.warn(`Ignored a webhook event for subscription ${body?.subscription_id}, which isn't this app's`);
+        });
+      }
       next();
       return;
     }

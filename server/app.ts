@@ -3,7 +3,9 @@ import {
   SERVER_DOMAIN,
   SERVER_PORT,
   SESSIONS_DIR,
+  STRAVA_CLIENT_ID,
   STRAVA_CLIENT_SECRET,
+  STRAVA_WEBHOOK_TOKEN,
   VITE_APP_NAME,
   WEBHOOK_RECEIVER,
 } from '@strava-heatmapper/shared/config/dotenv';
@@ -27,8 +29,10 @@ app.use(bodyParser.json());
 const relay = new WebhookRelay(
   SERVER_DOMAIN,
   WEBHOOK_RECEIVER,
+  STRAVA_CLIENT_ID,
   STRAVA_CLIENT_SECRET,
   join(SESSIONS_DIR, 'webhook-peers.json'),
+  STRAVA_WEBHOOK_TOKEN,
 );
 
 const corsConfig: RequestHandler = (req, res, next) => {

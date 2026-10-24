@@ -34,8 +34,8 @@ export default function apiRouter(domain: string, wsInstance: ws.Instance, relay
   const hookHandler = new HookHandler(domain, relay);
   router.post('/hook/relay/forwarded', hookHandler.forwarded);
   router.post('/hook/relay/peers', relay.signUp);
-  router.get('/hook', hookHandler.get);
-  router.post('/hook', hookHandler.post);
+  router.get(['/hook', '/hook/:token'], hookHandler.get);
+  router.post(['/hook', '/hook/:token'], hookHandler.post);
 
   return router;
 }
