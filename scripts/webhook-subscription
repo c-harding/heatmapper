@@ -4,6 +4,7 @@
 #
 #   yarn webhook-subscription -e activity-map
 #   yarn webhook-subscription -e activity-map --update
+#   yarn webhook-subscription -e activity-map --quiet     # prints nothing if it already points there
 
 set -e
 

@@ -39,8 +39,10 @@ function die(message: string): never {
 }
 
 let update = false;
+let quiet = false;
 for (const arg of process.argv.slice(2)) {
   if (arg === '--update') update = true;
+  else if (arg === '--quiet') quiet = true;
   else die(`Unknown argument: ${arg}`);
 }
 
@@ -132,6 +134,7 @@ async function main(): Promise<void> {
   if (!list.ok) die('Strava would not list the subscriptions.');
   const [current] = (await list.json()) as [Subscription?];
 
+  if (quiet && current?.callback_url === ADDRESS) return;
   console.log(
     current
       ? `Subscription ${current.id}: ${shown(current.callback_url)}`

@@ -18,6 +18,7 @@ const VERIFICATION_LIFETIME = 2 * 60 * 1000;
 type Peers = Record<string, { lastSeen: number }>;
 interface Subscription {
   id: number;
+  callback_url: string;
 }
 
 /** Compares a secret in the same time whatever is given, however long */
@@ -95,7 +96,10 @@ export class WebhookRelay {
     return typeof given === 'string' && announced !== undefined && sameSecret(given, announced.token);
   }
 
-  /** Learns the subscription's ID from Strava, asking every minute until it answers */
+  /**
+   * Learns the subscription's ID from Strava, asking every minute until it answers, and warns when
+   * the subscription doesn't point at this receiver; moving it is left to a person
+   */
   private async lookUpSubscription(): Promise<void> {
     if (!this.clientId || !this.secret) return;
     let subscription: Subscription | undefined;
@@ -118,6 +122,17 @@ export class WebhookRelay {
     }
     // A move the script told of meanwhile is newer than Strava's answer
     this.subscriptionId ??= subscription?.id;
+
+    const address = `${this.receiverOrigin}/api/hook${this.stravaToken ? `/${this.stravaToken}` : ''}`;
+    if (subscription?.callback_url === address) return;
+    const shown = (url: string) => url.replace(/(\/api\/hook\/)[^/?]+/, '$1<token>');
+    const wanted = shown(address);
+    const problem = !subscription
+      ? `There is no Strava webhook subscription; it should point at ${wanted}`
+      : shown(subscription.callback_url) === wanted
+        ? `Strava's webhook subscription points at ${wanted} with a different token`
+        : `Strava's webhook subscription points at ${shown(subscription.callback_url)}, not ${wanted}`;
+    console.warn(`${problem}. Run yarn webhook-subscription -e <env> --update to move it.`);
   }
 
   /** Whether a request carries this app's signature over its path and its body, as JSON.stringify writes it */
@@ -222,7 +237,9 @@ export class WebhookRelay {
 
   /** Signs this deployment up with the receiver now and every 5 minutes, unless it is the receiver */
   start(): void {
-    if (this.isReceiver) void this.lookUpSubscription();
+    if (this.isReceiver) {
+      this.lookUpSubscription().catch((e) => console.warn("Could not check Strava's webhook subscription:", e));
+    }
     if (!this.enabled || this.isReceiver) return;
     const checkIn = () =>
       this.checkIn().then(

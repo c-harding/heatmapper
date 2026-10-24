@@ -49,3 +49,9 @@ if [ -n "$SERVER_DOMAIN" ]; then
   done
   echo "$SERVER_DOMAIN is up."
 fi
+
+# Deploying doesn't move Strava's subscription, so say if it points elsewhere. Only the receiver's
+# env file names its token, so only that one can tell.
+if [ -n "$WEBHOOK_RECEIVER" ] && [ "${WEBHOOK_RECEIVER%/}" = "${SERVER_DOMAIN%/}" ]; then
+  scripts/webhook-subscription -e "$ENV" --quiet || true
+fi
