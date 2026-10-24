@@ -12,6 +12,8 @@ const PEER_LIFETIME = 60 * 60 * 1000;
 const CHECK_IN_INTERVAL = 5 * 60 * 1000;
 /** How often the receiver asks Strava for the subscription on starting, until Strava answers */
 const SUBSCRIPTION_RETRY_INTERVAL = 60 * 1000;
+/** How long a verify token announced by yarn webhook-subscription is accepted for */
+const VERIFICATION_LIFETIME = 2 * 60 * 1000;
 
 type Peers = Record<string, { lastSeen: number }>;
 interface Subscription {
@@ -47,6 +49,7 @@ export class WebhookRelay {
   private readonly ownOrigin?: string;
   private readonly receiverOrigin?: string;
   private subscriptionId?: number;
+  private verification?: { token: string; expires: number };
 
   constructor(
     ownDomain: string,
@@ -78,11 +81,18 @@ export class WebhookRelay {
   }
 
   /**
-   * Whether an event is for this app's subscription. The receiver asks Strava for its ID on starting;
-   * no request makes it ask, so every wrong one is answered alike and costs Strava nothing.
+   * Whether an event is for this app's subscription. The receiver asks Strava for its ID on starting,
+   * and yarn webhook-subscription tells it of a move; no request makes it ask, so every wrong one is
+   * answered alike and costs Strava nothing.
    */
   isOurSubscription(id: unknown): boolean {
     return typeof id === 'number' && id === this.subscriptionId;
+  }
+
+  /** Whether Strava's handshake carries the verify token announced for a subscription change */
+  isAnnouncedVerifyToken(given: unknown): boolean {
+    const announced = this.verification && Date.now() < this.verification.expires ? this.verification : undefined;
+    return typeof given === 'string' && announced !== undefined && sameSecret(given, announced.token);
   }
 
   /** Learns the subscription's ID from Strava, asking every minute until it answers */
@@ -106,7 +116,8 @@ export class WebhookRelay {
       setTimeout(() => void this.lookUpSubscription(), SUBSCRIPTION_RETRY_INTERVAL).unref();
       return;
     }
-    this.subscriptionId = subscription?.id;
+    // A move the script told of meanwhile is newer than Strava's answer
+    this.subscriptionId ??= subscription?.id;
   }
 
   /** Whether a request carries this app's signature over its path and its body, as JSON.stringify writes it */
@@ -115,6 +126,34 @@ export class WebhookRelay {
     const path = req.originalUrl.split('?')[0];
     return !!this.secret && body !== undefined && verify(req.get(SIGNATURE_HEADER), path, body, this.secret);
   }
+
+  /**
+   * Sent by yarn webhook-subscription before it creates a subscription: Strava's handshake must carry
+   * this verify token, which works for two minutes, and nothing else gets an answer
+   */
+  readonly expectVerification: RequestHandler = (req, res) => {
+    const token = (req.body as { verifyToken?: unknown })?.verifyToken;
+    if (!this.isReceiver || !this.isSigned(req) || typeof token !== 'string' || token.length < 16) {
+      res.status(403).send();
+      return;
+    }
+    this.verification = { token, expires: Date.now() + VERIFICATION_LIFETIME };
+    res.status(204).send();
+  };
+
+  /**
+   * Sent by yarn webhook-subscription once it has moved the subscription, with the ID Strava gave it,
+   * so that the new one's events are taken at once, however long Strava's own list takes to show it
+   */
+  readonly subscriptionMoved: RequestHandler = (req, res) => {
+    const id = (req.body as { id?: unknown })?.id;
+    if (!this.isReceiver || !this.isSigned(req) || typeof id !== 'number') {
+      res.status(403).send();
+      return;
+    }
+    this.subscriptionId = id;
+    res.status(204).send();
+  };
 
   /** The receiver's end of signing up: records the deployment that asked */
   readonly signUp: RequestHandler = async (req, res) => {

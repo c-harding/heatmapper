@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "target": "es2023",
+    "lib": ["es2023"],
+    "types": ["node"],
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    // Node runs the scripts as they are, stripping the types, which leaves only syntax it can erase
+    "erasableSyntaxOnly": true,
+    "verbatimModuleSyntax": true,
+    // For the types of the shared modules, which are JavaScript
+    "allowJs": true,
+    "noEmit": true
+  },
+  "include": ["*.ts"]
+}

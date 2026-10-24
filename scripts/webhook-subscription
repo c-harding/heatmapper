@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+
+# Shows the app's Strava webhook subscription, or moves it; the work is in webhook-subscription.ts.
+#
+#   yarn webhook-subscription -e activity-map
+#   yarn webhook-subscription -e activity-map --update
+
+set -e
+
+cd "$(dirname "$0")/.."
+
+# Works out which env file -e means, as deploy does: "-" for the branch, and the main checkout's
+# files from a worktree
+. scripts/get-env "$@"
+
+if [ -z "$DOTENV_FILE" ]; then
+  echo 'No env file was found; name one with -e / --env.' >&2
+  exit 1
+fi
+
+exec node scripts/webhook-subscription.ts "${REST_ARGS[@]}"

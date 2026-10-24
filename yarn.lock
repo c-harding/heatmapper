@@ -1333,6 +1333,19 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@strava-heatmapper/scripts@workspace:scripts":
+  version: 0.0.0-use.local
+  resolution: "@strava-heatmapper/scripts@workspace:scripts"
+  dependencies:
+    "@types/node": "npm:^26.6.5"
+    eslint: "npm:^9.39.3"
+    globals: "npm:^17.3.0"
+    prettier: "npm:^3.8.1"
+    typescript: "npm:~6.0.3"
+    typescript-eslint: "npm:^8.71.2"
+  languageName: unknown
+  linkType: soft
+
 "@strava-heatmapper/server@workspace:server":
   version: 0.0.0-use.local
   resolution: "@strava-heatmapper/server@workspace:server"

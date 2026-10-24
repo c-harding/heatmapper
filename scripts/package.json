@@ -1,0 +1,19 @@
+{
+  "name": "@strava-heatmapper/scripts",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint --fix .",
+    "prettier": "prettier -w --ignore-path ../.prettierignore ."
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.5",
+    "eslint": "^9.39.3",
+    "globals": "^17.3.0",
+    "prettier": "^3.8.1",
+    "typescript": "~6.0.3",
+    "typescript-eslint": "^8.71.2"
+  }
+}
