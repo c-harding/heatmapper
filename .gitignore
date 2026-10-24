@@ -8,7 +8,7 @@ node_modules
 /server/sessions
 /server/sessions-mock
 
-# Map styles vendored by scripts/load-styles
+# Map styles vendored by scripts/load-styles.ts
 /client/public/styles/generated/
 
 # Worktrees made by scripts/worktree

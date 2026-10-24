@@ -15,7 +15,7 @@
     "e2e": "yarn --cwd=e2e test",
     "worktree": "scripts/worktree",
     "webhook-subscription": "scripts/webhook-subscription",
-    "load-styles": "scripts/load-styles",
+    "load-styles": "scripts/load-styles.ts",
     "typecheck": "yarn --cwd=shared typecheck && yarn --cwd=client typecheck && yarn --cwd=server typecheck && yarn --cwd=e2e typecheck && yarn --cwd=scripts typecheck",
     "lint": "yarn --cwd=shared lint && yarn --cwd=client lint && yarn --cwd=server lint && yarn --cwd=e2e lint && yarn --cwd=scripts lint",
     "prettier": "yarn --cwd=shared prettier && yarn --cwd=client prettier && yarn --cwd=server prettier && yarn --cwd=e2e prettier && yarn --cwd=scripts prettier"

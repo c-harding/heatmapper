@@ -118,7 +118,7 @@ fi
 # vendored styles rather than 404ing them, and an edited style source takes effect on restart.
 # Unlike a build, a dev server is worth having without them, so this only warns: everything the
 # styles do not cover carries on working.
-if ! scripts/load-styles; then
+if ! scripts/load-styles.ts; then
     echo 'Could not load the map styles, so the generated ones will not be available.' >&2
 fi
 

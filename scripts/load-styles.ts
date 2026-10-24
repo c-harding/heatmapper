@@ -1,14 +1,36 @@
 #!/usr/bin/env node
 
-const fs = require('node:fs/promises');
-const path = require('node:path');
+import fs from 'node:fs/promises';
+import path from 'node:path';
+
+/** A JSON object, as styles and their sources are made of */
+type JsonObject = Record<string, unknown>;
+
+interface Layer extends JsonObject {
+  id: string;
+  source?: string;
+  layout?: JsonObject & { 'text-font'?: unknown };
+}
+
+interface Style extends JsonObject {
+  name?: string;
+  sprite?: unknown;
+  sources?: Record<string, { url?: string; tiles?: string[] }>;
+  layers?: Layer[];
+}
+
+interface Source extends JsonObject {
+  url?: string;
+  fonts?: Record<string, string | string[]>;
+  layers?: Record<string, JsonObject>;
+}
 
 // Where the user actually was, captured before the chdir below moves us to the checkout root:
 // yarn leaves it in INIT_CWD, and without yarn process.cwd() is still the caller's. Paths on the
 // command line are resolved against this, everything else against the root.
 const CALLER_DIR = process.env.INIT_CWD ?? process.cwd();
 
-process.chdir(path.join(__dirname, '..'));
+process.chdir(path.join(import.meta.dirname, '..'));
 
 const HELP = `Vendor a map style, and the sprite it names, into this repo.
 
@@ -54,7 +76,7 @@ const STYLE_DIR = path.join('client', 'public', 'styles', 'generated');
 // Where STYLE_DIR is served from, being inside the client's public directory.
 const STYLE_URL = '/styles/generated';
 
-async function fetchOk(url) {
+async function fetchOk(url: string): Promise<Response> {
   const response = await fetch(url, { signal: AbortSignal.timeout(FETCH_TIMEOUT) });
   if (!response.ok) {
     throw new Error(`${response.status} ${response.statusText} for ${url}`);
@@ -62,29 +84,31 @@ async function fetchOk(url) {
   return response;
 }
 
-async function download(url, destination) {
+async function download(url: string, destination: string): Promise<void> {
   const response = await fetchOk(url);
   await fs.writeFile(destination, Buffer.from(await response.arrayBuffer()));
 }
 
 /** Merge one object into another, a key at a time, without losing what the edits do not name. */
-function merge(target, edits) {
+function merge(target: JsonObject, edits: JsonObject): void {
+  const mergeable = (v: unknown): v is JsonObject =>
+    !!v && typeof v === 'object' && !Array.isArray(v);
   for (const [key, value] of Object.entries(edits)) {
-    const mergeable = (v) => v && typeof v === 'object' && !Array.isArray(v);
+    const current = target[key];
     if (value === null) delete target[key];
-    else if (mergeable(value) && mergeable(target[key])) merge(target[key], value);
+    else if (mergeable(value) && mergeable(current)) merge(current, value);
     else target[key] = value;
   }
 }
 
 /** Apply a source's edits, whose layers are named rather than positioned as the style's are. */
-function applyEdits(style, { fonts = {}, layers = {}, ...rest }) {
+function applyEdits(style: Style, { fonts = {}, layers = {}, ...rest }: Source): void {
   merge(style, rest);
 
   const renames = new Map(Object.entries(fonts));
   for (const layer of style.layers ?? []) {
     const font = layer.layout?.['text-font'];
-    if (font) layer.layout['text-font'] = renameFonts(renames, font);
+    if (layer.layout && font) layer.layout['text-font'] = renameFonts(renames, font);
     // Merged after the rename, so that a source naming a text-font outright still wins.
     if (layers[layer.id]) merge(layer, layers[layer.id]);
   }
@@ -98,7 +122,7 @@ function applyEdits(style, { fonts = {}, layers = {}, ...rest }) {
   // A layer whose source has been removed cannot draw anything, and would fail validation.
   const orphaned = (style.layers ?? []).filter((l) => l.source && !style.sources?.[l.source]);
   if (orphaned.length) {
-    style.layers = style.layers.filter((l) => !orphaned.includes(l));
+    style.layers = style.layers?.filter((l) => !orphaned.includes(l));
     console.log(
       `  dropped ${orphaned.length} layers left without a source: ` +
         orphaned.map((l) => l.id).join(', '),
@@ -107,7 +131,7 @@ function applyEdits(style, { fonts = {}, layers = {}, ...rest }) {
 }
 
 /** Rename fonts throughout a text-font, which may be an expression rather than a plain stack. */
-function renameFonts(fonts, value) {
+function renameFonts(fonts: Map<string, string | string[]>, value: unknown): unknown {
   if (typeof value === 'string') return fonts.get(value) ?? value;
   if (Array.isArray(value)) {
     const renamed = value.map((item) => renameFonts(fonts, item));
@@ -117,8 +141,8 @@ function renameFonts(fonts, value) {
 }
 
 /** The hosts a style still reaches out to, which a browser elsewhere may not be allowed to. */
-function remoteHosts(style) {
-  const hosts = new Set();
+function remoteHosts(style: Style): string[] {
+  const hosts = new Set<string>();
   for (const source of Object.values(style.sources ?? {})) {
     for (const url of [source.url, ...(source.tiles ?? [])]) {
       if (url && !url.startsWith('mapbox://')) hosts.add(new URL(url).host);
@@ -128,17 +152,17 @@ function remoteHosts(style) {
 }
 
 /** A style is worth fetching if we have not got it, or if what makes it is newer than it. */
-async function isStale(sourceFile, destination) {
+async function isStale(sourceFile: string, destination: string): Promise<boolean> {
   const [edits, script, style] = await Promise.all([
     fs.stat(sourceFile),
-    fs.stat(__filename),
+    fs.stat(import.meta.filename),
     fs.stat(destination).catch(() => null),
   ]);
   return !style || Math.max(edits.mtimeMs, script.mtimeMs) > style.mtimeMs;
 }
 
-async function loadStyle(sourceFile, force) {
-  const { url, ...edits } = JSON.parse(await fs.readFile(sourceFile, 'utf8'));
+async function loadStyle(sourceFile: string, force: boolean): Promise<void> {
+  const { url, ...edits } = JSON.parse(await fs.readFile(sourceFile, 'utf8')) as Source;
   if (!url) throw new Error('it does not give the "url" to fetch the style from');
 
   const destination = path.join(STYLE_DIR, path.basename(sourceFile));
@@ -146,7 +170,7 @@ async function loadStyle(sourceFile, force) {
     console.log(`${destination}: up to date`);
     return;
   }
-  const style = await (await fetchOk(url)).json();
+  const style = (await (await fetchOk(url)).json()) as Style;
 
   await fs.mkdir(path.dirname(destination), { recursive: true });
 
@@ -173,13 +197,13 @@ async function loadStyle(sourceFile, force) {
 }
 
 /** The source a style is named by: a bare name is one of ours, anything else is the user's path. */
-function sourcePath(style) {
+function sourcePath(style: string): string {
   if (path.basename(style) !== style || path.extname(style)) return path.resolve(CALLER_DIR, style);
   return path.join(SOURCE_DIR, `${style}.json`);
 }
 
 /** Every source we have, for when none were named. */
-async function everySource() {
+async function everySource(): Promise<string[]> {
   const entries = await fs.readdir(SOURCE_DIR);
   return entries
     .filter((entry) => entry.endsWith('.json'))
@@ -188,8 +212,8 @@ async function everySource() {
 }
 
 /** Split the options off the styles, taking everything after a bare -- as a style. */
-function parseArgs(argv) {
-  const styles = [];
+function parseArgs(argv: string[]): { force: boolean; help: boolean; styles: string[] } {
+  const styles: string[] = [];
   let force = false;
   let help = false;
   let options = true;
@@ -205,7 +229,7 @@ function parseArgs(argv) {
   return { force, help, styles };
 }
 
-async function main(argv) {
+async function main(argv: string[]): Promise<void> {
   const { force, help, styles } = parseArgs(argv);
   if (help) {
     console.log(HELP);
@@ -216,7 +240,8 @@ async function main(argv) {
   for (const source of sources) {
     try {
       await loadStyle(source, force);
-    } catch (error) {
+    } catch (e) {
+      const error = e as Error;
       // Which style we were loading, since what goes wrong below can come from a URL, a file or
       // a body that was not the JSON we asked for, and say so itself in none of those cases.
       throw new Error(`An error occurred when loading ${source}: ${error.message}`, {
@@ -226,7 +251,7 @@ async function main(argv) {
   }
 }
 
-main(process.argv.slice(2)).catch((error) => {
+main(process.argv.slice(2)).catch((error: Error) => {
   // fetch says only "fetch failed", and leaves the reason it failed in the cause.
   const cause = error.cause instanceof Error ? ` (caused by ${error.cause.message})` : '';
   console.error(`${error.message}${cause}`);
