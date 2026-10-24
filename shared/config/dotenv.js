@@ -77,6 +77,7 @@ const USE_STRAVA_ICONS = process.env.USE_STRAVA_ICONS && process.env.USE_STRAVA_
 const VALIDATE_USER_BEFORE_CACHE =
   process.env.VALIDATE_USER_BEFORE_CACHE && process.env.VALIDATE_USER_BEFORE_CACHE !== 'false';
 const SERVER_DOMAIN = process.env.SERVER_DOMAIN || `http://localhost:${SERVER_PORT}`;
+const WEBHOOK_RECEIVER = process.env.WEBHOOK_RECEIVER || undefined;
 
 const SESSIONS_DIR = resolve(ROOT_DIR, process.env.SESSIONS_DIR || 'server/sessions');
 
@@ -115,6 +116,7 @@ module.exports = {
   VITE_APP_NAME,
   VITE_APP_FAVICON,
   SERVER_DOMAIN,
+  WEBHOOK_RECEIVER,
   MAPBOX_TOKEN,
   ATTRIBUTION,
   USE_STRAVA_ICONS,

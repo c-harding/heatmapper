@@ -5,6 +5,7 @@ import { ActivitiesHandler } from './routes/activities';
 import { HookHandler } from './routes/hook';
 import { getToken } from './routes/token';
 import { UserHandler } from './routes/user';
+import { type WebhookRelay } from './webhook-relay';
 
 /**
  * The current model version. Increment this when making breaking changes to the API,
@@ -17,7 +18,7 @@ import { UserHandler } from './routes/user';
  */
 const MODEL_VERSION = 7;
 
-export default function apiRouter(domain: string, wsInstance: ws.Instance): express.Router {
+export default function apiRouter(domain: string, wsInstance: ws.Instance, relay: WebhookRelay): express.Router {
   const router = express.Router() as ws.Router;
   wsInstance.applyTo(router);
 
@@ -30,7 +31,9 @@ export default function apiRouter(domain: string, wsInstance: ws.Instance): expr
   router.get('/user', userHandler.get);
   router.delete('/user', userHandler.delete);
 
-  const hookHandler = new HookHandler(domain);
+  const hookHandler = new HookHandler(domain, relay);
+  router.post('/hook/relay/forwarded', hookHandler.forwarded);
+  router.post('/hook/relay/peers', relay.signUp);
   router.get('/hook', hookHandler.get);
   router.post('/hook', hookHandler.post);
 
