@@ -102,7 +102,7 @@ const pickListId = computed(() =>
     flex: 1;
     background-color: inherit;
     border: none;
-    min-width: 8rem;
+    min-width: 0;
     margin: 0.15rem 0.4rem;
     color: var(--color-full);
     appearance: none;
