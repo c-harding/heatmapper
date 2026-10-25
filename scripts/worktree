@@ -76,7 +76,7 @@ Usage: yarn worktree dev [dir] [options]
 Start the dev servers for a worktree, in the background by default. Defaults to the current one.
 The options are those of "yarn dev", which this runs in the worktree: servers that are already
 running are used as they are, unless they need restarting to serve or stop serving the mock, or
--r is given.
+-r is given. Once either of them has stopped, both are restarted.
 
 Options:
   -a, --attach       attach to the servers
@@ -472,6 +472,10 @@ list_row() {
         if [ "$(tmux show-options -qv -t "$(session_target "$path"):" @mock)" = 1 ]; then
             running='dev (mock)'
         fi
+        # And a pane once its server has stopped
+        case $(tmux list-panes -s -t "$(session_target "$path"):" -F '#{@exited}') in
+            *1*) running='dev (stopped)' ;;
+        esac
     fi
     # The /dist suffix keeps this from matching a worktree whose path merely starts the same.
     case $containers in

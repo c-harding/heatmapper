@@ -25,6 +25,8 @@ wrapper() {
 
     # If wasn’t sigint or sighup, stay open
     [ $exit_code -ne 130 ] && [ $exit_code -ne 129 ] && (
+        # So that the session no longer counts as running servers
+        tmux set-option -p -t "$TMUX_PANE" @exited 1
         if [ $exit_code -eq 0 ]
         then echo "[Process completed successfully, press enter to close]"
         else echo "[Process exited with code $exit_code, press enter to quit]"
@@ -91,7 +93,7 @@ Run the frontend and backend dev servers side by side in a tmux session, and att
 in either pane stops both. Detach from the session with ^b d, and come back with "yarn dev".
 
 Servers that are already running are used as they are, unless they need restarting to serve or
-stop serving the mock, or -r is given.
+stop serving the mock, or -r is given. Once either of them has stopped, both are restarted.
 
 Options:
   -a, --attach       attach to the servers, which is the default
@@ -170,10 +172,18 @@ fi
 
 RUNNING=0
 RUNNING_MOCK=0
+EXITED=0
 if tmux has-session -t "$SESSION_TARGET" 2>/dev/null; then
     RUNNING=1
     # Marked when they were started. The colon makes the exact session a target-pane.
     [ "$(tmux show-options -qv -t "$SESSION_TARGET:" @mock)" != 1 ] || RUNNING_MOCK=1
+    # A pane is marked once its server has stopped, while it waits to show why
+    case $(tmux list-panes -s -t "$SESSION_TARGET:" -F '#{@exited}') in
+        *1*)
+            RUNNING=0
+            EXITED=1
+            ;;
+    esac
 fi
 
 # Running servers are used as they are when nothing asks for them to change
@@ -192,7 +202,9 @@ if [ "$RUNNING" -eq 1 ] && [ "$START" != restart ] \
 fi
 
 if [ "$START" = never ]; then
-    if [ "$RUNNING" -eq 0 ]; then
+    if [ "$EXITED" -eq 1 ]; then
+        echo "The dev servers in $PLACE have stopped; leave out -R to restart them." >&2
+    elif [ "$RUNNING" -eq 0 ]; then
         echo "No dev servers are running in $PLACE." >&2
     elif [ "$RUNNING_MOCK" -eq 1 ]; then
         echo "Dev servers are running in $PLACE with a mock of Strava." >&2
