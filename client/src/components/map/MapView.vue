@@ -194,13 +194,18 @@ watch(mapStyleUrl, async (styleUrl) => {
 
 const onTerrain = () => {
   if (terrain.value) {
-    if (!map.getSource('mapbox-dem')) {
-      map.addSource('mapbox-dem', {
+    // Matches the mapterhorn source in public/styles/*.json and
+    // scripts/style-sources/*.json, whose hillshade then shares tiles with the terrain.
+    if (!map.getSource('mapterhorn')) {
+      map.addSource('mapterhorn', {
         type: 'raster-dem',
-        url: 'mapbox://mapbox.mapbox-terrain-dem-v1',
+        tiles: ['https://tiles.mapterhorn.com/{z}/{x}/{y}.webp'],
+        tileSize: 512,
+        encoding: 'terrarium',
+        attribution: '<a href="https://mapterhorn.com/attribution">© Mapterhorn</a>',
       });
     }
-    map.setTerrain({ source: 'mapbox-dem' });
+    map.setTerrain({ source: 'mapterhorn' });
     map.setProjection('globe');
   } else {
     map.setTerrain(null);

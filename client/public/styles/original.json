@@ -84,68 +84,14 @@
         }
     ],
     "sources": {
-        "mapbox://mapbox.mapbox-terrain-dem-v1": {
-            "url": "mapbox://mapbox.mapbox-terrain-dem-v1",
+        "mapterhorn": {
             "type": "raster-dem",
-            "tileSize": 256,
-            "data": {
-                "attribution": "<a href=\"https://www.mapbox.com/about/maps\" target=\"_blank\" title=\"Mapbox\" aria-label=\"Mapbox\">&copy; Mapbox</a>",
-                "autoscale": true,
-                "bounds": [
-                    -180,
-                    -85,
-                    180,
-                    85
-                ],
-                "cacheControl": "max-age=43200,s-maxage=604800",
-                "center": [
-                    0,
-                    0,
-                    3
-                ],
-                "created": 1604614692000,
-                "description": "png or webp file extension must be used. height = -10000 + ((R * 256 * 256 + G * 256 + B) * 0.1)",
-                "encoding": "mapbox",
-                "filesize": 0,
-                "format": "png",
-                "id": "mapbox.mapbox-terrain-dem-v1",
-                "mapbox_logo": true,
-                "maxzoom": 14,
-                "minzoom": 0,
-                "modified": 1605833570000,
-                "name": "Mapbox Terrain-DEM v1",
-                "packs": {
-                    "scheme": [
-                        {
-                            "indexzoom": 0,
-                            "maxzoom": 5,
-                            "minzoom": 0
-                        },
-                        {
-                            "indexzoom": 6,
-                            "maxzoom": 9,
-                            "minzoom": 6
-                        },
-                        {
-                            "indexzoom": 10,
-                            "maxzoom": 12,
-                            "minzoom": 10
-                        },
-                        {
-                            "indexzoom": 11,
-                            "maxzoom": 14,
-                            "minzoom": 13
-                        }
-                    ]
-                },
-                "private": false,
-                "scheme": "xyz",
-                "tilejson": "3.0.0",
-                "tiles": [
-                    "mapbox://raster/mapbox.mapbox-terrain-dem-v1/{z}/{x}/{y}.png"
-                ],
-                "webpage": "https://studio.mapbox.com/tilesets/mapbox.mapbox-terrain-dem-v1"
-            }
+            "tiles": [
+                "https://tiles.mapterhorn.com/{z}/{x}/{y}.webp"
+            ],
+            "tileSize": 512,
+            "encoding": "terrarium",
+            "attribution": "<a href=\"https://mapterhorn.com/attribution\">© Mapterhorn</a>"
         },
         "composite": {
             "url": "mapbox://mapbox.mapbox-terrain-v2,mapbox.mapbox-streets-v8",
@@ -971,7 +917,7 @@
         {
             "id": "improved-hillshading",
             "type": "hillshade",
-            "source": "mapbox://mapbox.mapbox-terrain-dem-v1",
+            "source": "mapterhorn",
             "paint": {
                 "hillshade-exaggeration": 0.175
             }
