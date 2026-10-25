@@ -21,6 +21,8 @@ const { icon } = defineProps<{
 .uiLabelledIcon {
   display: flex;
   justify-content: center;
+  // The label's baseline, not the icon's, which centres itself, so it lines up with plain text
+  align-items: baseline;
 
   &:has(> :not(:empty) ~ :not(:empty)) {
     gap: 0.5ch;
