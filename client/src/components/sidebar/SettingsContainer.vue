@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { type UserInfo } from '@strava-heatmapper/shared/interfaces';
 
+import CalendarSettings from './CalendarSettings.vue';
 import UserSettings from './UserSettings.vue';
 
 const { user } = defineProps<{
@@ -13,6 +14,7 @@ const emit = defineEmits<{
 </script>
 <template>
   <UserSettings :user="user" @logout="emit('logout')" />
+  <CalendarSettings />
 </template>
 
 <style scoped lang="scss"></style>
