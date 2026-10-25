@@ -52,15 +52,15 @@ function clickHeader() {
       <span :class="[$style.handleCurve, $style.top]" />
       <span :class="[$style.face, $style.map]" :aria-hidden="minimised">
         <span>
-          <UIIcon icon="map" :class="$style.viewIcon" aria-hidden="true" />
-          <UIIcon :icon="hideChevron" :class="$style.foldIcon" aria-hidden="true" />
+          <UIIcon icon="map" :class="$style.viewIcon" />
+          <UIIcon :icon="hideChevron" :class="$style.foldIcon" />
         </span>
         <span>Map</span>
       </span>
       <span :class="[$style.face, $style.back]" :aria-hidden="!minimised">
         <span>
-          <UIIcon icon="menu" :class="$style.viewIcon" aria-hidden="true" />
-          <UIIcon :icon="showChevron" :class="$style.foldIcon" aria-hidden="true" />
+          <UIIcon icon="menu" :class="$style.viewIcon" />
+          <UIIcon :icon="showChevron" :class="$style.foldIcon" />
         </span>
         <span>Menu</span>
       </span>

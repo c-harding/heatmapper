@@ -35,11 +35,11 @@ const checkboxIcon = computed(() => {
   if (!selectionStore.multiSelectionMode) {
     return undefined;
   } else if (allSelected.value) {
-    return 'check_circle_outline';
+    return { icon: 'check_circle_outline', label: 'All selected' };
   } else if (someSelected.value) {
-    return 'remove_circle_outline';
+    return { icon: 'remove_circle_outline', label: 'Some selected' };
   } else {
-    return 'radio_button_unchecked';
+    return { icon: 'radio_button_unchecked', label: 'None selected' };
   }
 });
 
@@ -91,7 +91,13 @@ function clickGroup(e: MouseEvent) {
       @click="clickGroup($event)"
       @dblclick="forceSelect()"
     >
-      <UIIcon v-if="checkboxIcon" :class="$style.checkbox" :icon="checkboxIcon" inline />
+      <UIIcon
+        v-if="checkboxIcon"
+        :class="$style.checkbox"
+        :icon="checkboxIcon.icon"
+        :label="checkboxIcon.label"
+        inline
+      />
       <button
         type="button"
         :class="$style.expandButton"

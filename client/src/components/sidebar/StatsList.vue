@@ -3,9 +3,14 @@ import { computed } from 'vue';
 
 import UIIcon from '../ui/UIIcon.vue';
 
+export interface StatIcon {
+  icon: string;
+  label: string;
+}
+
 const { stats, icons } = defineProps<{
   stats: (string | undefined)[];
-  icons?: string[];
+  icons?: StatIcon[];
 }>();
 
 const filteredStats = computed(() => stats.filter(Boolean));
@@ -14,7 +19,14 @@ const filteredStats = computed(() => stats.filter(Boolean));
 <template>
   <div :class="$style.statsList">
     <div v-for="(stat, i) of filteredStats" :key="i" :class="$style.stat">{{ stat }}</div>
-    <UIIcon v-for="(icon, i) of icons" :key="`icon-${i}`" :class="$style.statIcon" :icon inline />
+    <UIIcon
+      v-for="({ icon, label }, i) of icons"
+      :key="`icon-${i}`"
+      :class="$style.statIcon"
+      :icon
+      :label
+      inline
+    />
   </div>
 </template>
 

@@ -9,6 +9,7 @@ import { formatFullDateTime, formatSplitDate } from '@/utils/numberFormat';
 
 import SidebarItemLink from '../sidebar/SidebarItemLink.vue';
 import SidebarItemStats from '../sidebar/SidebarItemStats.vue';
+import { type StatIcon } from '../sidebar/StatsList.vue';
 import StravaEmoji from '../strava-symbol/StravaEmoji.vue';
 import StravaIcon from '../strava-symbol/StravaIcon.vue';
 
@@ -70,9 +71,9 @@ type TypedKeyOf<T extends object, V> = Exclude<
 function booleanIcon<T extends MapItem>(
   item: T,
   key: TypedKeyOf<FilterModel, boolean | undefined> & keyof T,
-  trueIcon: string | undefined,
-  falseIcon: string | undefined,
-): string | undefined {
+  trueIcon: StatIcon | undefined,
+  falseIcon: StatIcon | undefined,
+): StatIcon | undefined {
   const iconNeeded =
     activityStore.filterFields.has(key) &&
     item[key] !== undefined &&
@@ -83,9 +84,9 @@ function booleanIcon<T extends MapItem>(
 
 const statsIcons = computed(() =>
   [
-    !item.route && booleanIcon(item, 'isCommute', 'work', undefined),
-    booleanIcon(item, 'isPrivate', 'lock', undefined),
-  ].filter((icon): icon is string => !!icon),
+    !item.route && booleanIcon(item, 'isCommute', { icon: 'work', label: 'Commute' }, undefined),
+    booleanIcon(item, 'isPrivate', { icon: 'lock', label: 'Private' }, undefined),
+  ].filter((icon): icon is StatIcon => !!icon),
 );
 </script>
 

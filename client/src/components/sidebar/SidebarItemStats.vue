@@ -9,12 +9,12 @@ import { computed } from 'vue';
 import { getElevationGain, getElevationLoss } from '@/utils/elevationConfig';
 import { formatDuration, formatKilometers, formatMeters } from '@/utils/numberFormat';
 
-import StatsList from './StatsList.vue';
+import StatsList, { type StatIcon } from './StatsList.vue';
 
 const { item, additionalStats } = defineProps<{
   item: MapItemStats;
   additionalStats?: (string | false | undefined | null)[];
-  icons?: string[];
+  icons?: StatIcon[];
 }>();
 
 const distanceString = computed(() => formatKilometers(item.distance));

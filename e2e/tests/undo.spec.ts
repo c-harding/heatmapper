@@ -11,9 +11,8 @@ async function openTab(page: Page, name: string) {
   return tab;
 }
 
-/** A button by its label, at the end of its name, which starts with its icon's */
 const button = (tab: Locator, label: string) =>
-  tab.getByRole('button', { name: new RegExp(`${label}$`) });
+  tab.getByRole('button', { name: label, exact: true });
 
 test('dates: a clear can be undone, until a date is chosen', async ({ page }) => {
   await page.goto('/');

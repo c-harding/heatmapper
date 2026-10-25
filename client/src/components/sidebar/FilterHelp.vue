@@ -82,9 +82,9 @@ function toggleFilter(field: FilterField) {
       </dt>
 
       <dd v-if="activityStore.useRoutes">
-        Select <kbd><UIIcon inline icon="star" /></kbd> to show only starred routes, or
-        <kbd><UIIcon inline icon="star_border" /></kbd> to show only non-starred routes. Click again
-        to disable this filter.
+        Select <kbd><UIIcon inline icon="star" label="Starred" /></kbd> to show only starred routes,
+        or <kbd><UIIcon inline icon="star_border" label="Not starred" /></kbd> to show only
+        non-starred routes. Click again to disable this filter.
       </dd>
 
       <dt v-if="!activityStore.useRoutes">
@@ -129,8 +129,9 @@ function toggleFilter(field: FilterField) {
       </dt>
       <dd v-if="!activityStore.useRoutes">
         Select
-        <UIIcon inline icon="work" /> to show only commutes, or <UIIcon inline icon="work_off" /> to
-        exclude commutes. Click again to disable this filter.
+        <UIIcon inline icon="work" label="Commute" /> to show only commutes, or
+        <UIIcon inline icon="work_off" label="Not a commute" /> to exclude commutes. Click again to
+        disable this filter.
       </dd>
 
       <dt>
@@ -145,10 +146,10 @@ function toggleFilter(field: FilterField) {
       </dt>
       <dd>
         Select
-        <UIIcon inline icon="lock_open" /> to show only non-private
-        {{ activityStore.useRoutes ? 'routes' : 'activities' }}, or <UIIcon inline icon="lock" /> to
-        show only private {{ activityStore.useRoutes ? 'routes' : 'activities' }}. Click again to
-        disable this filter.
+        <UIIcon inline icon="lock_open" label="Not private" /> to show only non-private
+        {{ activityStore.useRoutes ? 'routes' : 'activities' }}, or
+        <UIIcon inline icon="lock" label="Private" /> to show only private
+        {{ activityStore.useRoutes ? 'routes' : 'activities' }}. Click again to disable this filter.
       </dd>
     </dl>
     <hr />

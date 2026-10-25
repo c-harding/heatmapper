@@ -76,7 +76,7 @@ function isActive(choice: Choice): boolean {
     title="Map style"
     @click="clickedOpen = !clickedOpen"
   >
-    <UIIcon icon="layers" aria-hidden="true" />
+    <UIIcon icon="layers" />
   </button>
   <div ref="layerPicker" :class="[$style.layerPicker, clickedOpen && $style.open]">
     <menu>

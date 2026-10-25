@@ -41,6 +41,7 @@ const emit = defineEmits<{
       <UIIcon
         :class="$style.checkbox"
         :icon="selected ? 'check_circle_outline' : 'radio_button_unchecked'"
+        :label="selected ? 'Selected' : 'Not selected'"
         inline
         large
       />

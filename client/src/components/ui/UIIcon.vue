@@ -12,6 +12,11 @@ const {
   placeholder?: boolean;
   bottom?: boolean;
   rotation?: number;
+  /**
+   * What the icon means, when nothing beside it says. Without one, the icon is hidden from
+   * assistive technology, which would otherwise read out the name of the glyph.
+   */
+  label?: string;
 }>();
 </script>
 
@@ -19,6 +24,9 @@ const {
   <i
     v-if="icon"
     v-bind="$attrs"
+    :role="label ? 'img' : undefined"
+    :aria-label="label"
+    :aria-hidden="label ? undefined : 'true'"
     :class="[
       'material-icons',
       $style.icon,

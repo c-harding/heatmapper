@@ -3,9 +3,15 @@ import { computed } from 'vue';
 
 import { type SegmentedControlItemContext } from './SegmentedControl.vue';
 
-const { option, disabled: disabledProp = false } = defineProps<{
+const {
+  option,
+  disabled: disabledProp = false,
+  title,
+} = defineProps<{
   option: SegmentedControlItemContext;
   disabled?: boolean;
+  /** Also the button's name, for an item showing only an icon */
+  title?: string;
 }>();
 
 const disabled = computed(() => option.disabled || disabledProp);
@@ -27,7 +33,7 @@ function select() {
       disabled && $style.disabled,
     ]"
   >
-    <button :disabled @click.prevent="select()">
+    <button :disabled :title :aria-label="title" @click.prevent="select()">
       <div :class="[$style.buttonContents, $style.normal]">
         <slot />
       </div>

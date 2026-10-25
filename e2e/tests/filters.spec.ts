@@ -158,7 +158,7 @@ test.describe('activity filters', () => {
     // The Filter tab's own Clear, beside its heading, not the one at the top that discards the cache
     const clearOrUndo = page
       .getByRole('region', { name: 'Filter', exact: true })
-      .getByRole('button', { name: /^(delete Clear|undo Undo)$/ });
+      .getByRole('button', { name: /^(Clear|Undo)$/ });
     await clearOrUndo.click();
     await expect(totals(page)).toHaveText(activitiesText(activities.length));
     await clearOrUndo.click();
@@ -222,7 +222,7 @@ test('a filter switched on in the filter help appears in the panel', async ({ br
   await page.getByTitle('Filter').click();
   await expect(field(page, 'Distance')).toBeHidden();
 
-  await page.getByRole('button', { name: 'help' }).first().click();
+  await page.getByRole('button', { name: 'Fields' }).click();
   await page.getByRole('checkbox', { name: 'Distance' }).check();
   await page.keyboard.press('Escape');
   await expect(field(page, 'Distance')).toBeVisible();
