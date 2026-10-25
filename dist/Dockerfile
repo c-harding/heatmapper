@@ -20,4 +20,6 @@ COPY . ./
 
 WORKDIR /usr/src/app/dist/server
 
+ENV NODE_ENV=production
+
 CMD ["pm2-runtime","app.js"]
