@@ -514,9 +514,9 @@ export const useActivityStore = defineStore('activity', () => {
       (errored) => {
         if (errored) {
           error.value = `Error fetching ${routes ? 'routes' : 'activities'}`;
-        } else {
-          stats.value.closed = true;
         }
+        // Closed either way: an error ends the load as surely as a clean finish does
+        stats.value.closed = true;
       },
       socketController,
     );
