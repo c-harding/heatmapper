@@ -21,7 +21,11 @@ import mockStravaRouter from './mock-strava';
 import { WebhookRelay } from './webhook-relay';
 
 const app = express();
-const wsInstance = expressWs(app);
+const { origin } = new URL(SERVER_DOMAIN);
+const wsInstance = expressWs(app, undefined, {
+  // CORS doesn't cover sockets, so a page from another origin could otherwise read one with the cookie
+  wsOptions: { verifyClient: (info, accept) => accept(info.origin === origin, 403) },
+});
 app.use(cookieParser());
 
 app.use(bodyParser.json());
