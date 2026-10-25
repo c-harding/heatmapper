@@ -520,10 +520,6 @@ $widget-gap: 10px;
   cursor: pointer;
   outline: none;
   inset-inline: 0;
-
-  &:dir(rtl) {
-    transform: translateX(50%);
-  }
 }
 
 .mapboxgl-ctrl-group {
@@ -658,12 +654,12 @@ $widget-gap: 10px;
   margin-block-end: $widget-gap;
 }
 
-.map-bottom-start > .mapboxgl-ctrl {
-  margin-inline-start: $widget-gap;
+.map-bottom-start {
+  padding-inline-start: $widget-gap;
 }
 
-.map-bottom-end > .mapboxgl-ctrl {
-  margin-inline-end: $widget-gap;
+.map-bottom-end {
+  padding-inline-end: $widget-gap;
 }
 
 .map-footer > * {
