@@ -166,7 +166,7 @@ EOF
 # Fail unless the current command takes this option, rather than quietly ignoring it. $1 names
 # the option in the command's list above, $2 is how the user spelled it.
 require_option() {
-    case " $ALLOWED " in
+    case " $ALLOWED_FLAGS " in
         *" $1 "*) return 0 ;;
     esac
     die "\"$COMMAND\" does not take $2. Try \"yarn worktree help $COMMAND\"."
@@ -196,9 +196,12 @@ set_branch() {
     esac
 }
 
+# Collect the options and arguments of the current command: $1 lists the options it takes, and
+# $2 how many arguments, or nothing to leave the count to the command.
 parse_args() {
-    ALLOWED="$1"
-    shift
+    ALLOWED_FLAGS="$1"
+    MAX_ARGS="$2"
+    shift 2
     while (($#)); do
         case $1 in
             -h | --help)
@@ -281,6 +284,7 @@ parse_args() {
             --delete)
                 require_option delete "$1"
                 DELETE=1
+                MAX_ARGS='' # a worktree and any number of labels
                 shift
                 ;;
             --delete-backups)
@@ -302,6 +306,9 @@ parse_args() {
                 ;;
         esac
     done
+    if [ -n "$MAX_ARGS" ] && [ ${#ARGS[@]} -gt "$MAX_ARGS" ]; then
+        die "Unexpected \"${ARGS[$MAX_ARGS]}\". Try \"yarn worktree help $COMMAND\"."
+    fi
 }
 
 # A directory as the user meant it: a bare name is a worktree under .worktrees/, anything with a
@@ -754,7 +761,6 @@ do_backups() {
         delete_backups "${ARGS[@]}"
         return
     fi
-    [ ${#ARGS[@]} -le 1 ] || die "Name at most one worktree. Try \"yarn worktree help backups\"."
 
     if [ -n "${ARGS[0]}" ]; then
         name="$(backup_owner "${ARGS[0]}")"
@@ -943,7 +949,7 @@ COMMAND="${1:-help}"
 case $COMMAND in
     add | a)
         COMMAND=add
-        parse_args "port install serve attach branch detach" "$@"
+        parse_args "port install serve attach branch detach" 2 "$@"
         # Ours to check rather than git's: either polarity is meaningless unless we will serve.
         if [ -n "$ATTACH" ] && [ "$SERVE" -eq 0 ]; then
             die "--attach and --no-attach need --serve."
@@ -952,30 +958,30 @@ case $COMMAND in
         ;;
     bootstrap | b)
         COMMAND=bootstrap
-        parse_args "port install force" "$@"
+        parse_args "port install force" 1 "$@"
         do_bootstrap "${ARGS[0]}"
         ;;
     serve | s)
         COMMAND=serve
-        parse_args "attach" "$@"
+        parse_args "attach" 1 "$@"
         do_serve "${ARGS[0]}"
         ;;
     list | l | ls)
         COMMAND=list
-        parse_args "" "$@"
+        parse_args "" 0 "$@"
         do_list
         ;;
     remove | r | rm)
         COMMAND=remove
-        parse_args "force delete-backups utc" "$@"
+        parse_args "force delete-backups utc" 1 "$@"
         do_remove "${ARGS[0]}"
         ;;
     backup)
-        parse_args "force utc" "$@"
+        parse_args "force utc" 2 "$@"
         do_backup "${ARGS[0]}" "${ARGS[1]}"
         ;;
     backups)
-        parse_args "delete utc" "$@"
+        parse_args "delete utc" 1 "$@"
         do_backups
         ;;
     help | h | -h | --help)
