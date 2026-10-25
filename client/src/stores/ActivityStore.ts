@@ -65,6 +65,14 @@ function parseGroupLevel(value: string | undefined): GroupLevel {
   return value !== undefined && levels.includes(value) ? (value as GroupLevel) : GroupLevel.OFF;
 }
 
+/** Fields that narrow one item type only; the rest narrow both */
+const narrowsOnly: Partial<Record<FilterField, MapItemType>> = {
+  starred: 'routes',
+  gear: 'activities',
+  device: 'activities',
+  isCommute: 'activities',
+};
+
 export type MapItemTypes = Partial<Record<MapItemType, boolean>>;
 
 export interface MapItemGroup {
@@ -103,6 +111,22 @@ export const useActivityStore = defineStore('activity', () => {
     loadFilterFields() ?? new Set(['sportType', 'starred']),
   );
   watch(filterFields, saveFilterFields);
+
+  /** The fields shown in the dialog that apply to the item type shown */
+  const liveFields = computed(() => {
+    const itemType = useRoutes.value ? 'routes' : 'activities';
+    return new Set(
+      [...filterFields].filter((field) => (narrowsOnly[field] ?? itemType) === itemType),
+    );
+  });
+
+  /** The model reduced to what can narrow the list: shown in the dialog, and for this item type */
+  const liveFilterModel = computed(
+    () =>
+      Object.fromEntries(
+        Object.entries(filterModel).filter(([field]) => liveFields.value.has(field as FilterField)),
+      ) as FilterModel,
+  );
 
   const displayOptions: DisplayOptions = reactive({
     showActivities: loadDisplayOptions()?.showActivities === true,
@@ -532,6 +556,8 @@ export const useActivityStore = defineStore('activity', () => {
     activityStats,
     filterModel,
     filterFields,
+    liveFields,
+    liveFilterModel,
     displayOptions,
     useRoutes,
     groupLevel,

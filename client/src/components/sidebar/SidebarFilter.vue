@@ -200,30 +200,19 @@ function formatGear(id: string | undefined) {
   return `using ${chosenGear.name}`;
 }
 
-const filterSummary = computed(() =>
-  [
-    activityStore.filterFields.has('sportType') && chosenSportLabel.value,
-    activityStore.filterFields.has('distance') &&
-      formatRange(activityStore.filterModel.distance, 'distance', formatKilometers),
-    activityStore.filterFields.has('elevation') &&
-      formatRange(activityStore.filterModel.elevation, 'elevation', formatMeters),
-    activityStore.filterFields.has('starred') &&
-      activityStore.useRoutes &&
-      activityStore.filterModel.starred !== undefined &&
-      (activityStore.filterModel.starred ? 'only starred' : 'only unstarred'),
-    activityStore.filterFields.has('gear') && formatGear(activityStore.filterModel.gear),
-    activityStore.filterFields.has('isCommute') &&
-      !activityStore.useRoutes &&
-      activityStore.filterModel.isCommute !== undefined &&
-      (activityStore.filterModel.isCommute ? 'only commutes' : 'excluding commutes'),
-    activityStore.filterFields.has('isPrivate') &&
-      activityStore.filterModel.isPrivate !== undefined &&
-      (activityStore.filterModel.isPrivate ? 'only private' : 'only non-private'),
-    activityStore.filterFields.has('device') &&
-      activityStore.filterModel.device &&
-      `only with device “${parseDeviceFilter(activityStore.filterModel.device).name}”`,
-  ].filter((string): string is string => !!string),
-);
+const filterSummary = computed(() => {
+  const live = activityStore.liveFilterModel;
+  return [
+    live.sportType && chosenSportLabel.value,
+    formatRange(live.distance, 'distance', formatKilometers),
+    formatRange(live.elevation, 'elevation', formatMeters),
+    live.starred !== undefined && (live.starred ? 'only starred' : 'only unstarred'),
+    formatGear(live.gear),
+    live.isCommute !== undefined && (live.isCommute ? 'only commutes' : 'excluding commutes'),
+    live.isPrivate !== undefined && (live.isPrivate ? 'only private' : 'only non-private'),
+    live.device && `only with device “${parseDeviceFilter(live.device).name}”`,
+  ].filter((string): string is string => !!string);
+});
 
 const showHelp = ref(false);
 </script>
@@ -240,7 +229,7 @@ const showHelp = ref(false);
   >
     <template #expanded>
       <div :class="controlsStyle.grid">
-        <label v-if="activityStore.filterFields.has('sportType')">
+        <label v-if="activityStore.liveFields.has('sportType')">
           <span>Sport type</span>
           <UIDropdown
             v-model="sportTypeStore.filter"
@@ -250,7 +239,7 @@ const showHelp = ref(false);
           />
         </label>
 
-        <label v-if="activityStore.filterFields.has('distance')">
+        <label v-if="activityStore.liveFields.has('distance')">
           <span>Distance</span>
           <UIRange
             v-model="activityStore.filterModel.distance"
@@ -260,13 +249,13 @@ const showHelp = ref(false);
           />
         </label>
 
-        <label v-if="activityStore.filterFields.has('elevation')">
+        <label v-if="activityStore.liveFields.has('elevation')">
           <span>Elevation</span>
           <UIRange v-model="activityStore.filterModel.elevation" :step="0.1" suffix="m" />
         </label>
 
         <div
-          v-if="activityStore.useRoutes && activityStore.filterFields.has('starred')"
+          v-if="activityStore.liveFields.has('starred')"
           :class="[controlsStyle.label, $style.noPointer]"
         >
           <span>Starred</span>
@@ -286,7 +275,7 @@ const showHelp = ref(false);
           </SegmentedControl>
         </div>
 
-        <label v-if="!activityStore.useRoutes && activityStore.filterFields.has('gear')">
+        <label v-if="activityStore.liveFields.has('gear')">
           <span>Gear</span>
           <UIDropdown
             v-model="activityStore.filterModel.gear"
@@ -296,7 +285,7 @@ const showHelp = ref(false);
           />
         </label>
 
-        <label v-if="!activityStore.useRoutes && activityStore.filterFields.has('device')">
+        <label v-if="activityStore.liveFields.has('device')">
           <span>Device</span>
           <UITextField
             v-model.lazy="activityStore.filterModel.device"
@@ -306,7 +295,7 @@ const showHelp = ref(false);
         </label>
 
         <div
-          v-if="activityStore.filterFields.has('isPrivate')"
+          v-if="activityStore.liveFields.has('isPrivate')"
           :class="[$style.noPointer, controlsStyle.label]"
         >
           <span>Visibility</span>
@@ -326,7 +315,7 @@ const showHelp = ref(false);
         </div>
 
         <div
-          v-if="activityStore.filterFields.has('isCommute') && !activityStore.useRoutes"
+          v-if="activityStore.liveFields.has('isCommute')"
           :class="[$style.noPointer, controlsStyle.label]"
         >
           <span>Commute</span>
