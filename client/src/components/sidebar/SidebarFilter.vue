@@ -37,6 +37,8 @@ const activityStore = useActivityStore();
 
 const sportTypeStore = useSportTypeStore();
 
+const items = computed(() => (activityStore.useRoutes ? 'routes' : 'activities'));
+
 const chosenSportLabel = computed(() => {
   if (sportTypeStore.filter) {
     for (const optionGroup of sportTypeStore.dropdownOptions) {
@@ -288,10 +290,10 @@ function openHelp() {
             :class="controlsStyle.segmentedControl"
             :deselectValue="[undefined]"
           >
-            <SegmentedControlItem :option="option(false)" title="Only unstarred activities">
+            <SegmentedControlItem :option="option(false)" title="Only unstarred routes">
               <UIIcon icon="star_border" inline />
             </SegmentedControlItem>
-            <SegmentedControlItem :option="option(true)" title="Only starred activities">
+            <SegmentedControlItem :option="option(true)" title="Only starred routes">
               <UIIcon icon="star" inline />
             </SegmentedControlItem>
           </SegmentedControl>
@@ -327,10 +329,10 @@ function openHelp() {
             :class="controlsStyle.segmentedControl"
             :deselectValue="[undefined]"
           >
-            <SegmentedControlItem :option="option(false)" title="Only public activities">
+            <SegmentedControlItem :option="option(false)" :title="`Only public ${items}`">
               <UIIcon icon="lock_open" inline />
             </SegmentedControlItem>
-            <SegmentedControlItem :option="option(true)" title="Only private activities">
+            <SegmentedControlItem :option="option(true)" :title="`Only private ${items}`">
               <UIIcon icon="lock" inline />
             </SegmentedControlItem>
           </SegmentedControl>

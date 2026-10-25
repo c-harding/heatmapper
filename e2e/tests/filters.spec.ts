@@ -133,6 +133,14 @@ test.describe('activity filters', () => {
   test('visibility: private and public', async () => {
     await page.getByTitle('Only private activities').click();
     await expect(totals(page)).toHaveText(count(activities, (a) => a.private));
+    await expect(page.getByTitle('Only private activities')).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    await expect(page.getByTitle('Only public activities')).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    );
     await page.getByTitle('Only public activities').click();
     await expect(totals(page)).toHaveText(count(activities, (a) => !a.private));
     // Choosing the chosen option again turns the filter off
@@ -198,11 +206,11 @@ test.describe('route filters', () => {
   });
 
   test('starred and unstarred', async () => {
-    await page.getByTitle('Only starred activities').click();
+    await page.getByTitle('Only starred routes').click();
     await expect(totals(page)).toHaveText(routesText(routes.filter((r) => r.starred).length));
-    await page.getByTitle('Only unstarred activities').click();
+    await page.getByTitle('Only unstarred routes').click();
     await expect(totals(page)).toHaveText(routesText(routes.filter((r) => !r.starred).length));
-    await page.getByTitle('Only unstarred activities').click();
+    await page.getByTitle('Only unstarred routes').click();
     await expect(totals(page)).toHaveText(routesText(routes.length));
   });
 

@@ -33,7 +33,13 @@ function select() {
       disabled && $style.disabled,
     ]"
   >
-    <button :disabled :title :aria-label="title" @click.prevent="select()">
+    <button
+      :disabled
+      :title
+      :aria-label="title"
+      :aria-pressed="option.selected"
+      @click.prevent="select()"
+    >
       <div :class="[$style.buttonContents, $style.normal]">
         <slot />
       </div>
