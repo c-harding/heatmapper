@@ -51,6 +51,14 @@ watch(
 
 <style module lang="scss">
 dialog.uiModal {
+  // Between the border and everything in the dialog, the heading included
+  $edge: 1.5rem;
+  // The close button's glyph, and the padding around it that makes up the rest of its hit area:
+  // more on the sides at the dialog's edges, keeping the glyph away from the corner
+  $close-glyph: 32px;
+  $close-padding: 10px;
+  $close-padding-edge: 20px;
+
   border: none;
   padding: 0;
   border-radius: var(--surface-border-radius);
@@ -72,18 +80,19 @@ dialog.uiModal {
   }
 
   .closeButton {
-    // The padding is the hit area; the offset keeps the cross in the corner
-    $inset: 0.5rem;
-    $padding: 10px; // a 24px glyph plus twice this is 44px
-
     all: unset;
     position: absolute;
-    top: calc($inset - $padding);
-    inset-inline-end: calc($inset - $padding);
-    padding: $padding;
+    inset-block-start: 0;
+    inset-inline-end: 0;
+    padding-block: $close-padding-edge $close-padding;
+    padding-inline: $close-padding $close-padding-edge;
     display: flex;
     cursor: pointer;
     color: var(--color-strong);
+
+    i {
+      font-size: $close-glyph;
+    }
 
     &:hover {
       color: var(--bold-color);
@@ -99,15 +108,15 @@ dialog.uiModal {
 
   .heading {
     margin: 0;
-    padding-top: 1rem;
-    padding-inline-start: 1rem;
+    padding-top: $edge;
+    padding-inline-start: $edge;
     // Enough to clear the close button
-    padding-inline-end: 3rem;
+    padding-inline-end: calc($close-padding + $close-glyph + $close-padding-edge);
     padding-bottom: 0;
   }
 
   .dialogContents {
-    padding: 1em;
+    padding: $edge;
     overflow-block: auto;
 
     > :first-child {
