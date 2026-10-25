@@ -20,6 +20,7 @@ DETACH=0
 FORCE=0
 UTC=0
 DELETE=0
+DELETE_BACKUPS=0
 NEW_BRANCH=''
 RESET_BRANCH=0
 ARGS=()
@@ -94,10 +95,13 @@ Usage: yarn worktree remove [dir] [options]
 
 Stop a worktree's dev servers and delete it. Defaults to the current worktree. The branch itself
 is left alone. Refuses to run if anything would be lost: uncommitted changes, or untracked
-files that are not ignored.
+files that are not ignored. Lists any backups the worktree made, unless told to delete them, and
+leaves them alone if another worktree's backups are filed under the same name.
 
 Options:
   -f, --force       delete anyway; pass twice to unlock a locked worktree
+      --delete-backups
+                    delete the worktree's backups too
       --utc         show the times of any backups it leaves in UTC
 EOF
             ;;
@@ -277,6 +281,11 @@ parse_args() {
             --delete)
                 require_option delete "$1"
                 DELETE=1
+                shift
+                ;;
+            --delete-backups)
+                require_option delete-backups "$1"
+                DELETE_BACKUPS=1
                 shift
                 ;;
             --)
@@ -835,6 +844,8 @@ do_remove() {
         printf 'Its backups are filed as %s, together with those of %s, so are left alone.\n' \
             "$name" "$(relpath "$(primary_root)" "$shared")"
         printf 'See them with "yarn worktree backups %s".\n' "$(shell_quote "$name")"
+    elif [ -n "$refs" ] && [ "$DELETE_BACKUPS" -eq 1 ]; then
+        delete_refs $refs
     elif [ -n "$refs" ]; then
         count="$(printf '%s\n' "$refs" | wc -l | tr -d ' ')"
         if [ "$count" -eq 1 ]; then
@@ -944,7 +955,7 @@ case $COMMAND in
         ;;
     remove | r | rm)
         COMMAND=remove
-        parse_args "force utc" "$@"
+        parse_args "force delete-backups utc" "$@"
         do_remove "${ARGS[0]}"
         ;;
     backup)
