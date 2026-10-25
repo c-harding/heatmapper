@@ -6,8 +6,15 @@ interface BaseUser {
   image124?: string;
 }
 
+/** A calendar feed's address, for subscribing (webcal) and for adding by address (https) */
+export interface CalendarUrls {
+  https: string;
+  webcal: string;
+}
+
 export default interface UserInfo extends BaseUser {
   sessionCount: number;
+  calendarUrls?: CalendarUrls;
 }
 
 export interface UserCache extends BaseUser {

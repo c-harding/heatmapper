@@ -1,6 +1,11 @@
 export type { default as Activity, ActivityStats, ActivityMap } from './Activity';
 export type { default as Gear } from './Gear';
-export { type default as UserInfo, type UserCache, userCacheToUserInfo } from './User';
+export {
+  type CalendarUrls,
+  type default as UserInfo,
+  type UserCache,
+  userCacheToUserInfo,
+} from './User';
 export type { default as MapItem, MapItemStats, CombinedMapItemStats } from './MapItem';
 export type { default as RequestMessage } from './RequestMessage';
 export type {

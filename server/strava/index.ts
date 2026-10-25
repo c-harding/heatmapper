@@ -1,4 +1,4 @@
-import { userCacheToUserInfo, type UserInfo } from '@strava-heatmapper/shared/interfaces';
+import { type CalendarUrls, userCacheToUserInfo, type UserInfo } from '@strava-heatmapper/shared/interfaces';
 
 import { type DetailedGear, type SummaryActivity, type SummaryRoute } from './model';
 import RawStravaApi, { type SessionType } from './raw-api';
@@ -35,7 +35,8 @@ export class Strava {
   }
 
   async getUserInfo(): Promise<UserInfo> {
-    return userCacheToUserInfo(await this.rawApi.getUserCache());
+    const user = await this.rawApi.getUserCache();
+    return { ...userCacheToUserInfo(user), calendarUrls: this.calendarUrlsFor(user.calendarSession) };
   }
 
   async getUserId(): Promise<number> {
@@ -127,8 +128,11 @@ export class Strava {
     return this.rawApi.hasToken();
   }
 
-  async getCalendarUrls(): Promise<{ https: string; webcal: string } | undefined> {
-    const calendarSession = await this.rawApi.getCalendar();
+  async getCalendarUrls(): Promise<CalendarUrls | undefined> {
+    return this.calendarUrlsFor(await this.rawApi.getCalendar());
+  }
+
+  private calendarUrlsFor(calendarSession: string | undefined): CalendarUrls | undefined {
     if (!calendarSession) return undefined;
     const https = `${this.domain}/calendar/${calendarSession}.ics`;
     return { https, webcal: https.replace(/^\w+(?=:\/\/)/, 'webcal') };
