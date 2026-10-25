@@ -33,6 +33,49 @@ export interface FilterModel {
   device?: string;
 }
 
+const asString = (value: unknown) => (typeof value === 'string' ? value : undefined);
+const asBoolean = (value: unknown) => (typeof value === 'boolean' ? value : undefined);
+const asNumber = (value: unknown) =>
+  typeof value === 'number' && Number.isFinite(value) ? value : undefined;
+
+function asRange(value: unknown): RangeFilter | undefined {
+  if (typeof value !== 'object' || value === null) return undefined;
+  const { min, max } = value as Record<string, unknown>;
+  const range = { min: asNumber(min), max: asNumber(max) };
+  return range.min === undefined && range.max === undefined ? undefined : range;
+}
+
+/** Each field's reader, for a stored value that can be anything */
+const fieldReaders: { [F in FilterField]-?: (value: unknown) => FilterModel[F] } = {
+  sportType: asString,
+  starred: asBoolean,
+  distance: asRange,
+  elevation: asRange,
+  gear: asString,
+  isPrivate: asBoolean,
+  isCommute: asBoolean,
+  device: asString,
+};
+
+/** The fields of a stored filter that have the right type */
+export function readFilterModel(value: Record<string, unknown>): FilterModel {
+  return Object.fromEntries(
+    Object.entries(fieldReaders)
+      .map(([field, read]) => [field, read(value[field])])
+      .filter(([, fieldValue]) => fieldValue !== undefined),
+  ) as FilterModel;
+}
+
+/** The entries of a stored list that name a field */
+export function readFilterFields(value: unknown[]): Set<FilterField> {
+  return new Set(
+    value.filter(
+      (field): field is FilterField =>
+        typeof field === 'string' && Object.hasOwn(fieldReaders, field),
+    ),
+  );
+}
+
 // Check for surrounding quotes to indicate exact match.
 export const exactDeviceQuotes = ['"', "'", '“', '”', '‘', '’', '„', '‚', '`', '«', '»', '‹', '›'];
 export const quotePairs: Record<string, string> = {

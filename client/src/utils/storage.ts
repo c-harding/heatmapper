@@ -6,7 +6,12 @@ import {
 } from '@strava-heatmapper/shared/interfaces';
 import localforage from 'localforage';
 
-import { type FilterField, type FilterModel } from '@/types/FilterModel';
+import {
+  type FilterField,
+  type FilterModel,
+  readFilterFields,
+  readFilterModel,
+} from '@/types/FilterModel';
 
 /**
  * localStorage, which can throw on any access when blocked, as in some private windows, and hold
@@ -107,7 +112,9 @@ export async function getCachedGear(id: string): Promise<Gear | undefined> {
 }
 
 export function loadFilterModel() {
-  return readStoredJson('filter', asObject<FilterModel>);
+  return readStoredJson('filter', (value) =>
+    readFilterModel(asObject<Record<string, unknown>>(value)),
+  );
 }
 
 export function saveFilterModel(filter: FilterModel) {
@@ -117,7 +124,7 @@ export function saveFilterModel(filter: FilterModel) {
 export function loadFilterFields() {
   return readStoredJson('filterFields', (value) => {
     if (!Array.isArray(value)) throw new TypeError('Not an array');
-    return new Set(value as FilterField[]);
+    return readFilterFields(value);
   });
 }
 
