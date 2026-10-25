@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { type Gear } from '@strava-heatmapper/shared/interfaces';
 import { bikeSportGroup, footSportGroup } from '@strava-heatmapper/shared/interfaces/SportType';
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 
 import { useActivityStore } from '@/stores/ActivityStore';
 import { useSportTypeStore } from '@/stores/SportTypeStore';
@@ -163,14 +163,21 @@ const canResetToSaved = computed(() =>
   compareFilters(activityStore.filterModel, savedFilter.value),
 );
 
+const filtersChanged = computed(() => !compareFilters(activityStore.filterModel, blankFilter));
+
+// Filters chosen since the clear replace it
+watch(filtersChanged, (changed) => {
+  if (changed) previousFilters.value = undefined;
+});
+
 const filterState = computed<'changed' | 'canUndo' | 'initial'>(() => {
-  if (!compareFilters(activityStore.filterModel, blankFilter)) return 'changed';
+  if (filtersChanged.value) return 'changed';
   else if (previousFilters.value) return 'canUndo';
   else return 'initial';
 });
 
 function revertFilter() {
-  if (!compareFilters(activityStore.filterModel, blankFilter)) {
+  if (filtersChanged.value) {
     previousFilters.value = { ...activityStore.filterModel };
     Object.assign(activityStore.filterModel, blankFilter);
   } else {
