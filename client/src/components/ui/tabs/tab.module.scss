@@ -109,7 +109,6 @@ $remaining-padding: calc(var(--form-inline-padding, 0px) - $taken-padding);
 }
 
 .summaryRow {
-  list-style: none;
   padding-block: $row-padding;
 
   // flex, so the button can take the full height
@@ -118,4 +117,19 @@ $remaining-padding: calc(var(--form-inline-padding, 0px) - $taken-padding);
   align-items: baseline;
   gap: 0.25rem;
   min-width: 0;
+}
+
+// The heading and summary, laid out as the row was before it held a button
+.headerButton {
+  all: unset;
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 0.25rem;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: revert;
+  }
 }

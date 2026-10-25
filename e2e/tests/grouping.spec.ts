@@ -24,7 +24,7 @@ const groupBy = (page: Page) =>
     .filter({ has: page.locator('xpath=./span[normalize-space()="Group by"]') })
     .locator('select');
 
-/** The sidebar's groups, which the tabs' own details elements, groups too, have no label to match */
+/** The sidebar's groups, found by the label each has */
 const groups = (page: Page) => page.locator('[role="group"][aria-labelledby]');
 
 /** Each group's label and count, as the sidebar shows them */

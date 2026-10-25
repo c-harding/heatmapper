@@ -1,5 +1,5 @@
 <script setup lang="ts" generic="T extends string">
-import { computed } from 'vue';
+import { computed, useId } from 'vue';
 
 import UIIcon from '../UIIcon.vue';
 import UIUnbrokenList from '../UIUnbrokenList.vue';
@@ -25,20 +25,10 @@ defineSlots<{
   icon(): unknown;
   /** Buttons acting on the whole tab, shown beside its heading while it is open. */
   meta(): unknown;
-  default(props: { isOpen: boolean; toggle(): void; select(): void }): unknown;
-  summary(props: { select?: () => void }): unknown;
   expanded(props: { toggle(): void }): unknown;
 }>();
 
-function preventIfSelected(event: MouseEvent) {
-  if (window.getSelection()?.type === 'Range') {
-    event.preventDefault();
-  }
-}
-
-function onToggle(event: ToggleEvent) {
-  tab.setOpen(event.newState === 'open');
-}
+const contentId = useId();
 
 const summary = computed(() =>
   typeof rawSummary === 'string'
@@ -60,21 +50,34 @@ const summary = computed(() =>
       </button>
     </div>
 
-    <details :class="[style.content]" :open="tab.isOpen" @toggle="onToggle">
-      <summary :class="style.summaryRow" @click="preventIfSelected">
-        <slot :isOpen="tab.isOpen" :toggle="tab.toggle" :select="tab.select">
+    <div :class="style.content">
+      <div :class="style.summaryRow">
+        <button
+          type="button"
+          :class="style.headerButton"
+          :aria-expanded="tab.isOpen"
+          :aria-controls="contentId"
+          @click="tab.toggle()"
+        >
           <span v-if="heading" :class="style.heading">{{ heading }}</span>
           <span v-if="!tab.isOpen" :class="style.summary">
-            <slot name="summary" :select="tab.select">
-              <UIUnbrokenList :items="summary.items">{{ summary.fallback }}</UIUnbrokenList>
-            </slot>
+            <UIUnbrokenList :items="summary.items">{{ summary.fallback }}</UIUnbrokenList>
           </span>
-          <span v-if="tab.isOpen" :class="style.meta"><slot name="meta" /></span>
-        </slot>
-      </summary>
-      <div :class="expandedContentClass">
-        <slot name="expanded" :toggle="tab.toggle" />
+        </button>
+        <!-- Beside the button rather than in it, where a screen reader would read them as its name -->
+        <span v-if="tab.isOpen" :class="style.meta"><slot name="meta" /></span>
       </div>
-    </details>
+      <!-- Searchable while closed: a find-in-page match fires beforematch, which opens the tab.
+           Bare, as a class setting display would undo hidden where until-found is unknown -->
+      <div
+        :id="contentId"
+        :hidden="tab.isOpen ? undefined : 'until-found'"
+        @beforematch="tab.select()"
+      >
+        <div :class="expandedContentClass">
+          <slot name="expanded" :toggle="tab.toggle" />
+        </div>
+      </div>
+    </div>
   </section>
 </template>
