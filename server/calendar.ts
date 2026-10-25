@@ -7,7 +7,8 @@ import LoginError from './login-error';
 import { extractRequestToken } from './request-utils';
 import { getSportIcon } from './sport-icons';
 import { Strava } from './strava';
-import { StravaError } from './strava/raw-api';
+import { type SummaryActivity } from './strava/model';
+import { SessionType, StravaError } from './strava/raw-api';
 
 const escapeHtml = (text: string) => text.replace(/[&<>"']/g, (char) => `&#${char.charCodeAt(0)};`);
 
@@ -41,11 +42,6 @@ export default function calendarRouter(domain: string): express.Router {
   const router = express.Router();
   const { hostname: host, origin } = new URL(domain);
 
-  const mkRequestLogin = (res: express.Response) => async () => {
-    res.status(403).send('Not logged in');
-    return false;
-  };
-
   /** The browser's own session, if it is signed in */
   const browserSession = async (req: express.Request) => {
     const strava = new Strava(domain, extractRequestToken(req), null);
@@ -59,16 +55,29 @@ export default function calendarRouter(domain: string): express.Router {
   };
 
   router.get('/', async (req: express.Request, res: express.Response) => {
-    const token = req.cookies.token;
-    const requestLogin = mkRequestLogin(res);
-    if (token && (await new Strava(domain, token, requestLogin).hasToken())) {
-      const webcalDomain = domain.replace(/\w+(?=:\/\/)/, 'webcal');
-      const pathWithSlash = req.originalUrl.replace(/\/?$/, '/');
-      const fullPath = webcalDomain + pathWithSlash + token + '.ics';
-      res.redirect(fullPath);
-    } else {
-      await requestLogin();
+    const strava = await browserSession(req);
+    if (!strava) {
+      res.send(page(`<p>Sign in to <a href="/">${escapeHtml(VITE_APP_NAME)}</a> first, then come back here.</p>`));
+      return;
     }
+    const urls = await strava.getCalendarUrls();
+    if (!urls) {
+      res.send(
+        page(`
+          <p>A calendar link lets a calendar app show your activities.</p>
+          <form method="post" action="${req.baseUrl}"><button>Create calendar link</button></form>`),
+      );
+      return;
+    }
+    const confirmDelete = 'Delete this calendar link? Calendars subscribed to it will stop updating.';
+    res.send(
+      page(`
+        <p>Subscribe in a calendar app: <a href="${escapeHtml(urls.webcal)}">${escapeHtml(urls.webcal)}</a></p>
+        <p>Or add it by address: <code>${escapeHtml(urls.https)}</code></p>
+        <form method="post" action="${req.baseUrl}/delete" onsubmit="return confirm('${confirmDelete}')">
+          <button>Delete calendar link</button>
+        </form>`),
+    );
   });
 
   router.post('/', sameOrigin, async (req: express.Request, res: express.Response) => {
@@ -104,11 +113,24 @@ export default function calendarRouter(domain: string): express.Router {
   });
 
   router.get('/:token.ics', async (req: express.Request, res: express.Response) => {
-    const strava = new Strava(domain, req.params.token, mkRequestLogin(res));
+    const strava = new Strava(domain, req.params.token, null, undefined, SessionType.CALENDAR);
+
+    const activities: SummaryActivity[] = [];
+    try {
+      for await (const activity of strava.getStravaActivities()) activities.push(activity);
+    } catch (e) {
+      if (e instanceof LoginError) {
+        res.status(404).send('No such calendar');
+      } else {
+        console.error('Could not fetch the activities for a calendar:', e);
+        res.status(503).send('Strava could not be reached');
+      }
+      return;
+    }
 
     const cal = ical({ name: 'Strava activities' });
 
-    for await (const activity of strava.getStravaActivities()) {
+    for (const activity of activities) {
       const startInstant = Temporal.Instant.from(activity.start_date);
       let startTime: Temporal.ZonedDateTime;
       let timezone: string | undefined;
