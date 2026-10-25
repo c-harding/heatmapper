@@ -77,7 +77,7 @@ It is safe to re-run, and does nothing if the worktree is already set up; pass `
 
 ##### yarn worktree dev, list and remove
 
-- `dev` starts a worktree's dev servers in the background, or with `--attach` brings them to the foreground — attaching to servers that are already running rather than restarting them; `--mock` serves a mock of Strava, as for `yarn dev`, and `--stop` stops them.
+- `dev` starts a worktree's dev servers in the background, or with `--attach` brings them to the foreground. It takes the same options as [`yarn dev`](#yarn-dev), which it runs in the worktree, so servers that are already running are used as they are.
 - `list` shows every worktree with its ports and whether its servers are up, and whether they use a mock of Strava.
 - `remove` stops the servers and deletes the worktree, refusing if anything would be lost — uncommitted changes, or untracked files that are not ignored — unless given `--force`; the branch itself is left alone.
   It mentions any backups the worktree leaves behind, or with `--delete-backups` deletes them, unless another worktree's backups are filed under the same name.
@@ -119,20 +119,20 @@ Fetch the map styles described in [`scripts/style-sources`](scripts/style-source
 
 ##### yarn dev
 
-Run both servers together, using `tmux`.
+Run both servers together, using `tmux`, and attach to them.
 Ctrl-C in either one will kill both.
 
-Pass `--no-attach` to leave them running in the background instead of attaching.
-Pass `--stop` to stop them, waiting until they have let go of their ports.
+If they are already running, they are used as they are: `yarn dev` attaches to them rather than restarting them.
+Pass `--background` (`-A`) to leave them running in the background instead of attaching, `--restart` (`-r`) to restart them anyway, `--no-start` (`-R`) to use only servers that are already running and fail otherwise, and `--stop` to stop them, waiting until they have let go of their ports.
 
-Pass `--mock` to have the backend serve a mock of Strava and use it in place of Strava, so no Strava account is needed.
+Pass `--mock` (`-m`) to have the backend serve a mock of Strava and use it in place of Strava, so no Strava account is needed, or `--no-mock` (`-M`) to make sure it uses Strava itself; running servers in the other mode are restarted.
 The map still loads from Mapbox.
 Its consent form lets you untick permissions, its logins are kept in `server/sessions-mock`, and the `MOCK_*` settings in `sample.env` choose its data and delays.
 
 See [`yarn dev`](#yarn-dev-1) below for more information about how these servers work.
 
 To leave this running in the background, the default shortcut to detach from a tmux session is <kbd>^b</kbd> <kbd>d</kbd>.
-It can then be reentered with `tmux attach`.
+It can then be reentered with `yarn dev`, or `tmux attach`.
 
 ##### yarn e2e
 

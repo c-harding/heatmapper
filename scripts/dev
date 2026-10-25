@@ -36,15 +36,19 @@ cd "$(dirname "$0")/.."
 
 . scripts/lib
 
-DETACH_FLAG=''
+ATTACH=''
 MOCK=''
+START=''
 STOP=0
 
 while (($#)); do
     case $1 in
-        -A | --no-attach)
-            # tmux calls this detaching, hence its -d; here it just means "do not attach me".
-            DETACH_FLAG='-d'
+        -a | --attach)
+            ATTACH=1
+            shift
+            ;;
+        -A | --background | --no-attach)
+            ATTACH=0
             shift
             ;;
         -m | --mock)
@@ -55,24 +59,39 @@ while (($#)); do
             MOCK=0
             shift
             ;;
+        -r | --restart)
+            START=restart
+            shift
+            ;;
+        -R | --no-start | --no-restart)
+            START=never
+            shift
+            ;;
         --stop)
             STOP=1
             shift
             ;;
         -h | --help)
             cat <<'EOF'
-Usage: yarn dev [-A] [-m | -M]
+Usage: yarn dev [-a | -A] [-m | -M] [-r | -R]
        yarn dev --stop
 
-Run the frontend and backend dev servers side by side in a tmux session. Ctrl-C in either pane
-stops both. Detach from the session with ^b d, and come back to it with "tmux attach".
+Run the frontend and backend dev servers side by side in a tmux session, and attach to it. Ctrl-C
+in either pane stops both. Detach from the session with ^b d, and come back with "yarn dev".
+
+Servers that are already running are used as they are, unless they need restarting to serve or
+stop serving the mock, or -r is given.
 
 Options:
-  -A, --no-attach  leave the servers running in the background instead of attaching to them
-  -m, --mock       serve a mock of Strava from the backend and use it in place of Strava, with
-                   its own sessions in server/sessions-mock
-  -M, --no-mock    use Strava itself, which is the default
-      --stop       stop the servers instead
+  -a, --attach       attach to the servers, which is the default
+  -A, --background   leave them running in the background instead (also --no-attach)
+  -m, --mock         serve a mock of Strava from the backend and use it in place of Strava, with
+                     its own sessions in server/sessions-mock
+  -M, --no-mock      use Strava itself; without -m or -M, running servers are used either way
+  -r, --restart      restart servers that are already running
+  -R, --no-start     only use servers that are already running, in the mode asked for, and fail
+                     otherwise (also --no-restart)
+      --stop         stop the servers instead
 EOF
             exit 0
             ;;
@@ -88,11 +107,11 @@ EOF
     esac
 done
 
-if [ "$STOP" -eq 1 ] && { [ -n "$DETACH_FLAG" ] || [ -n "$MOCK" ]; }; then
+if [ "$STOP" -eq 1 ] && { [ -n "$ATTACH" ] || [ -n "$MOCK" ] || [ -n "$START" ]; }; then
     echo '--stop cannot be combined with other options.' >&2
     exit 1
 fi
-MOCK="${MOCK:-0}"
+ATTACH="${ATTACH:-1}"
 
 SERVER_PORT="$(env_value .env SERVER_PORT)"
 SERVER_PORT="${SERVER_PORT:-8080}"
@@ -136,13 +155,52 @@ then
     exit 1
 fi
 
+RUNNING=0
+RUNNING_MOCK=0
+if tmux has-session -t "$SESSION_TARGET" 2>/dev/null; then
+    RUNNING=1
+    # Marked when they were started. The colon makes the exact session a target-pane.
+    [ "$(tmux show-options -qv -t "$SESSION_TARGET:" @mock)" != 1 ] || RUNNING_MOCK=1
+fi
+
+# Running servers are used as they are when nothing asks for them to change
+if [ "$RUNNING" -eq 1 ] && [ "$START" != restart ] \
+    && { [ -z "$MOCK" ] || [ "$MOCK" = "$RUNNING_MOCK" ]; }; then
+    if [ "$ATTACH" -eq 0 ]; then
+        printf 'Dev servers are already running in %s' "$PLACE"
+        [ "$RUNNING_MOCK" -eq 0 ] || printf ', against a mock of Strava'
+        printf '.\n'
+    elif [ -n "${TMUX:-}" ]; then
+        tmux switch-client -t "$SESSION_TARGET" # tmux refuses to nest sessions
+    else
+        tmux attach-session -t "$SESSION_TARGET"
+    fi
+    exit 0
+fi
+
+if [ "$START" = never ]; then
+    if [ "$RUNNING" -eq 0 ]; then
+        echo "No dev servers are running in $PLACE." >&2
+    elif [ "$RUNNING_MOCK" -eq 1 ]; then
+        echo "Dev servers are running in $PLACE with a mock of Strava." >&2
+    else
+        echo "Dev servers are running in $PLACE without a mock of Strava." >&2
+    fi
+    exit 1
+fi
+MOCK="${MOCK:-0}"
+
 # The panes run the node on this PATH, so an older one would only fail once the server is up.
 check_node_version || exit 1
 
-# tmux will not create a session from inside one, so create it detached and move the client
-# there instead: the same end state, reached the only way tmux allows.
+# tmux calls not attaching detaching, hence its -d. It will not create a session from inside one,
+# so create it detached and move the client there instead: the same end state, reached the only
+# way tmux allows.
+DETACH_FLAG=''
 SWITCH=0
-if [ -z "$DETACH_FLAG" ] && [ -n "${TMUX:-}" ]; then
+if [ "$ATTACH" -eq 0 ]; then
+    DETACH_FLAG='-d'
+elif [ -n "${TMUX:-}" ]; then
     DETACH_FLAG='-d'
     SWITCH=1
 fi
@@ -209,7 +267,7 @@ fi
     # untargeted split lands in whichever session invoked this one. It takes a target-pane, where
     # the "=" of session_target is not accepted; the bare name is still safe, because tmux
     # resolves an exact session name before trying it as a prefix.
-    # The mode is kept on the session, for yarn worktree list to read
+    # The mode is kept on the session, for a later run and yarn worktree list to read
     tmux new-session $DETACH_FLAG -s "$SESSION_NAME" -c "$PWD/client" "$(wrap yarn dev)" \;\
          split-window -v -t "$SESSION_NAME"          -c "$PWD/server" "$(wrap "${BACKEND[@]}")" \;\
          set-option -t "$SESSION_NAME" @mock "$MOCK"

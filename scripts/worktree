@@ -16,6 +16,7 @@ PORT=''
 INSTALL=1
 ATTACH=''
 MOCK=''
+START=''
 DETACH=0
 STOP=0
 FORCE=0
@@ -73,14 +74,19 @@ EOF
 Usage: yarn worktree dev [dir] [options]
 
 Start the dev servers for a worktree, in the background by default. Defaults to the current one.
+The options are those of "yarn dev", which this runs in the worktree: servers that are already
+running are used as they are, unless they need restarting to serve or stop serving the mock, or
+-r is given.
 
 Options:
-  -a, --attach      attach to the servers; if they are already running, attach without restarting,
-                    unless --mock or --no-mock is given
-  -A, --no-attach   stay in the background, cancelling an earlier --attach
-  -m, --mock        serve a mock of Strava, as "yarn dev --mock" does
-  -M, --no-mock     use Strava itself, which is the default
-      --stop        stop the servers instead
+  -a, --attach       attach to the servers
+  -A, --background   leave them running in the background, which is the default (also --no-attach)
+  -m, --mock         serve a mock of Strava in place of Strava
+  -M, --no-mock      use Strava itself; without -m or -M, running servers are used either way
+  -r, --restart      restart servers that are already running
+  -R, --no-start     only use servers that are already running, in the mode asked for, and fail
+                     otherwise (also --no-restart)
+      --stop         stop the servers instead
 EOF
             ;;
         list)
@@ -262,7 +268,7 @@ parse_args() {
                 DETACH=1
                 shift
                 ;;
-            -A | --no-attach)
+            -A | --background | --no-attach)
                 require_option attach "$1"
                 ATTACH=0
                 shift
@@ -275,6 +281,16 @@ parse_args() {
             -M | --no-mock)
                 require_option mock "$1"
                 MOCK=0
+                shift
+                ;;
+            -r | --restart)
+                require_option start "$1"
+                START=restart
+                shift
+                ;;
+            -R | --no-start | --no-restart)
+                require_option start "$1"
+                START=never
                 shift
                 ;;
             -f | --force)
@@ -410,41 +426,37 @@ do_bootstrap() {
 }
 
 do_dev() {
-    local root session mock=()
+    local root args=()
     root="$(target_root "$1")"
     [ -x "$root/scripts/dev" ] \
         || die "$(relpath "$(primary_root)" "$root") has no scripts/dev; rebase it onto main first."
-    session="$(session_target "$root")"
 
     if [ "$STOP" -eq 1 ]; then
         (cd "$root" && scripts/dev --stop)
         return
     fi
 
-    case $MOCK in
-        1) mock=(--mock) ;;
-        0) mock=(--no-mock) ;;
-    esac
-
+    # scripts/dev decides what to do with servers that are already running
     if [ "$ATTACH" = 1 ]; then
-        # Asked for a mode, which the running servers may not be in, so started afresh in it
-        if [ -z "$MOCK" ] && tmux has-session -t "$session" 2> /dev/null; then
-            # Already running: join it rather than letting scripts/dev restart it.
-            if [ -n "${TMUX:-}" ]; then
-                tmux switch-client -t "$session" # tmux refuses to nest sessions
-            else
-                tmux attach-session -t "$session"
-            fi
-            return
-        fi
-        (cd "$root" && scripts/dev "${mock[@]}")
-        return
+        args=(--attach)
+    else
+        args=(--no-attach)
     fi
+    case $MOCK in
+        1) args=("${args[@]}" --mock) ;;
+        0) args=("${args[@]}" --no-mock) ;;
+    esac
+    case $START in
+        restart) args=("${args[@]}" --restart) ;;
+        never) args=("${args[@]}" --no-start) ;;
+    esac
+    (cd "$root" && scripts/dev "${args[@]}")
 
     # scripts/dev prints the branch, worktree and URL itself, so only add what it cannot know.
-    (cd "$root" && scripts/dev --no-attach "${mock[@]}")
-    echo "Left running in the background; attach with" \
-        "\"yarn worktree dev $(relpath "$CALLER_DIR" "$root") --attach\"."
+    if [ "$ATTACH" != 1 ]; then
+        echo "Running in the background; attach with" \
+            "\"yarn worktree dev $(relpath "$CALLER_DIR" "$root") --attach\"."
+    fi
 }
 
 LIST_FORMAT='%-26s %-22s %-9s %-9s %s\n'
@@ -984,8 +996,8 @@ case $COMMAND in
         ;;
     dev | d)
         COMMAND=dev
-        parse_args "attach mock stop" 1 "$@"
-        if [ "$STOP" -eq 1 ] && { [ -n "$ATTACH" ] || [ -n "$MOCK" ]; }; then
+        parse_args "attach mock start stop" 1 "$@"
+        if [ "$STOP" -eq 1 ] && { [ -n "$ATTACH" ] || [ -n "$MOCK" ] || [ -n "$START" ]; }; then
             die "--stop cannot be combined with other options."
         fi
         do_dev "${ARGS[0]}"
