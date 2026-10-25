@@ -159,9 +159,6 @@ const savedFilter = ref<FilterModel>(loadFilterModel() ?? blankFilter);
 const isSaved = computed(() => compareFilters(activityStore.filterModel, savedFilter.value));
 
 const hideResetToSaved = computed(() => compareFilters(blankFilter, savedFilter.value));
-const canResetToSaved = computed(() =>
-  compareFilters(activityStore.filterModel, savedFilter.value),
-);
 
 const filtersChanged = computed(() => !compareFilters(activityStore.filterModel, blankFilter));
 
@@ -178,9 +175,15 @@ function saveFilter() {
   saveFilterModel(activityStore.filterModel);
   savedFilter.value = { ...activityStore.filterModel };
 }
-function resetToSaved() {
-  Object.assign(activityStore.filterModel, blankFilter, savedFilter.value);
-}
+
+const { state: restoreState, clearOrRestore: restoreOrUndo } = useUndoable({
+  // Here what is cleared away is any difference from the default
+  active: () => !isSaved.value,
+  take: () => ({ ...activityStore.filterModel }),
+  clear: () => Object.assign(activityStore.filterModel, blankFilter, savedFilter.value),
+  restore: (filters) => Object.assign(activityStore.filterModel, blankFilter, filters),
+  changes: [isSaved],
+});
 
 function formatRange(
   range: RangeFilter | undefined,
@@ -362,11 +365,14 @@ function openHelp() {
             <UIButton icon="save" :disabled="isSaved" @click="saveFilter"> Save </UIButton>
             <UIButton
               v-if="!hideResetToSaved"
-              :disabled="canResetToSaved"
-              icon="settings_backup_restore"
-              @click="resetToSaved"
+              :disabled="restoreState === 'initial'"
+              :icon="restoreState === 'undo' ? 'undo' : 'settings_backup_restore'"
+              @click="restoreOrUndo"
             >
-              Restore
+              <UIMultiText
+                :texts="{ restore: 'Restore', undo: 'Undo' }"
+                :selected="restoreState === 'undo' ? 'undo' : 'restore'"
+              />
             </UIButton>
           </UIButtonGroup>
         </div>

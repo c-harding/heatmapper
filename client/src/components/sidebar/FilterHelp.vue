@@ -163,8 +163,9 @@ function toggleFilter(field: FilterField) {
     </p>
     <p>
       If a filter configuration has been saved, use the
-      <kbd><UIIcon inline icon="settings_backup_restore" /> Reset</kbd> button to reset to the saved
-      configuration.
+      <kbd><UIIcon inline icon="settings_backup_restore" /> Restore</kbd> button to restore it,
+      replacing the current filters. After doing this, an
+      <kbd><UIIcon inline icon="undo" /> Undo</kbd> button is shown to undo this change.
     </p>
   </UIModal>
 </template>

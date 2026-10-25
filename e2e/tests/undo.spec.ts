@@ -80,3 +80,39 @@ test('selection: a reset can be undone across a switch of item type, until the m
   await mode().uncheck();
   await expect(button(selection, 'Reset')).toBeDisabled();
 });
+
+test('filter: restoring the default can be undone, and does not mix with a clear', async ({
+  page,
+}) => {
+  await page.goto('/');
+  const filter = await openTab(page, 'Filter');
+  const sportType = filter.locator('select').first();
+  const chosen = sportType.locator('option:checked');
+
+  await sportType.selectOption({ label: 'Biking' });
+  await button(filter, 'Save').click();
+  await sportType.selectOption({ label: 'Running' });
+
+  await button(filter, 'Restore').click();
+  await expect(chosen).toHaveText('Biking');
+  await button(filter, 'Undo').click();
+  await expect(chosen).toHaveText('Running');
+
+  // A change after restoring drops its undo, so going back to the default by hand offers none
+  await button(filter, 'Restore').click();
+  await sportType.selectOption({ label: 'Walking' });
+  await sportType.selectOption({ label: 'Biking' });
+  await expect(button(filter, 'Restore')).toBeDisabled();
+
+  // Restoring drops the clear's undo
+  await button(filter, 'Clear').click();
+  await button(filter, 'Restore').click();
+  await sportType.selectOption({ label: 'All sports' });
+  await expect(button(filter, 'Clear')).toBeDisabled();
+
+  // And clearing drops the restore's
+  await button(filter, 'Restore').click();
+  await button(filter, 'Clear').click();
+  await sportType.selectOption({ label: 'Biking' });
+  await expect(button(filter, 'Restore')).toBeDisabled();
+});
