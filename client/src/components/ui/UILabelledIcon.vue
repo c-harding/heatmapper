@@ -8,7 +8,7 @@ const { icon } = defineProps<{
 
 <template>
   <div :class="$style.uiLabelledIcon">
-    <UIIcon :icon inline />
+    <UIIcon :icon inline aria-hidden="true" />
     <div :class="$style.label">
       <slot />
     </div>
