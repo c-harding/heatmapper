@@ -56,8 +56,18 @@ $remaining-padding: calc(var(--form-inline-padding, 0px) - $taken-padding);
       align-items: center;
     }
 
+    // On the icon's box, as the button itself runs the height of the open tab. The browser's ring
+    // is restored for its colour, which all: unset dropped, and the box inherits it.
     &:focus-visible {
-      color: AccentColor;
+      outline: revert;
+      outline-style: none;
+
+      .buttonContent {
+        outline-style: auto;
+        outline-color: inherit;
+        outline-offset: -2px;
+        border-radius: var(--control-border-radius);
+      }
     }
   }
 }
@@ -72,6 +82,8 @@ $remaining-padding: calc(var(--form-inline-padding, 0px) - $taken-padding);
     padding-inline-end: calc($taken-padding / 2 + 1px);
     border-start-start-radius: var(--control-border-radius);
     border-end-start-radius: var(--control-border-radius);
+    border-start-end-radius: 0;
+    border-end-end-radius: 0;
     background: var(--background-full);
   }
 

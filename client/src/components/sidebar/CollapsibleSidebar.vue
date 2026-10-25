@@ -226,15 +226,17 @@ $sidebar-overlap: calc(-1 * #{$sidebar-width});
 
   // A child, because this button's own outline paints beneath the face that fills it
   &:focus-visible {
-    outline: none;
+    // The style only, so that the overlay can take the browser's colour
+    outline-style: none;
 
     &::before {
       content: '';
       position: absolute;
       z-index: 1;
       inset: 0;
-      box-sizing: border-box;
-      border: 2px solid var(--bold-color);
+      outline-style: auto;
+      outline-color: inherit;
+      outline-offset: -2px;
       border-start-end-radius: var(--handle-radius);
       border-end-end-radius: var(--handle-radius);
       pointer-events: none;
