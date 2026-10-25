@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { type Gear } from '@strava-heatmapper/shared/interfaces';
 import { bikeSportGroup, footSportGroup } from '@strava-heatmapper/shared/interfaces/SportType';
-import { computed, ref, watch } from 'vue';
+import { computed, ref } from 'vue';
 
 import { useActivityStore } from '@/stores/ActivityStore';
 import { useSportTypeStore } from '@/stores/SportTypeStore';
@@ -15,6 +15,7 @@ import {
 } from '@/types/FilterModel';
 import { formatKilometers, formatMeters } from '@/utils/numberFormat';
 import { loadFilterModel, saveFilterModel } from '@/utils/storage';
+import { useUndoable } from '@/utils/useUndoable';
 
 import SegmentedControl from '../segmented-control/SegmentedControl.vue';
 import SegmentedControlItem from '../segmented-control/SegmentedControlItem.vue';
@@ -153,7 +154,6 @@ function compareFilters(filterA: FilterModel, filterB: FilterModel) {
 
 const isActive = computed(() => !compareFilters(activityStore.liveFilterModel, blankFilter));
 
-const previousFilters = ref<FilterModel>();
 const savedFilter = ref<FilterModel>(loadFilterModel() ?? blankFilter);
 
 const isSaved = computed(() => compareFilters(activityStore.filterModel, savedFilter.value));
@@ -165,32 +165,20 @@ const canResetToSaved = computed(() =>
 
 const filtersChanged = computed(() => !compareFilters(activityStore.filterModel, blankFilter));
 
-// Filters chosen since the clear replace it
-watch(filtersChanged, (changed) => {
-  if (changed) previousFilters.value = undefined;
+const { state: filterState, clearOrRestore: revertFilter } = useUndoable({
+  active: () => filtersChanged.value,
+  take: () => ({ ...activityStore.filterModel }),
+  clear: () => Object.assign(activityStore.filterModel, blankFilter),
+  restore: (filters) => Object.assign(activityStore.filterModel, blankFilter, filters),
+  // Only once there is a filter again, as an edit that leaves them blank keeps the Undo
+  changes: [filtersChanged],
 });
-
-const filterState = computed<'changed' | 'canUndo' | 'initial'>(() => {
-  if (filtersChanged.value) return 'changed';
-  else if (previousFilters.value) return 'canUndo';
-  else return 'initial';
-});
-
-function revertFilter() {
-  if (filtersChanged.value) {
-    previousFilters.value = { ...activityStore.filterModel };
-    Object.assign(activityStore.filterModel, blankFilter);
-  } else {
-    Object.assign(activityStore.filterModel, previousFilters.value);
-  }
-}
 
 function saveFilter() {
   saveFilterModel(activityStore.filterModel);
   savedFilter.value = { ...activityStore.filterModel };
 }
 function resetToSaved() {
-  previousFilters.value = { ...activityStore.filterModel };
   Object.assign(activityStore.filterModel, blankFilter, savedFilter.value);
 }
 
@@ -249,12 +237,12 @@ function openHelp() {
       <UIButton
         ghost
         :disabled="filterState === 'initial'"
-        :icon="filterState === 'canUndo' ? 'undo' : 'delete'"
+        :icon="filterState === 'undo' ? 'undo' : 'delete'"
         @click="revertFilter"
       >
         <UIMultiText
           :texts="{ clear: 'Clear', undo: 'Undo' }"
-          :selected="filterState === 'canUndo' ? 'undo' : 'clear'"
+          :selected="filterState === 'undo' ? 'undo' : 'clear'"
         />
       </UIButton>
     </template>

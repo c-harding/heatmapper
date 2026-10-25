@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue';
+import { computed } from 'vue';
 
 import { formatDate, formatDateRange } from '@/utils/numberFormat';
+import { useUndoable } from '@/utils/useUndoable';
 
 import UIVerticalTab from '../ui/tabs/UIVerticalTab.vue';
 import { type Tab } from '../ui/tabs/UIVerticalTabContainer.vue';
@@ -17,27 +18,19 @@ const end = defineModel<Date>('end');
 
 const isActive = computed(() => !!start.value || !!end.value);
 
-const previousDates = ref<{ start?: Date; end?: Date }>();
-
-// Dates chosen since the clear replace it, so that emptying them again does not offer it back
-watch(isActive, (active) => {
-  if (active) previousDates.value = undefined;
-});
-
-const clearState = computed(() =>
-  isActive.value ? 'clear' : previousDates.value ? 'undo' : 'initial',
-);
-
-function clearOrRestore() {
-  if (isActive.value) {
-    previousDates.value = { start: start.value, end: end.value };
+const { state: clearState, clearOrRestore } = useUndoable({
+  active: () => isActive.value,
+  take: () => ({ start: start.value, end: end.value }),
+  clear: () => {
     start.value = undefined;
     end.value = undefined;
-  } else {
-    start.value = previousDates.value?.start;
-    end.value = previousDates.value?.end;
-  }
-}
+  },
+  restore: (dates) => {
+    start.value = dates.start;
+    end.value = dates.end;
+  },
+  changes: [start, end],
+});
 
 const summary = computed(() => {
   // The end date, or undefined if in the future

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue';
+import { computed, ref } from 'vue';
 
 import { useActivityStore } from '@/stores/ActivityStore';
 import { useSelectionStore } from '@/stores/SelectionStore';
@@ -9,6 +9,7 @@ import {
   countSelectedActivities,
   countSelectedRoutes,
 } from '@/utils/strings';
+import { useUndoable } from '@/utils/useUndoable';
 
 import UIVerticalTab from '../ui/tabs/UIVerticalTab.vue';
 import { type Tab } from '../ui/tabs/UIVerticalTabContainer.vue';
@@ -47,72 +48,48 @@ const controlsActive = computed(
 
 const anythingActive = computed(() => controlsActive.value || selectionStore.selected.size > 0);
 
-/** All three things a reset clears, and whether they were routes or activities. */
-const previousSelection = ref<{
-  useRoutes: boolean;
-  multiSelectionMode: boolean;
-  lockedSelection?: ReadonlySet<string>;
-  selected: ReadonlySet<string>;
-}>();
-
 /** The ids in a set that would come back: loaded, and past the filter the focus narrows */
 const loadedIds = computed(() => new Set(activityStore.mapItems.map(({ id }) => id)));
 const stillLoaded = (ids: ReadonlySet<string>) =>
   new Set([...ids].filter((id) => loadedIds.value.has(id)));
 
-/**
- * A focus is held per item type, so one taken in the other belongs to items that are not here.
- * Only offered when something would come back, as a focus on nothing would leave the map blank,
- * and not mid-load, when an undo would restore only the items back so far, for good.
- */
-const restorable = computed(() => {
-  if (previousSelection.value?.useRoutes !== activityStore.useRoutes || activityStore.loading) {
-    return false;
-  }
-  const { lockedSelection, multiSelectionMode, selected } = previousSelection.value;
-  if (lockedSelection) return stillLoaded(lockedSelection).size > 0;
-  return multiSelectionMode || stillLoaded(selected).size > 0;
-});
-
-// Any change since the reset replaces it, except a switch between routes and activities. In sync,
-// and stored only after the reset's own changes, so that those do not count.
-watch(
-  [
+const { state: resetState, clearOrRestore: resetOrRestore } = useUndoable({
+  active: () => anythingActive.value,
+  // All three things a reset clears, and whether they were routes or activities
+  take: () => ({
+    useRoutes: activityStore.useRoutes,
+    multiSelectionMode: selectionStore.multiSelectionMode,
+    lockedSelection: selectionStore.lockedSelection,
+    selected: new Set(selectionStore.selected),
+  }),
+  clear: () => {
+    selectionStore.multiSelectionMode = false;
+    selectionStore.releaseSelection();
+    selectionStore.clearSelection();
+  },
+  restore: ({ multiSelectionMode, lockedSelection, selected }) => {
+    selectionStore.clearSelection();
+    selectionStore.multiSelectionMode = multiSelectionMode;
+    selectionStore.lockedSelection = lockedSelection && stillLoaded(lockedSelection);
+    stillLoaded(selected).forEach((id) => selectionStore.selected.add(id));
+  },
+  // Not a switch between routes and activities, which leaves each one's focus as it is
+  changes: [
     () => selectionStore.selected.size,
     () => selectionStore.multiSelectionMode,
     () => selectionStore.lockedSelections.get(false),
     () => selectionStore.lockedSelections.get(true),
   ],
-  () => {
-    previousSelection.value = undefined;
-  },
-  { flush: 'sync' },
-);
-
-const resetState = computed(() =>
-  anythingActive.value ? 'reset' : restorable.value ? 'undo' : 'initial',
-);
-
-function resetOrRestore() {
-  if (anythingActive.value) {
-    const previous = {
-      useRoutes: activityStore.useRoutes,
-      multiSelectionMode: selectionStore.multiSelectionMode,
-      lockedSelection: selectionStore.lockedSelection,
-      selected: new Set(selectionStore.selected),
-    };
-    selectionStore.multiSelectionMode = false;
-    selectionStore.releaseSelection();
-    selectionStore.clearSelection();
-    previousSelection.value = previous;
-  } else if (previousSelection.value && restorable.value) {
-    const { multiSelectionMode, lockedSelection, selected } = previousSelection.value;
-    selectionStore.clearSelection();
-    selectionStore.multiSelectionMode = multiSelectionMode;
-    selectionStore.lockedSelection = lockedSelection && stillLoaded(lockedSelection);
-    stillLoaded(selected).forEach((id) => selectionStore.selected.add(id));
-  }
-}
+  // A focus is held per item type, so one taken in the other belongs to items that are not here.
+  // Only offered when something would come back, as a focus on nothing would leave the map blank,
+  // and not mid-load, when an undo would restore only the items back so far, for good.
+  restorable: ({ useRoutes, lockedSelection, multiSelectionMode, selected }) =>
+    useRoutes === activityStore.useRoutes &&
+    !activityStore.loading &&
+    (lockedSelection
+      ? stillLoaded(lockedSelection).size > 0
+      : multiSelectionMode || stillLoaded(selected).size > 0),
+});
 
 const showHelp = ref(false);
 
