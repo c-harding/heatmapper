@@ -53,9 +53,9 @@ export enum SportType {
 
 export default SportType;
 
-export const footSportGroup = 'Hike,Snowshoe,Run,TrailRun,Walk';
-export const runningSportGroup = 'Run,TrailRun';
-export const walkingSportGroup = 'Hike,Walk';
+export const runningSportGroup = 'Run,TrailRun,VirtualRun';
+export const walkingSportGroup = 'Hike,Snowshoe,Walk';
+export const footSportGroup = `${runningSportGroup},${walkingSportGroup}`;
 export const bikeSportGroup =
   'EBikeRide,GravelRide,Handcycle,MountainBikeRide,Ride,Velomobile,VirtualRide';
 export const winterSportGroup = 'AlpineSki,BackcountrySki,IceSkate,Snowboard,Snowshoe,NordicSki';
