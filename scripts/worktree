@@ -67,9 +67,9 @@ Options:
   -f, --force       rewrite an existing .env, reallocating the ports
 EOF
             ;;
-        serve)
+        dev)
             cat <<'EOF'
-Usage: yarn worktree serve [dir] [options]
+Usage: yarn worktree dev [dir] [options]
 
 Start the dev servers for a worktree, in the background by default. Defaults to the current one.
 
@@ -149,7 +149,7 @@ Usage: yarn worktree <command> [options]
 Commands:
   add, a        <commit-ish> [dir] create a worktree and set it up
   bootstrap, b  [dir]              set up a worktree that already exists
-  serve, s      [dir]              start, attach to or stop a worktree's dev servers
+  dev, d        [dir]              start, attach to or stop a worktree's dev servers
   list, l, ls                      show every worktree, its ports and whether it is running
   remove, r, rm [dir]              stop the dev servers and delete a worktree
   backup        <label> [commit]   keep a ref to a commit, such as before a rebase
@@ -391,23 +391,25 @@ do_bootstrap() {
     if [ "$INSTALL" -eq 1 ]; then
         (cd "$root" && yarn)
     else
-        echo "Skipped the install; run \"yarn\" there before serving."
+        echo "Skipped the install; run \"yarn\" there before starting its dev servers."
     fi
 }
 
-do_serve() {
+do_dev() {
     local root session
     root="$(target_root "$1")"
+    [ -x "$root/scripts/dev" ] \
+        || die "$(relpath "$(primary_root)" "$root") has no scripts/dev; rebase it onto main first."
     session="$(session_target "$root")"
 
     if [ "$STOP" -eq 1 ]; then
-        (cd "$root" && scripts/serve --stop)
+        (cd "$root" && scripts/dev --stop)
         return
     fi
 
     if [ "$ATTACH" = 1 ]; then
         if tmux has-session -t "$session" 2> /dev/null; then
-            # Already running: join it rather than letting scripts/serve restart it.
+            # Already running: join it rather than letting scripts/dev restart it.
             if [ -n "${TMUX:-}" ]; then
                 tmux switch-client -t "$session" # tmux refuses to nest sessions
             else
@@ -415,14 +417,14 @@ do_serve() {
             fi
             return
         fi
-        (cd "$root" && scripts/serve)
+        (cd "$root" && scripts/dev)
         return
     fi
 
-    # scripts/serve prints the branch, worktree and URL itself, so only add what it cannot know.
-    (cd "$root" && scripts/serve --no-attach)
+    # scripts/dev prints the branch, worktree and URL itself, so only add what it cannot know.
+    (cd "$root" && scripts/dev --no-attach)
     echo "Left running in the background; attach with" \
-        "\"yarn worktree serve $(relpath "$CALLER_DIR" "$root") --attach\"."
+        "\"yarn worktree dev $(relpath "$CALLER_DIR" "$root") --attach\"."
 }
 
 LIST_FORMAT='%-26s %-22s %-9s %-9s %s\n'
@@ -805,11 +807,11 @@ do_remove() {
         fi
     fi
 
-    # Stopped by the worktree's own scripts/serve, which knows how its servers run
-    if [ ! -x "$root/scripts/serve" ]; then
-        echo "Did not stop any dev servers, as $(relpath "$(primary_root)" "$root") has no scripts/serve." >&2
+    # Stopped by the worktree's own scripts/dev, which knows how its servers run
+    if [ ! -x "$root/scripts/dev" ]; then
+        echo "Did not stop any dev servers, as $(relpath "$(primary_root)" "$root") has no scripts/dev." >&2
     elif tmux has-session -t "$(session_target "$root")" 2> /dev/null; then
-        (cd "$root" && scripts/serve --stop) || echo 'Could not stop its dev servers.' >&2
+        (cd "$root" && scripts/dev --stop) || echo 'Could not stop its dev servers.' >&2
     fi
 
     # Containers outlive the worktree they were started from, and compose cannot stop them once
@@ -939,7 +941,7 @@ do_add() {
     git worktree add "${opts[@]}" "$dir" "$start"
 
     do_bootstrap "$dir"
-    echo "Start it with \"yarn worktree serve $(relpath "$CALLER_DIR" "$dir")\"."
+    echo "Start it with \"yarn worktree dev $(relpath "$CALLER_DIR" "$dir")\"."
 }
 
 COMMAND="${1:-help}"
@@ -956,13 +958,13 @@ case $COMMAND in
         parse_args "port install force" 1 "$@"
         do_bootstrap "${ARGS[0]}"
         ;;
-    serve | s)
-        COMMAND=serve
+    dev | d)
+        COMMAND=dev
         parse_args "attach stop" 1 "$@"
         if [ "$STOP" -eq 1 ] && [ -n "$ATTACH" ]; then
             die "--stop cannot be combined with --attach or --no-attach."
         fi
-        do_serve "${ARGS[0]}"
+        do_dev "${ARGS[0]}"
         ;;
     list | l | ls)
         COMMAND=list

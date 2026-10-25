@@ -57,8 +57,8 @@ while (($#)); do
             ;;
         -h | --help)
             cat <<'EOF'
-Usage: yarn serve [-A] [-m]
-       yarn serve --stop
+Usage: yarn dev [-A] [-m]
+       yarn dev --stop
 
 Run the frontend and backend dev servers side by side in a tmux session. Ctrl-C in either pane
 stops both. Detach from the session with ^b d, and come back to it with "tmux attach".
@@ -66,7 +66,7 @@ stops both. Detach from the session with ^b d, and come back to it with "tmux at
 Options:
   -A, --no-attach  leave the servers running in the background instead of attaching to them
   -m, --mock       serve a mock of Strava from the backend and use it in place of Strava, with
-                   its own sessions in server/sessions-mock (also "yarn serve-mock")
+                   its own sessions in server/sessions-mock
       --stop       stop the servers instead
 EOF
             exit 0
@@ -190,9 +190,9 @@ printf ' at http://localhost:%s/' "$VITE_DEV_PORT"
 printf '\n'
 
 # The mock's sessions are kept apart, so that its logins never replace real ones
-BACKEND=(yarn serve)
+BACKEND=(yarn dev)
 if [ "$MOCK" -eq 1 ]; then
-    BACKEND=(env MOCK_STRAVA=true SESSIONS_DIR=server/sessions-mock yarn serve)
+    BACKEND=(env MOCK_STRAVA=true SESSIONS_DIR=server/sessions-mock yarn dev)
 fi
 
 (
@@ -200,7 +200,7 @@ fi
     # untargeted split lands in whichever session invoked this one. It takes a target-pane, where
     # the "=" of session_target is not accepted; the bare name is still safe, because tmux
     # resolves an exact session name before trying it as a prefix.
-    tmux new-session $DETACH_FLAG -s "$SESSION_NAME" -c "$PWD/client" "$(wrap yarn serve)" \;\
+    tmux new-session $DETACH_FLAG -s "$SESSION_NAME" -c "$PWD/client" "$(wrap yarn dev)" \;\
          split-window -v -t "$SESSION_NAME"          -c "$PWD/server" "$(wrap "${BACKEND[@]}")"
 )
 

@@ -8,7 +8,7 @@ Note that it probably requires a modern browser, and I have not tested it other 
 
 Required software for developing: [node](https://nodejs.org/en/download/) and [yarn](https://yarnpkg.com/en/docs/install/).
 
-Recommended: an IDE such as [Visual Studio Code](https://code.visualstudio.com/), [tmux](https://github.com/tmux/tmux/wiki) if you would like to use [`yarn serve`](#yarn-serve), and [Docker](https://www.docker.com/products/docker-desktop) with [Docker Compose](https://docs.docker.com/compose/) for deploying locally.
+Recommended: an IDE such as [Visual Studio Code](https://code.visualstudio.com/), [tmux](https://github.com/tmux/tmux/wiki) if you would like to use [`yarn dev`](#yarn-dev), and [Docker](https://www.docker.com/products/docker-desktop) with [Docker Compose](https://docs.docker.com/compose/) for deploying locally.
 
 ## Setup
 
@@ -75,9 +75,9 @@ Either way, a worktree's own `dist/<env>.env` takes precedence over the main che
 Do that same setup for a worktree that already exists, such as one created with plain `git worktree add`.
 It is safe to re-run, and does nothing if the worktree is already set up; pass `--force` to rewrite its `.env` and reallocate its ports.
 
-##### yarn worktree serve, list and remove
+##### yarn worktree dev, list and remove
 
-- `serve` starts a worktree's dev servers in the background, or with `--attach` brings them to the foreground — attaching to servers that are already running rather than restarting them; `--stop` stops them.
+- `dev` starts a worktree's dev servers in the background, or with `--attach` brings them to the foreground — attaching to servers that are already running rather than restarting them; `--stop` stops them.
 - `list` shows every worktree with its ports and whether its servers are up.
 - `remove` stops the servers and deletes the worktree, refusing if anything would be lost — uncommitted changes, or untracked files that are not ignored — unless given `--force`; the branch itself is left alone.
   It mentions any backups the worktree leaves behind, or with `--delete-backups` deletes them, unless another worktree's backups are filed under the same name.
@@ -115,9 +115,9 @@ Install all dependencies needed for developing and running the code locally.
 ##### yarn load-styles
 
 Fetch the map styles described in [`scripts/style-sources`](scripts/style-sources), and write them to `client/public/styles/generated`, which is not checked in.
-`yarn serve` and `yarn build` do this themselves when a style is missing or its source has changed; run it by hand with `--force` to pick up changes made upstream.
+`yarn dev` and `yarn build` do this themselves when a style is missing or its source has changed; run it by hand with `--force` to pick up changes made upstream.
 
-##### yarn serve
+##### yarn dev
 
 Run both servers together, using `tmux`.
 Ctrl-C in either one will kill both.
@@ -125,16 +125,14 @@ Ctrl-C in either one will kill both.
 Pass `--no-attach` to leave them running in the background instead of attaching.
 Pass `--stop` to stop them, waiting until they have let go of their ports.
 
-See [`yarn serve`](#yarn-serve-1) below for more information about how these servers work.
+Pass `--mock` to have the backend serve a mock of Strava and use it in place of Strava, so no Strava account is needed.
+The map still loads from Mapbox.
+Its consent form lets you untick permissions, its logins are kept in `server/sessions-mock`, and the `MOCK_*` settings in `sample.env` choose its data and delays.
+
+See [`yarn dev`](#yarn-dev-1) below for more information about how these servers work.
 
 To leave this running in the background, the default shortcut to detach from a tmux session is <kbd>^b</kbd> <kbd>d</kbd>.
 It can then be reentered with `tmux attach`.
-
-##### yarn serve-mock
-
-The same as `yarn serve`, but the backend serves a mock of Strava and uses it in place of Strava, so no Strava account is needed.
-The map still loads from Mapbox.
-Its consent form lets you untick permissions, its logins are kept in `server/sessions-mock`, and the `MOCK_*` settings in `sample.env` choose its data and delays.
 
 ##### yarn e2e
 
@@ -145,7 +143,7 @@ They need Chromium, downloaded once per machine with `yarn --cwd=e2e playwright 
 
 The following scripts can be run in either the frontend or the backend projects.
 
-##### `yarn serve`
+##### `yarn dev`
 
 Run a development server for this project.
 Note that the backend dev server will forward frontend requests to the latest local build of the frontend, and the frontend dev server will forward backend requests to the running backend server (on port 8080).

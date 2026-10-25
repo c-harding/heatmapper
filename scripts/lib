@@ -26,11 +26,11 @@ branch_label() {
   fi
 }
 
-# The tmux session that scripts/serve uses for a checkout, defaulting to the current one. Derived
+# The tmux session that scripts/dev uses for a checkout, defaulting to the current one. Derived
 # from the path, so every worktree gets a session of its own without being asked to name one.
 session_name() {
   local dir="${1:-$PWD}"
-  printf 'serve@%s\n' "${dir//[^[:alnum:]\/]/-}"
+  printf 'dev@%s\n' "${dir//[^[:alnum:]\/]/-}"
 }
 
 # The same session as a tmux target. tmux matches -t by prefix, so without the "=" a checkout
