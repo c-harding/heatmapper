@@ -15,6 +15,7 @@ COMMAND=''
 PORT=''
 INSTALL=1
 ATTACH=''
+MOCK=''
 DETACH=0
 STOP=0
 FORCE=0
@@ -74,8 +75,11 @@ Usage: yarn worktree dev [dir] [options]
 Start the dev servers for a worktree, in the background by default. Defaults to the current one.
 
 Options:
-  -a, --attach      attach to the servers; if they are already running, attach without restarting
+  -a, --attach      attach to the servers; if they are already running, attach without restarting,
+                    unless --mock or --no-mock is given
   -A, --no-attach   stay in the background, cancelling an earlier --attach
+  -m, --mock        serve a mock of Strava, as "yarn dev --mock" does
+  -M, --no-mock     use Strava itself, which is the default
       --stop        stop the servers instead
 EOF
             ;;
@@ -263,6 +267,16 @@ parse_args() {
                 ATTACH=0
                 shift
                 ;;
+            -m | --mock)
+                require_option mock "$1"
+                MOCK=1
+                shift
+                ;;
+            -M | --no-mock)
+                require_option mock "$1"
+                MOCK=0
+                shift
+                ;;
             -f | --force)
                 require_option force "$1"
                 FORCE=$((FORCE + 1))
@@ -396,7 +410,7 @@ do_bootstrap() {
 }
 
 do_dev() {
-    local root session
+    local root session mock=()
     root="$(target_root "$1")"
     [ -x "$root/scripts/dev" ] \
         || die "$(relpath "$(primary_root)" "$root") has no scripts/dev; rebase it onto main first."
@@ -407,8 +421,14 @@ do_dev() {
         return
     fi
 
+    case $MOCK in
+        1) mock=(--mock) ;;
+        0) mock=(--no-mock) ;;
+    esac
+
     if [ "$ATTACH" = 1 ]; then
-        if tmux has-session -t "$session" 2> /dev/null; then
+        # Asked for a mode, which the running servers may not be in, so started afresh in it
+        if [ -z "$MOCK" ] && tmux has-session -t "$session" 2> /dev/null; then
             # Already running: join it rather than letting scripts/dev restart it.
             if [ -n "${TMUX:-}" ]; then
                 tmux switch-client -t "$session" # tmux refuses to nest sessions
@@ -417,12 +437,12 @@ do_dev() {
             fi
             return
         fi
-        (cd "$root" && scripts/dev)
+        (cd "$root" && scripts/dev "${mock[@]}")
         return
     fi
 
     # scripts/dev prints the branch, worktree and URL itself, so only add what it cannot know.
-    (cd "$root" && scripts/dev --no-attach)
+    (cd "$root" && scripts/dev --no-attach "${mock[@]}")
     echo "Left running in the background; attach with" \
         "\"yarn worktree dev $(relpath "$CALLER_DIR" "$root") --attach\"."
 }
@@ -436,6 +456,10 @@ list_row() {
 
     if tmux has-session -t "$(session_target "$path")" 2> /dev/null; then
         running=dev
+        # Marked by scripts/dev when it starts them. The colon makes the exact session a target-pane.
+        if [ "$(tmux show-options -qv -t "$(session_target "$path"):" @mock)" = 1 ]; then
+            running='dev (mock)'
+        fi
     fi
     # The /dist suffix keeps this from matching a worktree whose path merely starts the same.
     case $containers in
@@ -960,9 +984,9 @@ case $COMMAND in
         ;;
     dev | d)
         COMMAND=dev
-        parse_args "attach stop" 1 "$@"
-        if [ "$STOP" -eq 1 ] && [ -n "$ATTACH" ]; then
-            die "--stop cannot be combined with --attach or --no-attach."
+        parse_args "attach mock stop" 1 "$@"
+        if [ "$STOP" -eq 1 ] && { [ -n "$ATTACH" ] || [ -n "$MOCK" ]; }; then
+            die "--stop cannot be combined with other options."
         fi
         do_dev "${ARGS[0]}"
         ;;

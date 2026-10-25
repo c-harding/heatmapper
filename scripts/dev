@@ -37,7 +37,7 @@ cd "$(dirname "$0")/.."
 . scripts/lib
 
 DETACH_FLAG=''
-MOCK=0
+MOCK=''
 STOP=0
 
 while (($#)); do
@@ -51,13 +51,17 @@ while (($#)); do
             MOCK=1
             shift
             ;;
+        -M | --no-mock)
+            MOCK=0
+            shift
+            ;;
         --stop)
             STOP=1
             shift
             ;;
         -h | --help)
             cat <<'EOF'
-Usage: yarn dev [-A] [-m]
+Usage: yarn dev [-A] [-m | -M]
        yarn dev --stop
 
 Run the frontend and backend dev servers side by side in a tmux session. Ctrl-C in either pane
@@ -67,6 +71,7 @@ Options:
   -A, --no-attach  leave the servers running in the background instead of attaching to them
   -m, --mock       serve a mock of Strava from the backend and use it in place of Strava, with
                    its own sessions in server/sessions-mock
+  -M, --no-mock    use Strava itself, which is the default
       --stop       stop the servers instead
 EOF
             exit 0
@@ -83,10 +88,11 @@ EOF
     esac
 done
 
-if [ "$STOP" -eq 1 ] && { [ -n "$DETACH_FLAG" ] || [ "$MOCK" -eq 1 ]; }; then
+if [ "$STOP" -eq 1 ] && { [ -n "$DETACH_FLAG" ] || [ -n "$MOCK" ]; }; then
     echo '--stop cannot be combined with other options.' >&2
     exit 1
 fi
+MOCK="${MOCK:-0}"
 
 SERVER_PORT="$(env_value .env SERVER_PORT)"
 SERVER_PORT="${SERVER_PORT:-8080}"
@@ -203,8 +209,10 @@ fi
     # untargeted split lands in whichever session invoked this one. It takes a target-pane, where
     # the "=" of session_target is not accepted; the bare name is still safe, because tmux
     # resolves an exact session name before trying it as a prefix.
+    # The mode is kept on the session, for yarn worktree list to read
     tmux new-session $DETACH_FLAG -s "$SESSION_NAME" -c "$PWD/client" "$(wrap yarn dev)" \;\
-         split-window -v -t "$SESSION_NAME"          -c "$PWD/server" "$(wrap "${BACKEND[@]}")"
+         split-window -v -t "$SESSION_NAME"          -c "$PWD/server" "$(wrap "${BACKEND[@]}")" \;\
+         set-option -t "$SESSION_NAME" @mock "$MOCK"
 )
 
 if [ "$SWITCH" -eq 1 ]; then
