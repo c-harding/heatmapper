@@ -43,8 +43,8 @@ test.describe('map', () => {
     // The sidebar starts open, over the map, so the controls fade out rather than leave the page
     await expect(controls(page)).toHaveCSS('opacity', '0');
 
-    // The sidebar's overlay lies over its tab, so a tap there lands on the overlay, which toggles
-    // the sidebar just the same. Forced, to tap where the tab is rather than wait for it to be clear.
+    // The sidebar's overlay lies over its handle, so a tap there lands on the overlay, which toggles
+    // the sidebar just the same. Forced, to tap where the handle is rather than wait for it to be clear.
     await page.getByRole('button', { name: 'Map', exact: true }).click({ force: true });
     await expect(controls(page)).toHaveCSS('opacity', '1');
 

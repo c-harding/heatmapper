@@ -48,23 +48,23 @@ function clickHeader() {
         </svg>
       </div>
     </div>
-    <button type="button" :class="$style.tabs" @click="minimised = !minimised">
-      <span :class="[$style.tabCurve, $style.top]" />
-      <span :class="[$style.tab, $style.map]" :aria-hidden="minimised">
+    <button type="button" :class="$style.handle" @click="minimised = !minimised">
+      <span :class="[$style.handleCurve, $style.top]" />
+      <span :class="[$style.face, $style.map]" :aria-hidden="minimised">
         <span>
           <UIIcon icon="map" :class="$style.viewIcon" aria-hidden="true" />
           <UIIcon :icon="hideChevron" :class="$style.foldIcon" aria-hidden="true" />
         </span>
         <span>Map</span>
       </span>
-      <span :class="[$style.tab, $style.back]" :aria-hidden="!minimised">
+      <span :class="[$style.face, $style.back]" :aria-hidden="!minimised">
         <span>
           <UIIcon icon="menu" :class="$style.viewIcon" aria-hidden="true" />
           <UIIcon :icon="showChevron" :class="$style.foldIcon" aria-hidden="true" />
         </span>
         <span>Menu</span>
       </span>
-      <span :class="[$style.tabCurve, $style.bottom]" />
+      <span :class="[$style.handleCurve, $style.bottom]" />
     </button>
 
     <section ref="scrollable" :class="$style.scrollable">
@@ -82,9 +82,9 @@ function clickHeader() {
 @use '@/styles/breakpoints';
 @use '@/styles/sidebar';
 
-$sidebar-width: min(20rem, 100vw - #{sidebar.$tab-width});
-$scaled-corner-radius: min(var(--tab-radius), 50%);
-$pseudo-scaled-corner-radius: min(var(--tab-radius), 100%);
+$sidebar-width: min(20rem, 100vw - #{sidebar.$handle-width});
+$scaled-corner-radius: min(var(--handle-radius), 50%);
+$pseudo-scaled-corner-radius: min(var(--handle-radius), 100%);
 
 $sidebar-overlap: calc(-1 * #{$sidebar-width});
 
@@ -96,7 +96,7 @@ $sidebar-overlap: calc(-1 * #{$sidebar-width});
 }
 
 .sidebar {
-  --tab-radius: min(var(--surface-border-radius), calc(var(--tab-width) / 2));
+  --handle-radius: min(var(--surface-border-radius), calc(var(--handle-width) / 2));
   --bottom-curve: 1;
 
   flex: 0 $sidebar-width;
@@ -160,8 +160,8 @@ $sidebar-overlap: calc(-1 * #{$sidebar-width});
     }
 
     .header {
-      width: sidebar.$tab-width;
-      margin-inline-end: -1 * sidebar.$tab-width;
+      width: sidebar.$handle-width;
+      margin-inline-end: -1 * sidebar.$handle-width;
     }
 
     .minimised.overlay {
@@ -172,8 +172,8 @@ $sidebar-overlap: calc(-1 * #{$sidebar-width});
   &:not(.minimised) {
     --top-curve: 1;
 
-    // The tab's own width, as a percentage so that it tracks the tab as it resizes
-    .tab.back {
+    // The handle's own width, as a percentage so that it tracks the handle as it resizes
+    .face.back {
       margin-inline-end: 100%;
     }
   }
@@ -200,7 +200,7 @@ $sidebar-overlap: calc(-1 * #{$sidebar-width});
   }
 }
 
-.tabs {
+.handle {
   appearance: none;
   border: 0;
   padding: 0;
@@ -212,19 +212,19 @@ $sidebar-overlap: calc(-1 * #{$sidebar-width});
 
   position: relative;
   z-index: -2;
-  height: sidebar.$tab-height;
-  width: var(--tab-width);
+  height: sidebar.$handle-height;
+  width: var(--handle-width);
   margin-inline-start: auto;
-  margin-inline-end: calc(-1 * var(--tab-width));
-  margin-bottom: -1 * sidebar.$tab-height;
+  margin-inline-end: calc(-1 * var(--handle-width));
+  margin-bottom: -1 * sidebar.$handle-height;
   background: var(--background-full);
-  border-end-end-radius: var(--tab-radius);
-  border-start-end-radius: var(--tab-radius);
+  border-end-end-radius: var(--handle-radius);
+  border-start-end-radius: var(--handle-radius);
   transition:
     margin var(--transition-speed) var(--transition-ease),
     width var(--transition-speed) var(--transition-ease);
 
-  // A child, because this button's own outline paints beneath the tab that fills it
+  // A child, because this button's own outline paints beneath the face that fills it
   &:focus-visible {
     outline: none;
 
@@ -235,8 +235,8 @@ $sidebar-overlap: calc(-1 * #{$sidebar-width});
       inset: 0;
       box-sizing: border-box;
       border: 2px solid var(--bold-color);
-      border-start-end-radius: var(--tab-radius);
-      border-end-end-radius: var(--tab-radius);
+      border-start-end-radius: var(--handle-radius);
+      border-end-end-radius: var(--handle-radius);
       pointer-events: none;
     }
   }
@@ -244,23 +244,23 @@ $sidebar-overlap: calc(-1 * #{$sidebar-width});
   // Used for hiding the back button when the map button is shown
   &::after {
     @include pseudo-element;
-    width: var(--tab-width);
+    width: var(--handle-width);
     inset-inline-end: 100%;
     inset-block: 0;
     transition: width var(--transition-speed) var(--transition-ease);
   }
 }
 
-.tab .foldIcon {
+.face .foldIcon {
   display: none;
 }
 
-.tabCurve {
+.handleCurve {
   display: block;
   width: 0;
   position: relative;
   margin-inline-start: auto;
-  // Widths are percentages of the tab strip, tracking it as it resizes
+  // Widths are percentages of the handle, tracking it as it resizes
   transition: width var(--transition-speed) var(--transition-ease);
 
   &::before {
@@ -276,38 +276,38 @@ $sidebar-overlap: calc(-1 * #{$sidebar-width});
 
     &::before {
       bottom: 100%;
-      box-shadow: 0 var(--tab-radius) 0 0 var(--background-full);
+      box-shadow: 0 var(--handle-radius) 0 0 var(--background-full);
       border-end-start-radius: $pseudo-scaled-corner-radius;
       transition: inset var(--transition-speed) var(--transition-ease);
     }
   }
 
   &.bottom {
-    margin-top: sidebar.$tab-height;
+    margin-top: sidebar.$handle-height;
     width: calc(100% * var(--bottom-curve, 0));
 
     &::before {
       top: 100%;
-      box-shadow: 0 calc(-1 * var(--tab-radius)) 0 0 var(--background-full);
+      box-shadow: 0 calc(-1 * var(--handle-radius)) 0 0 var(--background-full);
       border-start-start-radius: $pseudo-scaled-corner-radius;
       transition: inset var(--transition-speed) var(--transition-ease);
     }
   }
 }
 
-.tab {
+.face {
   position: relative;
   height: 100%;
   background: var(--background-full);
   display: flex;
-  margin-bottom: -1 * sidebar.$tab-height;
+  margin-bottom: -1 * sidebar.$handle-height;
   flex-direction: column;
   align-items: end;
   justify-content: space-evenly;
   margin-inline-start: auto;
   text-align: center;
-  border-start-end-radius: var(--tab-radius);
-  border-end-end-radius: var(--tab-radius);
+  border-start-end-radius: var(--handle-radius);
+  border-end-end-radius: var(--handle-radius);
   transition:
     margin var(--transition-speed) var(--transition-ease),
     width var(--transition-speed) var(--transition-ease);
@@ -315,8 +315,8 @@ $sidebar-overlap: calc(-1 * #{$sidebar-width});
   > span {
     box-sizing: border-box;
     padding: 0 1em;
-    width: var(--tab-width);
-    // Clipped so that neither the icons nor the caption reach outside the tab as it grows
+    width: var(--handle-width);
+    // Clipped so that neither the icons nor the caption reach outside the handle as it grows
     overflow: clip;
     transition:
       padding var(--transition-speed) var(--transition-ease),
@@ -327,7 +327,7 @@ $sidebar-overlap: calc(-1 * #{$sidebar-width});
   &::before {
     @include pseudo-element;
     inset-inline-end: 0;
-    height: calc(2 * var(--tab-radius));
+    height: calc(2 * var(--handle-radius));
     width: 0;
     transition:
       margin var(--transition-speed) var(--transition-ease),
@@ -338,8 +338,8 @@ $sidebar-overlap: calc(-1 * #{$sidebar-width});
   &::after {
     @include pseudo-element;
     inset-inline-end: 0;
-    width: var(--tab-radius);
-    height: var(--tab-radius);
+    width: var(--handle-radius);
+    height: var(--handle-radius);
     transition: inset var(--transition-speed) var(--transition-ease);
   }
 
@@ -384,7 +384,7 @@ $sidebar-overlap: calc(-1 * #{$sidebar-width});
       display: inline-block;
     }
 
-    .tab {
+    .face {
       > span {
         padding: 0;
       }

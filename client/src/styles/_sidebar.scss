@@ -1,23 +1,23 @@
 @use 'breakpoints';
 
-$tab-width: 5rem;
-$slim-tab-width: 1.5rem;
-$tab-height: 5rem;
+$handle-width: 5rem;
+$slim-handle-width: 1.5rem;
+$handle-height: 5rem;
 $logo-height: 5rem;
 $padding-top: calc(0.5rem + var(--top-safe-area));
 
-$overlay-height: calc(#{$padding-top} + #{$logo-height} + #{$tab-height});
+$overlay-height: calc(#{$padding-top} + #{$logo-height} + #{$handle-height});
 
 // Neither the sidebar nor the map can see the other's custom properties, so each declares its
 // own. $open is whatever means open in the caller's tree.
 @mixin metrics($open) {
-  --tab-width: #{$tab-width};
-  --sidebar-overlay-width: var(--tab-width);
+  --handle-width: #{$handle-width};
+  --sidebar-overlay-width: var(--handle-width);
   --sidebar-overlay-height: #{$overlay-height};
 
   @include breakpoints.beside-the-map {
     &#{$open} {
-      --tab-width: #{$slim-tab-width};
+      --handle-width: #{$slim-handle-width};
     }
   }
 }
