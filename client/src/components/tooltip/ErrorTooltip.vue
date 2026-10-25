@@ -91,7 +91,7 @@ const cssVars = computed(() => ({
   <Teleport :to="errorMessage?.frame ?? 'body'">
     <Transition>
       <div v-if="errorMessage" :class="$style.errorContainer" :style="cssVars">
-        <div ref="tooltipRef" :class="$style.errorTooltip" :style="marginAdjustments">
+        <div ref="tooltipRef" role="alert" :class="$style.errorTooltip" :style="marginAdjustments">
           <UIIcon inline icon="warning" />
           {{ errorMessage.message }}
         </div>

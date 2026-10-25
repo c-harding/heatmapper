@@ -8,6 +8,15 @@ test.beforeEach(async ({ page }) => {
   await expectAllActivities(page);
 });
 
+test('a failed action is announced as an alert', async ({ page }) => {
+  // Opening the user's settings fetches the user, which then fails
+  await page.route('/api/user', (route) => route.abort());
+  await page.getByRole('button', { name: 'User' }).click();
+
+  // As a screen reader hears it, without the icon's name
+  await expect(page.getByRole('alert')).toMatchAriaSnapshot('- alert: Cannot load user options');
+});
+
 test('escape dismisses an error tooltip', async ({ page }) => {
   await page.route('/api/user', (route) => route.abort());
   await page.getByRole('button', { name: 'User' }).click();
