@@ -14,15 +14,14 @@ is_linked_worktree() {
     != "$(git rev-parse --path-format=absolute --git-common-dir)" ]
 }
 
-# The current branch, or a description of where a detached HEAD is sitting.
+# The current branch, or for a detached HEAD the tag or branch exactly there, else its commit.
 branch_label() {
   local branch
   branch="$(git branch --show-current)"
   if [ -n "$branch" ]; then
     printf '%s\n' "$branch"
   else
-    printf 'detached at %s\n' \
-      "$(git describe --all --always HEAD 2>/dev/null || git rev-parse --short HEAD)"
+    git describe --all --exact-match HEAD 2>/dev/null || git rev-parse --short HEAD
   fi
 }
 

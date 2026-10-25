@@ -181,10 +181,13 @@ for port in "$SERVER_PORT" "$VITE_DEV_PORT"; do
     fi
 done
 
-printf 'Serving %s' "$(branch_label)"
+NOTES=''
+[ -n "$(git branch --show-current)" ] || NOTES='detached'
 if is_linked_worktree; then
-    printf ' (worktree %s)' "$(relpath "$(primary_root)" "$PWD")"
+    NOTES="${NOTES:+$NOTES, }worktree $(relpath "$(primary_root)" "$PWD")"
 fi
+printf 'Serving %s' "$(branch_label)"
+[ -z "$NOTES" ] || printf ' (%s)' "$NOTES"
 printf ' at http://localhost:%s/' "$VITE_DEV_PORT"
 [ "$MOCK" -eq 1 ] && printf ' against a mock of Strava'
 printf '\n'
