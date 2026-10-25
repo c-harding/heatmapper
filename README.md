@@ -82,6 +82,16 @@ It is safe to re-run, and does nothing if the worktree is already set up; pass `
 - `serve` starts a worktree's dev servers in the background, or with `--attach` brings them to the foreground — attaching to servers that are already running rather than restarting them.
 - `list` shows every worktree with its ports and whether its servers are up.
 - `remove` stops the servers and deletes the worktree, refusing if anything would be lost — uncommitted changes, or untracked files that are not ignored — unless given `--force`; the branch itself is left alone.
+  It mentions any backups the worktree leaves behind.
+
+##### yarn worktree backup and backups
+
+- `backup <label> [commit-ish]` keeps a ref to a commit, by default the current worktree's `HEAD`, before a history rewrite, so the rewrite can be checked and undone.
+  It is named `refs/backup/<worktree>/<YYYY-MM-DD>T<HHMM>Z-<label>`, after the worktree and the time in UTC, so a label can be reused.
+  The label is a short name such as `pre-rebase`, without a slash or an `@`, and not starting with `-`.
+  Unlike a branch it is not moved by `rebase.updateRefs`, and unlike a tag it is not published by `git push --tags`.
+- `backups [worktree]` lists them, newest first, in local time; `--utc` shows UTC instead.
+- `backups --delete <worktree> [<label>[@<time>]...]` deletes those with each label, or the one listed at that time, or all of the worktree's.
 
 Every command takes `--help`, and `yarn worktree help <command>` does the same.
 

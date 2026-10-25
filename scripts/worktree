@@ -18,6 +18,8 @@ SERVE=0
 ATTACH=''
 DETACH=0
 FORCE=0
+UTC=0
+DELETE=0
 NEW_BRANCH=''
 RESET_BRANCH=0
 ARGS=()
@@ -96,6 +98,44 @@ files that are not ignored.
 
 Options:
   -f, --force       delete anyway; pass twice to unlock a locked worktree
+      --utc         show the times of any backups it leaves in UTC
+EOF
+            ;;
+        backup)
+            cat <<'EOF'
+Usage: yarn worktree backup <label> [commit-ish] [options]
+
+Keep a ref to a commit, by default the current worktree's HEAD, such as before rewriting history.
+It is named after the worktree and the time in UTC, as
+refs/backup/<worktree>/<YYYY-MM-DD>T<HHMM>Z-<label>, so a label can be used again: each use makes
+a new backup. List and delete them with "yarn worktree backups".
+
+A label is a short name such as pre-rebase. It can be anything git allows in a ref name, except
+that it cannot contain a slash or an @, or start with a -.
+
+Options:
+  -f, --force       replace a backup with the same label made in the same minute
+EOF
+            ;;
+        backups)
+            cat <<'EOF'
+Usage: yarn worktree backups [worktree] [options]
+       yarn worktree backups --delete <worktree> [<label>[@<time>]...]
+
+List the backups made with "yarn worktree backup", newest first: those of one worktree, or of
+all of them. A worktree is named by its directory under .worktrees/, as the listing shows it, or
+"_main" for the main checkout, and need not still exist.
+
+With --delete, delete a worktree's backups: those with each label given, or all of them if none
+is. A label followed by @<time> picks the one listed at that time, given in full
+(2026-10-24T23:02), as a time of day (23:02) or as a date (2026-10-24), as long as only one
+backup with that label matches. A time ending in Z is in UTC, and one ending in an offset such
+as +01:00 is in that offset, which tells apart the two backups listed at the same time when the
+clocks go back.
+
+Options:
+      --delete      delete backups rather than listing them
+      --utc         show times in UTC, and take times given without a zone as UTC
 EOF
             ;;
         *)
@@ -111,6 +151,8 @@ Commands:
   serve, s      [dir]              start, or attach to, a worktree's dev servers
   list, l, ls                      show every worktree, its ports and whether it is running
   remove, r, rm [dir]              stop the dev servers and delete a worktree
+  backup        <label> [commit]   keep a ref to a commit, such as before a rebase
+  backups       [worktree]         list backups, or delete them with --delete
   help, h       [command]          show this, or the options of one command
 EOF
             ;;
@@ -225,6 +267,16 @@ parse_args() {
             -f | --force)
                 require_option force "$1"
                 FORCE=$((FORCE + 1))
+                shift
+                ;;
+            --utc)
+                require_option utc "$1"
+                UTC=1
+                shift
+                ;;
+            --delete)
+                require_option delete "$1"
+                DELETE=1
                 shift
                 ;;
             --)
@@ -411,10 +463,318 @@ shell_quote() {
     esac
 }
 
+# The name a worktree's backups are filed under: its directory under .worktrees/ flattened into
+# one level, or "_main" for the main checkout, which slugify cannot produce.
+worktree_name() {
+    local primary
+    primary="$(primary_root)"
+    case $1 in
+        "$primary") printf '_main\n' ;;
+        "$primary/.worktrees/"*) slugify "${1#"$primary/.worktrees/"}" ;;
+        *) slugify "$(basename "$1")" ;;
+    esac
+}
+
+# The worktree whose backups the user named. A bare name is taken as it is, since the worktree
+# may already have gone; a path is looked up.
+backup_owner() {
+    local root dir primary name
+    case $1 in
+        '') die "Name a worktree. Try \"yarn worktree help $COMMAND\"." ;;
+        /* | .* | */*)
+            # This runs inside $(...), where set -e does not apply
+            root="$(target_root "$1")" || exit
+            dir="$(cd "$(resolve_dir "$1")" && pwd -P)"
+            primary="$(primary_root)"
+            # A leftover directory under .worktrees/ would otherwise count as the main checkout
+            case $dir/ in
+                "$primary/.worktrees/"*) [ "$root" != "$primary" ] || die "$1 is not a worktree." ;;
+            esac
+            git worktree list --porcelain | grep -qxF "worktree $root" \
+                || die "$1 is not a worktree of this repository."
+            name="$(worktree_name "$root")"
+            ;;
+        _main) name=_main ;;
+        *) name="$(slugify "$1")" ;;
+    esac
+    [ -n "$name" ] && git check-ref-format "refs/backup/$name/x" \
+        || die "Not a worktree name: \"$1\""
+    printf '%s\n' "$name"
+}
+
+# stamp_epoch gives the seconds since the epoch for a stamp such as 2026-10-25T1115Z, and
+# format_epoch formats those seconds in local time unless TZ says otherwise. Only GNU date takes
+# --version; BSD's, as on macOS, takes other options for both.
+if date --version > /dev/null 2>&1; then
+    stamp_epoch() {
+        date -u -d "${1:0:10} ${1:11:2}:${1:13:2}" +%s 2> /dev/null
+    }
+    format_epoch() {
+        date -d "@$1" "$2"
+    }
+else
+    stamp_epoch() {
+        # Given no seconds, BSD date would take them from the current time
+        date -u -j -f '%Y-%m-%dT%H%MZ%S' "${1}00" +%s 2> /dev/null
+    }
+    format_epoch() {
+        date -r "$1" "$2"
+    }
+fi
+
+# A stamp as it is listed: in local time, with its offset if that hour happens twice when the
+# clocks go back, or with --utc in UTC. Left as it is if date cannot read it.
+show_time() {
+    local epoch wall shift offset
+    epoch="$(stamp_epoch "$1")" || {
+        printf '%s\n' "$1"
+        return
+    }
+    if [ "$UTC" -eq 1 ]; then
+        TZ=UTC0 format_epoch "$epoch" '+%Y-%m-%d %H:%MZ'
+        return
+    fi
+    wall="$(format_epoch "$epoch" '+%Y-%m-%d %H:%M')"
+    # Clocks go back by an hour, or in a few places by half an hour
+    for shift in -3600 -1800 1800 3600; do
+        if [ "$(format_epoch $((epoch + shift)) '+%Y-%m-%d %H:%M')" = "$wall" ]; then
+            offset="$(format_epoch "$epoch" +%z)"
+            printf '%s%s:%s\n' "$wall" "${offset:0:3}" "${offset:3:2}"
+            return
+        fi
+    done
+    printf '%s\n' "$wall"
+}
+
+# A time given after a label's @: a full time, a time of day or a date, then optionally Z or an
+# offset. A full time may leave out its colon, as in a ref's name, or have a space for the T, as
+# in a listing.
+TIME_RE='^(([0-9]{4}-[0-9]{2}-[0-9]{2})([T ]([0-9]{2}):?([0-9]{2}))?|([0-9]{2}):([0-9]{2}))'
+TIME_RE="$TIME_RE"'(Z|([+-])([0-9]{2})(:?([0-9]{2}))?)?$'
+
+# Whether a stamp is at a time matching TIME_RE, which is local unless it ends in Z or an offset,
+# or --utc is given.
+time_matches() {
+    local epoch wall want sign secs
+    [[ $2 =~ $TIME_RE ]] || die "Not a time: \"$2\""
+    want="${BASH_REMATCH[2]}"
+    if [ -n "${BASH_REMATCH[4]}" ]; then
+        want="$want ${BASH_REMATCH[4]}:${BASH_REMATCH[5]}"
+    elif [ -n "${BASH_REMATCH[6]}" ]; then
+        want="${BASH_REMATCH[6]}:${BASH_REMATCH[7]}"
+    fi
+
+    epoch="$(stamp_epoch "$1")" || die "date cannot read the time $1."
+    if [ -n "${BASH_REMATCH[9]}" ]; then
+        # An offset: render in UTC the moment shifted by it
+        sign="${BASH_REMATCH[9]}"
+        secs=$((10#${BASH_REMATCH[10]} * 3600 + 10#${BASH_REMATCH[12]:-0} * 60))
+        wall="$(TZ=UTC0 format_epoch $((epoch $sign secs)) '+%Y-%m-%d %H:%M')"
+    elif [ -n "${BASH_REMATCH[8]}" ] || [ "$UTC" -eq 1 ]; then
+        wall="$(TZ=UTC0 format_epoch "$epoch" '+%Y-%m-%d %H:%M')"
+    else
+        wall="$(format_epoch "$epoch" '+%Y-%m-%d %H:%M')"
+    fi
+
+    case $want in
+        *-*' '*) [ "$wall" = "$want" ] ;;
+        *-*) [ "${wall%% *}" = "$want" ] ;;
+        *) [ "${wall#* }" = "$want" ] ;;
+    esac
+}
+
+# One line per backup ref given: its time, commit and label. $1 is 1 to head each worktree's
+# backups with its name.
+list_backups() {
+    local grouped="$1" ref rest time i last=''
+    local owners=() times=() commits=() labels=() tw=0
+    shift
+    for ref in "$@"; do
+        rest="${ref#refs/backup/}"
+        owners=("${owners[@]}" "${rest%/*}")
+        rest="${rest##*/}"
+        time="$(show_time "${rest:0:16}")"
+        times=("${times[@]}" "$time")
+        commits=("${commits[@]}" "$(git rev-parse --short "$ref")")
+        labels=("${labels[@]}" "${rest:17}")
+        [ "${#time}" -le "$tw" ] || tw="${#time}"
+    done
+
+    for ((i = 0; i < ${#labels[@]}; i++)); do
+        if [ "$grouped" -eq 1 ] && [ "${owners[i]}" != "$last" ]; then
+            printf '%s\n' "${owners[i]}"
+            last="${owners[i]}"
+        fi
+        printf '  %-*s  %s  %s\n' "$tw" "${times[i]}" "${commits[i]}" "${labels[i]}"
+    done
+}
+
+# A worktree's backup refs, newest first: only those one level down, as backup makes them.
+backup_refs() {
+    git for-each-ref --sort=-refname --format='%(refname)' "refs/backup/$1/" \
+        | grep -v "^refs/backup/$1/.*/" || true
+}
+
+# Another worktree whose backups are filed under name $2, like those of worktree $1.
+shared_with() {
+    local line path=''
+    git worktree list --porcelain | while IFS= read -r line; do
+        case $line in
+            'worktree '*) path="${line#worktree }" ;;
+            # Deleted without git worktree remove, and only waiting to be pruned
+            prunable*) path='' ;;
+            '')
+                if [ -n "$path" ] && [ "$path" != "$1" ] \
+                    && [ "$(worktree_name "$path")" = "$2" ]; then
+                    printf '%s\n' "$path"
+                    break
+                fi
+                path=''
+                ;;
+        esac
+    done
+}
+
+do_backup() {
+    local label="$1" root name other commit ref old
+    [ -n "$label" ] || {
+        usage backup >&2
+        exit 1
+    }
+    case $label in
+        */* | *@*) die "A label cannot contain a slash or an @: \"$label\"" ;;
+        -*) die "A label cannot start with a -: \"$label\"" ;;
+    esac
+    root="$(worktree_root "$CALLER_DIR")"
+    name="$(worktree_name "$root")"
+    [ -n "$name" ] || die "Cannot name backups after $(relpath "$(primary_root)" "$root")," \
+        "as its name has no letters or digits."$'\n'"Stop its dev servers, then rename it from" \
+        "the main checkout with \"git worktree move $(relpath "$(primary_root)" "$root") <new path>\"."
+    other="$(shared_with "$root" "$name")"
+    [ -z "$other" ] || die "$(relpath "$(primary_root)" "$root") and $(relpath "$(primary_root)" "$other")" \
+        "would both file their backups as $name."$'\n'"Move or rename one of them first."
+    commit="$(git -C "$root" rev-parse --verify --quiet "${2:-HEAD}^{commit}")" \
+        || die "Not a commit: \"${2:-HEAD}\""
+    ref="refs/backup/$name/$(date -u '+%Y-%m-%dT%H%MZ')-$label"
+    git check-ref-format "$ref" || die "Not a valid label: \"$label\""
+
+    if old="$(git rev-parse --verify --quiet "$ref")"; then
+        [ "$FORCE" -gt 0 ] \
+            || die "$ref already exists, at $(git rev-parse --short "$old")."$'\n'"Pass -f to replace it."
+        git update-ref "$ref" "$commit" "$old"
+        printf 'Replaced %s (was %s) with %s.\n' "$ref" "$(git rev-parse --short "$old")" \
+            "$(git rev-parse --short "$commit")"
+    else
+        git update-ref "$ref" "$commit" ''
+        printf 'Backed up %s as %s.\n' "$(git rev-parse --short "$commit")" "$ref"
+    fi
+    printf 'Delete it once nothing needs it: git update-ref -d %s\n' "$(shell_quote "$ref")"
+}
+
+# Delete the backups of worktree $1 with the labels that follow, each optionally @<time>, or all
+# of them if none follow. Checks every argument before deleting anything.
+delete_backups() {
+    local name refs ref arg label time rest matches selected=()
+    name="$(backup_owner "$1")"
+    shift
+    refs="$(backup_refs "$name")"
+    [ -n "$refs" ] || die "$name has no backups."
+
+    if [ $# -eq 0 ]; then
+        selected=($refs)
+    fi
+    for arg in "$@"; do
+        label="${arg%%@*}"
+        time=''
+        case $arg in
+            *@*)
+                time="${arg#*@}"
+                [[ $time =~ $TIME_RE ]] || die "Not a time: \"$time\""
+                ;;
+        esac
+        matches=()
+        for ref in $refs; do
+            rest="${ref##*/}"
+            if [ "${rest:17}" = "$label" ] && { [ -z "$time" ] || time_matches "${rest:0:16}" "$time"; }; then
+                matches=("${matches[@]}" "$ref")
+            fi
+        done
+        if [ ${#matches[@]} -eq 0 ]; then
+            for ref in $refs; do
+                rest="${ref##*/}"
+                [ "${rest:17}" != "$label" ] || matches=("${matches[@]}" "$ref")
+            done
+            if [ ${#matches[@]} -eq 0 ]; then
+                printf '%s has no backup labelled %s. Its backups are:\n' "$name" "$label" >&2
+                list_backups 0 $refs >&2
+            else
+                printf 'No %s backup is at %s. Those with that label are:\n' "$label" "$time" >&2
+                list_backups 0 "${matches[@]}" >&2
+            fi
+            die 'Nothing was deleted.'
+        elif [ -n "$time" ] && [ ${#matches[@]} -gt 1 ]; then
+            printf '%s matches more than one backup:\n' "$arg" >&2
+            list_backups 0 "${matches[@]}" >&2
+            die 'Nothing was deleted. Give a full time, with an offset or Z if it repeats.'
+        fi
+        selected=("${selected[@]}" "${matches[@]}")
+    done
+
+    delete_refs "${selected[@]}"
+}
+
+# Delete backup refs all at once or not at all, saying which commit each was at.
+delete_refs() {
+    local ref seen=' ' changes='' report=''
+    for ref in "$@"; do
+        # The same backup may be named twice
+        case $seen in
+            *" $ref "*) continue ;;
+        esac
+        seen="$seen$ref "
+        changes="${changes}delete $ref $(git rev-parse "$ref")"$'\n'
+        report="${report}Deleted $ref (was $(git rev-parse --short "$ref"))"$'\n'
+    done
+    printf '%s' "$changes" | git update-ref --stdin || die 'Nothing was deleted.'
+    printf '%s' "$report"
+}
+
+do_backups() {
+    local name refs
+    if [ "$DELETE" -eq 1 ]; then
+        delete_backups "${ARGS[@]}"
+        return
+    fi
+    [ ${#ARGS[@]} -le 1 ] || die "Name at most one worktree. Try \"yarn worktree help backups\"."
+
+    if [ -n "${ARGS[0]}" ]; then
+        name="$(backup_owner "${ARGS[0]}")"
+        refs="$(backup_refs "$name")"
+        if [ -z "$refs" ]; then
+            echo "$name has no backups."
+            return
+        fi
+        list_backups 0 $refs
+        printf '\nDelete one with "yarn worktree backups --delete %s <label>[@<time>]", or all of them by leaving out the label.\n' \
+            "$(shell_quote "$name")"
+    else
+        refs="$(git for-each-ref --sort=-refname --format='%(refname)' refs/backup/ \
+            | grep -v '^refs/backup/[^/]*/.*/' | sort -t/ -k3,3 -s || true)"
+        if [ -z "$refs" ]; then
+            echo 'No backups.'
+            return
+        fi
+        list_backups 1 $refs
+        printf '\nDelete some with "yarn worktree backups --delete <worktree> <label>[@<time>]", or all of a worktree'"'"'s by leaving out the label.\n'
+    fi
+}
+
 do_remove() {
-    local root session dirty branch head
+    local root session dirty branch head name shared refs count them
     root="$(target_root "$1")"
     [ "$root" != "$(primary_root)" ] || die "Refusing to remove the main checkout."
+    name="$(worktree_name "$root")"
+    shared="$(shared_with "$root" "$name")"
     # Read now, as the worktree it comes from is about to go
     branch="$(git -C "$root" branch --show-current 2> /dev/null || true)"
     head="$(git -C "$root" rev-parse --short HEAD 2> /dev/null || true)"
@@ -468,6 +828,25 @@ do_remove() {
         else
             echo 'It was not on a branch.'
         fi
+    fi
+
+    refs="$(backup_refs "$name")"
+    if [ -n "$refs" ] && [ -n "$shared" ]; then
+        printf 'Its backups are filed as %s, together with those of %s, so are left alone.\n' \
+            "$name" "$(relpath "$(primary_root)" "$shared")"
+        printf 'See them with "yarn worktree backups %s".\n' "$(shell_quote "$name")"
+    elif [ -n "$refs" ]; then
+        count="$(printf '%s\n' "$refs" | wc -l | tr -d ' ')"
+        if [ "$count" -eq 1 ]; then
+            echo 'It still has 1 backup, which keeps its commit alive until it is deleted:'
+            them=it
+        else
+            echo "It still has $count backups, which keep their commits alive until they are deleted:"
+            them=them
+        fi
+        list_backups 0 $refs
+        printf 'Delete %s with "yarn worktree backups --delete %s" once nothing needs %s.\n' \
+            "$them" "$(shell_quote "$name")" "$them"
     fi
 }
 
@@ -565,8 +944,16 @@ case $COMMAND in
         ;;
     remove | r | rm)
         COMMAND=remove
-        parse_args "force" "$@"
+        parse_args "force utc" "$@"
         do_remove "${ARGS[0]}"
+        ;;
+    backup)
+        parse_args "force utc" "$@"
+        do_backup "${ARGS[0]}" "${ARGS[1]}"
+        ;;
+    backups)
+        parse_args "delete utc" "$@"
+        do_backups
         ;;
     help | h | -h | --help)
         usage "${1:-}"
