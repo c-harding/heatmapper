@@ -1,8 +1,13 @@
 // Above and below every row, in both of its columns, so an icon stays level with its heading
 $row-padding: 0.25rem;
 
+// The share of the form's padding that the tab column takes in, split either side of the icon
+$taken-padding: calc(var(--form-inline-padding, 0px) / 2);
+$remaining-padding: calc(var(--form-inline-padding, 0px) - $taken-padding);
+
 .filterGrid {
   display: grid;
+  margin-inline-start: calc(-1 * $taken-padding);
   grid-template-columns: [tab] max-content [content] 1fr;
 }
 
@@ -41,11 +46,12 @@ $row-padding: 0.25rem;
     flex-direction: column;
 
     // Takes in the padding beside it, so the target is wider than the icon without moving it
-    padding-inline-start: var(--form-inline-padding, 0px);
-    margin-inline-start: calc(-1 * var(--form-inline-padding, 0px));
+    padding-inline-start: $remaining-padding;
+    margin-inline-start: calc(-1 * $remaining-padding);
 
     .buttonContent {
       padding-block: $row-padding;
+      padding-inline: calc($taken-padding / 2);
       display: flex;
       align-items: center;
     }
@@ -63,7 +69,9 @@ $row-padding: 0.25rem;
     margin: -1px;
     border: 1px solid var(--color-weak);
     border-right: none;
-    padding-right: 1px;
+    padding-right: calc($taken-padding / 2 + 1px);
+    border-start-start-radius: var(--control-border-radius);
+    border-end-start-radius: var(--control-border-radius);
     background: var(--background-full);
   }
 
