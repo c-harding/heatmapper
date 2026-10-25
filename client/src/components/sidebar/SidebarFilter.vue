@@ -8,6 +8,7 @@ import { useSportTypeStore } from '@/stores/SportTypeStore';
 import {
   exactDeviceQuotes,
   type FilterModel,
+  liveRange,
   parseDeviceFilter,
   quotePairs,
   type RangeFilter,
@@ -132,7 +133,9 @@ const blankFilter = Object.freeze<FilterModel>({
 });
 
 function compareRanges(rangeA: RangeFilter | undefined, rangeB: RangeFilter | undefined) {
-  return rangeA?.max === rangeB?.max && rangeA?.min === rangeB?.min;
+  const a = liveRange(rangeA);
+  const b = liveRange(rangeB);
+  return a?.max === b?.max && a?.min === b?.min;
 }
 
 function compareFilters(filterA: FilterModel, filterB: FilterModel) {
@@ -187,9 +190,10 @@ function formatRange(
   label: string,
   format: (value: number) => string,
 ): string | undefined {
-  if (range?.min && range?.max) return `${format(range.min)} ≤ ${label} ≤ ${format(range.max)}`;
-  if (range?.min) return `${label} ≥ ${format(range.min)}`;
-  if (range?.max) return `${label} ≤ ${format(range.max)}`;
+  const { min, max } = range ?? {};
+  if (min !== undefined && max !== undefined) return `${format(min)} ≤ ${label} ≤ ${format(max)}`;
+  if (min !== undefined) return `${label} ≥ ${format(min)}`;
+  if (max !== undefined) return `${label} ≤ ${format(max)}`;
   return undefined;
 }
 

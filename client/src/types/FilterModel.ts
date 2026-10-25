@@ -6,6 +6,14 @@ export interface RangeFilter {
   readonly max?: number;
 }
 
+/** Simplify a range filter by removing min:0. Only for use with non-negative metrics. */
+export function liveRange(range: RangeFilter | undefined): RangeFilter | undefined {
+  const min = range?.min || undefined;
+  const max = range?.max;
+  if (min === undefined && max === undefined) return undefined;
+  return { min, max };
+}
+
 export interface FilterModel {
   sportType?: string;
 

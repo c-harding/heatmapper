@@ -23,9 +23,6 @@ const range = (page: Page, name: string) => field(page, name).locator('input[typ
 const count = (activities: StravaActivity[], predicate: (activity: StravaActivity) => boolean) =>
   activitiesText(activities.filter(predicate).length);
 
-/** The app ignores a gain of 0, as if the activity had no elevation */
-const gain = (activity: StravaActivity) => activity.total_elevation_gain || undefined;
-
 test.describe('activity filters', () => {
   test.describe.configure({ mode: 'serial' });
 
@@ -89,8 +86,8 @@ test.describe('activity filters', () => {
 
   test('elevation: min and max', async () => {
     const [min, max] = [range(page, 'Elevation').nth(0), range(page, 'Elevation').nth(1)];
-    const atLeast100 = count(activities, (a) => (gain(a) ?? -1) >= 100);
-    const atMost20 = count(activities, (a) => gain(a) !== undefined && (gain(a) ?? 0) <= 20);
+    const atLeast100 = count(activities, (a) => a.total_elevation_gain >= 100);
+    const atMost20 = count(activities, (a) => a.total_elevation_gain <= 20);
     // Otherwise the second check could pass on what the first left behind
     expect(atMost20).not.toBe(atLeast100);
     await min.fill('100');

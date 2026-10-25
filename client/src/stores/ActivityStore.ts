@@ -16,7 +16,12 @@ import { defineStore } from 'pinia';
 import { computed, reactive, type Ref, ref, shallowRef, toRef, watch } from 'vue';
 
 import Socket from '@/socket';
-import { type FilterField, type FilterModel, parseDeviceFilter } from '@/types/FilterModel';
+import {
+  type FilterField,
+  type FilterModel,
+  liveRange,
+  parseDeviceFilter,
+} from '@/types/FilterModel';
 import config from '@/utils/config';
 import {
   appendCachedActivities,
@@ -121,12 +126,12 @@ export const useActivityStore = defineStore('activity', () => {
   });
 
   /** The model reduced to what can narrow the list: shown in the dialog, and for this item type */
-  const liveFilterModel = computed(
-    () =>
-      Object.fromEntries(
-        Object.entries(filterModel).filter(([field]) => liveFields.value.has(field as FilterField)),
-      ) as FilterModel,
-  );
+  const liveFilterModel = computed(() => {
+    const live = Object.fromEntries(
+      Object.entries(filterModel).filter(([field]) => liveFields.value.has(field as FilterField)),
+    ) as FilterModel;
+    return { ...live, distance: liveRange(live.distance), elevation: liveRange(live.elevation) };
+  });
 
   const displayOptions: DisplayOptions = reactive({
     showActivities: loadDisplayOptions()?.showActivities === true,
@@ -169,6 +174,8 @@ export const useActivityStore = defineStore('activity', () => {
 
   const mapItemFilters = computed<((value: MapItem) => boolean)[]>(() => {
     const sportType = filterModel.sportType;
+    const { min: distanceMin, max: distanceMax } = liveRange(filterModel.distance) ?? {};
+    const { min: elevationMin, max: elevationMax } = liveRange(filterModel.elevation) ?? {};
 
     return (
       [
@@ -189,22 +196,21 @@ export const useActivityStore = defineStore('activity', () => {
           ((item: MapItem) => item.isPrivate === filterModel.isPrivate),
 
         filterFields.has('distance') &&
-          filterModel.distance?.min !== undefined &&
-          ((item: MapItem) => item.distance >= (filterModel.distance?.min ?? -Infinity)),
+          distanceMin !== undefined &&
+          ((item: MapItem) => item.distance >= distanceMin),
         filterFields.has('distance') &&
-          filterModel.distance?.max !== undefined &&
-          ((item: MapItem) => item.distance <= (filterModel.distance?.max ?? Infinity)),
+          distanceMax !== undefined &&
+          ((item: MapItem) => item.distance <= distanceMax),
 
         filterFields.has('elevation') &&
-          filterModel.elevation?.min !== undefined &&
+          elevationMin !== undefined &&
+          // Against undefined, so that a gain of zero counts as a figure rather than a gap
           ((item: MapItem) =>
-            item.elevation?.gain &&
-            item.elevation.gain >= (filterModel.elevation?.min ?? -Infinity)),
+            item.elevation?.gain !== undefined && item.elevation.gain >= elevationMin),
         filterFields.has('elevation') &&
-          filterModel.elevation?.max !== undefined &&
+          elevationMax !== undefined &&
           ((item: MapItem) =>
-            item.elevation?.gain &&
-            item.elevation.gain <= (filterModel.elevation?.max ?? Infinity)),
+            item.elevation?.gain !== undefined && item.elevation.gain <= elevationMax),
 
         filterFields.has('gear') &&
           filterModel.gear &&
