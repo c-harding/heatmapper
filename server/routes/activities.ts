@@ -12,7 +12,6 @@ import {
 import { type WebsocketRequestHandler } from 'express-ws';
 import { AbortError } from 'node-fetch';
 
-import eagerIterator from '../eager-iterator';
 import { extractRequestToken } from '../request-utils';
 import { Strava } from '../strava';
 import { type DetailedGear, type SummaryActivity, type SummaryRoute } from '../strava/model';
@@ -195,7 +194,7 @@ export class ActivitiesHandler {
      * Fetches your data from the Strava API
      */
     async function* activitiesIterator(start?: number, end?: number): AsyncGenerator<Activity[]> {
-      for await (const page of eagerIterator(strava.getStravaActivitiesPages(start, end))) {
+      for await (const page of strava.getStravaActivitiesPages(start, end)) {
         yield page.map((activity) => convertActivitySummary(activity));
       }
     }
@@ -204,7 +203,7 @@ export class ActivitiesHandler {
      * Fetches your routes from the Strava API
      */
     async function* routesIterator(): AsyncGenerator<Route[]> {
-      for await (const page of eagerIterator(strava.getStravaRoutesPages())) {
+      for await (const page of strava.getStravaRoutesPages()) {
         yield page.map((route) => convertRouteSummary(route)).filter((route) => route.map);
       }
     }
