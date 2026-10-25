@@ -14,7 +14,6 @@ cd "$(dirname "$0")/.."
 COMMAND=''
 PORT=''
 INSTALL=1
-SERVE=0
 ATTACH=''
 DETACH=0
 FORCE=0
@@ -50,10 +49,6 @@ Options:
   -p, --port <n>             use <n> for the backend and <n>+1 for the frontend, instead of
                              the first free pair
   -n, --no-install           skip the "yarn" that installs dependencies
-  -s, --serve                start the dev servers once it is set up
-  -a, --attach               with --serve, attach to them rather than leaving them running
-                             in the background
-  -A, --no-attach            with --serve, leave them in the background, which is the default
 EOF
             ;;
         bootstrap)
@@ -150,7 +145,7 @@ one copy of the credentials in the main checkout's .env.
 Usage: yarn worktree <command> [options]
 
 Commands:
-  add, a        <commit-ish> [dir] create a worktree, set it up, optionally start it
+  add, a        <commit-ish> [dir] create a worktree and set it up
   bootstrap, b  [dir]              set up a worktree that already exists
   serve, s      [dir]              start, or attach to, a worktree's dev servers
   list, l, ls                      show every worktree, its ports and whether it is running
@@ -241,19 +236,14 @@ parse_args() {
             -[!-]?*)
                 # Whatever is still bundled here takes no value, since the arms above have
                 # already claimed anything that would have swallowed the rest as one. Peel the
-                # first option off and push the remainder back for the next pass: -snp8082
-                # becomes -s, then -n, then -p8082.
+                # first option off and push the remainder back for the next pass: -dnp8082
+                # becomes -d, then -n, then -p8082.
                 set -- "${1:0:2}" "-${1:2}" "${@:2}"
                 continue
                 ;;
             -n | --no-install)
                 require_option install "$1"
                 INSTALL=0
-                shift
-                ;;
-            -s | --serve)
-                require_option serve "$1"
-                SERVE=1
                 shift
                 ;;
             -a | --attach)
@@ -936,11 +926,7 @@ do_add() {
     git worktree add "${opts[@]}" "$dir" "$start"
 
     do_bootstrap "$dir"
-    if [ "$SERVE" -eq 1 ]; then
-        do_serve "$dir"
-    else
-        echo "Start it with \"yarn worktree serve $(relpath "$CALLER_DIR" "$dir")\"."
-    fi
+    echo "Start it with \"yarn worktree serve $(relpath "$CALLER_DIR" "$dir")\"."
 }
 
 COMMAND="${1:-help}"
@@ -949,11 +935,7 @@ COMMAND="${1:-help}"
 case $COMMAND in
     add | a)
         COMMAND=add
-        parse_args "port install serve attach branch detach" 2 "$@"
-        # Ours to check rather than git's: either polarity is meaningless unless we will serve.
-        if [ -n "$ATTACH" ] && [ "$SERVE" -eq 0 ]; then
-            die "--attach and --no-attach need --serve."
-        fi
+        parse_args "port install branch detach" 2 "$@"
         do_add "${ARGS[0]}" "${ARGS[1]}"
         ;;
     bootstrap | b)

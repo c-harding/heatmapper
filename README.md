@@ -25,9 +25,7 @@ Several branches can be checked out at once using [git worktrees](https://git-sc
 Create a worktree under `.worktrees/`, and install its dependencies.
 
 ```sh
-yarn worktree add my-branch          # .worktrees/my-branch, on the next free ports
-yarn worktree add my-branch --serve  # ...and start its dev servers in the background
-yarn worktree add my-branch -s -a    # ...and attach to them straight away
+yarn worktree add my-branch  # .worktrees/my-branch, on the next free ports
 ```
 
 The argument is a commit-ish, interpreted as `git worktree add` does: a branch is checked out, a
