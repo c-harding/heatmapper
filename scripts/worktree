@@ -779,7 +779,7 @@ do_backups() {
 }
 
 do_remove() {
-    local root session dirty branch head name shared refs count them
+    local root session dirty branch head name shared refs count them inside=0
     root="$(target_root "$1")"
     [ "$root" != "$(primary_root)" ] || die "Refusing to remove the main checkout."
     name="$(worktree_name "$root")"
@@ -814,6 +814,13 @@ do_remove() {
         done
     fi
 
+    # Asked of git, which resolves symlinks, before the worktree goes
+    if [ "$(git -C "$CALLER_DIR" rev-parse --show-toplevel 2> /dev/null)" = "$root" ]; then
+        inside=1
+    fi
+    # Out of the worktree, which is where yarn runs this from inside it
+    cd "$(primary_root)"
+
     # Always --force, so that the check above is the only thing deciding whether removing this
     # worktree is safe. Git tolerates the ignored files that setting one up leaves behind (.env
     # and node_modules), but it should not get a second opinion on files we put there
@@ -824,7 +831,12 @@ do_remove() {
         git worktree remove --force "$root"
     fi
     git worktree prune
-    echo "Removed $(relpath "$CALLER_DIR" "$root")."
+    # From inside it, a path relative to where we were would be "."
+    if [ "$inside" -eq 1 ]; then
+        echo "Removed $(relpath "$(primary_root)" "$root")."
+    else
+        echo "Removed $(relpath "$CALLER_DIR" "$root")."
+    fi
     # Only a branch that still exists can be deleted: an orphan branch has no commits yet
     if [ -n "$branch" ] && git show-ref --verify --quiet "refs/heads/$branch"; then
         printf 'Its branch %s is untouched; "git branch -d %s" if you are done with it.\n' \
