@@ -399,7 +399,7 @@ function openHelp() {
 
   > * {
     pointer-events: initial;
-    margin-right: auto;
+    margin-inline-end: auto;
   }
 }
 </style>

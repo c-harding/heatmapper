@@ -96,13 +96,13 @@ const maxModel = computed({
   }
 
   label:first-child {
-    border-top-left-radius: var(--control-border-radius);
-    border-top-right-radius: var(--control-border-radius);
+    border-start-start-radius: var(--control-border-radius);
+    border-start-end-radius: var(--control-border-radius);
   }
 
   label:last-child {
-    border-bottom-left-radius: var(--control-border-radius);
-    border-bottom-right-radius: var(--control-border-radius);
+    border-end-start-radius: var(--control-border-radius);
+    border-end-end-radius: var(--control-border-radius);
   }
 
   input {
@@ -130,10 +130,6 @@ const maxModel = computed({
     &:focus {
       z-index: 1;
     }
-  }
-
-  .icon {
-    margin-right: 4px;
   }
 }
 </style>

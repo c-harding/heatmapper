@@ -180,7 +180,7 @@ function toggleFilter(field: FilterField) {
     }
 
     > dd {
-      margin-left: 1em;
+      margin-inline-start: 1em;
       margin-block: 0.5em;
     }
   }

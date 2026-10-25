@@ -60,7 +60,7 @@ function dateToYYYYMMDD(date: Date | null): string | null {
   }
 
   .icon {
-    margin-right: 4px;
+    margin-inline-end: 4px;
   }
 
   @supports not (-webkit-touch-callout: none) {

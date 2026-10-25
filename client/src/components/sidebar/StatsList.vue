@@ -30,17 +30,17 @@ const filteredStats = computed(() => stats.filter(Boolean));
   overflow-x: clip;
 
   $separator-spacing: 0.75em;
-  margin-right: -$separator-spacing;
+  margin-inline-end: -$separator-spacing;
 
   @include typography.optical-centre;
 
   > .stat {
     display: inline-block;
-    padding-left: $separator-spacing;
+    padding-inline-start: $separator-spacing;
     text-indent: -$separator-spacing;
 
     &:not(:last-of-type) {
-      margin-right: $separator-spacing;
+      margin-inline-end: $separator-spacing;
     }
 
     &::before {
@@ -48,14 +48,14 @@ const filteredStats = computed(() => stats.filter(Boolean));
       text-indent: 0;
       text-align: center;
       content: '•';
-      margin-left: -$separator-spacing;
+      margin-inline-start: -$separator-spacing;
       width: $separator-spacing;
       pointer-events: none;
     }
   }
 
   .statIcon {
-    margin-left: 0.25em;
+    margin-inline-start: 0.25em;
   }
 }
 </style>

@@ -34,7 +34,7 @@ $remaining-padding: calc(var(--form-inline-padding, 0px) - $taken-padding);
 
 .tab {
   grid-column: tab;
-  border-right: 1px solid var(--color-weak);
+  border-inline-end: 1px solid var(--color-weak);
   color: var(--color-weak);
   display: flex;
   flex-direction: column;
@@ -68,8 +68,8 @@ $remaining-padding: calc(var(--form-inline-padding, 0px) - $taken-padding);
   .buttonContent {
     margin: -1px;
     border: 1px solid var(--color-weak);
-    border-right: none;
-    padding-right: calc($taken-padding / 2 + 1px);
+    border-inline-end: none;
+    padding-inline-end: calc($taken-padding / 2 + 1px);
     border-start-start-radius: var(--control-border-radius);
     border-end-start-radius: var(--control-border-radius);
     background: var(--background-full);
@@ -91,7 +91,7 @@ $remaining-padding: calc(var(--form-inline-padding, 0px) - $taken-padding);
 
 .content {
   grid-column: content;
-  padding-left: 0.25rem;
+  padding-inline-start: 0.25rem;
   display: flex;
   flex-direction: column;
 }

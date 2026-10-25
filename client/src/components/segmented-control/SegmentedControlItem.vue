@@ -112,10 +112,10 @@ li.segmentedControlItem:not(.selected) + li.segmentedControlItem:not(.selected):
   position: absolute;
   inset-block: 0.3em;
   inset-inline-end: 100%;
-  border-left: 1px solid var(--color-weak);
+  border-inline-start: 1px solid var(--color-weak);
 }
 
 li.disabled:not(.selected) + li.disabled:not(.selected)::before {
-  border-left-color: var(--background-weak);
+  border-inline-start-color: var(--background-weak);
 }
 </style>

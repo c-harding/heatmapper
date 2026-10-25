@@ -76,7 +76,7 @@ const logout = async (global = false) => {
   margin-block: 0.5em;
 
   > button {
-    margin-left: auto;
+    margin-inline-start: auto;
   }
 }
 

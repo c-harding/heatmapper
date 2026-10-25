@@ -126,6 +126,6 @@ watch(selectionStore.selected, async () => {
 
 .controlIconButton {
   margin-block: auto;
-  margin-left: -1em;
+  margin-inline-start: -1em;
 }
 </style>

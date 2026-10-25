@@ -129,8 +129,8 @@ function isActive(choice: Choice): boolean {
 
 .layerPicker {
   position: absolute;
-  right: 0;
-  padding-right: 100%;
+  inset-inline-end: 0;
+  padding-inline-end: 100%;
   top: 0;
   width: max-content;
 
@@ -144,7 +144,7 @@ function isActive(choice: Choice): boolean {
     overflow: hidden;
     list-style: none;
     margin: 0;
-    margin-right: 0.5rem;
+    margin-inline-end: 0.5rem;
     padding: 0.5rem 0; // no horizontal padding: row targets reach the menu edges
 
     .row {
@@ -169,7 +169,7 @@ function isActive(choice: Choice): boolean {
         min-height: 1.6rem; // match the variant square, so grouped and plain rows are one height
         display: flex;
         align-items: center;
-        margin-left: 0.5rem;
+        margin-inline-start: 0.5rem;
         border-radius: 0.5rem;
         padding: 0.05rem 0.5rem;
       }
@@ -178,9 +178,9 @@ function isActive(choice: Choice): boolean {
         background-color: var(--background-strong);
       }
 
-      // plain rows: keep the highlight off the right edge
+      // plain rows: keep the highlight off the end edge
       &:not(:has(.variants)) .nameInner {
-        margin-right: 0.5rem;
+        margin-inline-end: 0.5rem;
       }
 
       .variants {
@@ -203,7 +203,7 @@ function isActive(choice: Choice): boolean {
         justify-content: center;
 
         &:last-child {
-          padding-right: 0.5rem;
+          padding-inline-end: 0.5rem;
         }
 
         .variantIcon {

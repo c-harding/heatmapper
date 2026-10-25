@@ -79,7 +79,7 @@ dialog.uiModal {
     all: unset;
     position: absolute;
     top: calc($inset - $padding);
-    right: calc($inset - $padding);
+    inset-inline-end: calc($inset - $padding);
     padding: $padding;
     display: flex;
     cursor: pointer;
@@ -100,9 +100,9 @@ dialog.uiModal {
   .heading {
     margin: 0;
     padding-top: 1rem;
-    padding-left: 1rem;
+    padding-inline-start: 1rem;
     // Enough to clear the close button
-    padding-right: 3rem;
+    padding-inline-end: 3rem;
     padding-bottom: 0;
   }
 
