@@ -6,6 +6,7 @@ import { countOtherSessions } from '@/utils/strings';
 
 import { TooltipError } from '../tooltip/TooltipError';
 import UIButton from '../ui/UIButton.vue';
+import UIExternalLink from '../ui/UIExternalLink.vue';
 
 const { user } = defineProps<{
   user: UserInfo;
@@ -56,18 +57,21 @@ const logout = async (global = false) => {
 };
 </script>
 <template>
+  <h3>User Settings</h3>
   <div :class="$style.flexLine">
     <img :class="$style.profilePic" :srcset="imgSrcSet" :src="imgSrc" />
-    <a :href="profileLink" :class="$style.userName" target="_blank">{{ fullName }}</a>
+    <UIExternalLink :href="profileLink" :class="$style.userName">{{ fullName }}</UIExternalLink>
     <UIButton @click="logout(false)"> Sign out </UIButton>
   </div>
   <div :class="$style.flexLine">
-    <p v-if="otherBrowsers && hasCalendar">
+    <div v-if="otherBrowsers && hasCalendar">
       You are signed in in {{ countOtherSessions(otherBrowsers) }} and a calendar.
-    </p>
-    <p v-else-if="otherBrowsers">You are signed in in {{ countOtherSessions(otherBrowsers) }}.</p>
-    <p v-else-if="hasCalendar">Apart from a calendar, you are not signed in anywhere else.</p>
-    <p v-else>You are not signed in anywhere else.</p>
+    </div>
+    <div v-else-if="otherBrowsers">
+      You are signed in in {{ countOtherSessions(otherBrowsers) }}.
+    </div>
+    <div v-else-if="hasCalendar">Apart from a calendar, you are not signed in anywhere else.</div>
+    <div v-else>You are not signed in anywhere else.</div>
     <UIButton danger :disabled="!otherSessions" @click="logout(true)">
       Sign out everywhere
     </UIButton>
@@ -81,6 +85,7 @@ const logout = async (global = false) => {
 }
 
 .flexLine {
+  margin-inline-end: -0.5rem;
   display: flex;
   align-items: center;
   gap: 0.5em;
@@ -91,7 +96,8 @@ const logout = async (global = false) => {
   }
 }
 
-a.userName {
+// More specific than the app's own a[href], which would otherwise colour it as a plain link
+a[href].userName {
   color: var(--bold-color);
   font-weight: 600;
 

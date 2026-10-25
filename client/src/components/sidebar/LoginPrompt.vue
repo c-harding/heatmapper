@@ -27,7 +27,7 @@ const keepSignedIn = ref(true);
         <p>Keep me signed in</p>
         <p :class="$style.small">
           A cookie remembers your login for a year. Otherwise you will be signed out when you close
-          your browser. Sign out under User to remove it.
+          your browser. Sign out under Settings to remove it.
         </p>
       </div>
     </label>

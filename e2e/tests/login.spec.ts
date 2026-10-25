@@ -42,11 +42,11 @@ test('a login in another browser clears the prompt and finishes the load', async
   await expectAllActivities(page);
 });
 
-test('pressing User during a load shares its login', async ({ page }) => {
+test('pressing Settings during a load shares its login', async ({ page }) => {
   await page.goto('/');
   await loadButton(page).click();
   const consent = await openConsent(page);
-  await page.getByRole('button', { name: 'User' }).click();
+  await page.getByRole('button', { name: 'Settings' }).click();
   await consent.getByRole('button', { name: 'Authorize' }).click();
 
   await expect(page.getByRole('link', { name: 'Mock Athlete' })).toBeVisible();
@@ -66,8 +66,8 @@ test('unticking "Keep me signed in" keeps the login until the browser closes', a
   const [cookie] = (await context.cookies()).filter(({ name }) => name === 'token');
   expect(cookie.expires).toBe(-1);
 
-  // The same browser session stays signed in, for the User button as for loads
-  await page.getByRole('button', { name: 'User' }).click();
+  // The same browser session stays signed in, for the Settings button as for loads
+  await page.getByRole('button', { name: 'Settings' }).click();
   await expect(page.getByRole('link', { name: 'Mock Athlete' })).toBeVisible();
   await expect(loginPrompt(page)).toBeHidden();
 });

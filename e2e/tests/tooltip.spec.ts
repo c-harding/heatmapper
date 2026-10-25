@@ -9,9 +9,9 @@ test.beforeEach(async ({ page }) => {
 });
 
 test('a failed action is announced as an alert', async ({ page }) => {
-  // Opening the user's settings fetches the user, which then fails
+  // Opening the settings fetches the user, which then fails
   await page.route('/api/user', (route) => route.abort());
-  await page.getByRole('button', { name: 'User' }).click();
+  await page.getByRole('button', { name: 'Settings' }).click();
 
   // As a screen reader hears it, without the icon's name
   await expect(page.getByRole('alert')).toMatchAriaSnapshot('- alert: Cannot load user options');
@@ -19,7 +19,7 @@ test('a failed action is announced as an alert', async ({ page }) => {
 
 test('escape dismisses an error tooltip', async ({ page }) => {
   await page.route('/api/user', (route) => route.abort());
-  await page.getByRole('button', { name: 'User' }).click();
+  await page.getByRole('button', { name: 'Settings' }).click();
   await expect(page.getByRole('alert')).toBeVisible();
 
   await page.keyboard.press('Escape');
@@ -27,7 +27,7 @@ test('escape dismisses an error tooltip', async ({ page }) => {
 });
 
 test('escape dismisses a tooltip in a dialog before the dialog', async ({ page }) => {
-  await page.getByRole('button', { name: 'User' }).click();
+  await page.getByRole('button', { name: 'Settings' }).click();
   const dialog = page.getByRole('dialog');
   await page.route('/api/user', (route) =>
     route.request().method() === 'DELETE' ? route.abort() : route.fallback(),
