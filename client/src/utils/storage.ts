@@ -75,6 +75,11 @@ const routeStore = localforage.createInstance({
   storeName: 'routes',
 });
 
+/** Beside the caches it describes, so that it is kept or lost with them */
+const metaStore = localforage.createInstance({
+  storeName: 'meta',
+});
+
 /** Per-store write queues, so read-modify-write ops on the same store can't interleave. */
 const writeQueues = new WeakMap<LocalForage, Promise<unknown>>();
 
@@ -141,17 +146,16 @@ export function saveDisplayOptions(options: StoredDisplayOptions) {
   writeStored('displayOptions', JSON.stringify(options));
 }
 
-/**
- * The meta last written, for when storage will not keep it: otherwise every load would look like a
- * new version, and throw away what is loaded
- */
-let writtenMeta: StoreMeta | undefined;
-
-export function getStoreMeta(): StoreMeta {
-  const cache = readStoredJson('meta', asObject<Partial<StoreMeta>>) ?? writtenMeta;
+export async function getStoreMeta(): Promise<StoreMeta> {
+  let cache: Partial<StoreMeta> | null = null;
+  try {
+    cache = await metaStore.getItem<Partial<StoreMeta>>('meta');
+  } catch (e) {
+    console.warn('Cannot read the cache meta', e);
+  }
   return {
-    version: cache?.version ?? 0,
-    user: cache?.user ?? -1,
+    version: typeof cache?.version === 'number' ? cache.version : 0,
+    user: typeof cache?.user === 'number' ? cache.user : -1,
   };
 }
 
@@ -179,19 +183,20 @@ export async function resetStore(version: number, user: number) {
     // Remove legacy localStorage items
     localStorage.removeItem('activities');
     localStorage.removeItem('routes');
+    localStorage.removeItem('meta');
     Object.keys(localStorage)
       .filter((key) => key.startsWith('gear:') || key.startsWith('map:'))
       .forEach((key) => localStorage.removeItem(key));
   } catch (e) {
     console.warn('Cannot remove legacy items from localStorage', e);
   }
-  writtenMeta = { version, user };
-  writeStored('meta', JSON.stringify(writtenMeta));
   await Promise.all([
     gearStore.clear(),
     serializeStoreWrite(activityStore, () => activityStore.clear()),
     serializeStoreWrite(routeStore, () => routeStore.clear()),
   ]);
+  // Last, so that a reset cut short is done again on the next load
+  await metaStore.setItem<StoreMeta>('meta', { version, user });
 }
 
 export async function getCachedActivities(): Promise<Activity[]> {

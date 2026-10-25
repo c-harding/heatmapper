@@ -47,6 +47,37 @@ test('a second load only asks for activities since the newest', async ({ page })
   }
 });
 
+test('with localStorage blocked, a second load still uses the cache', async ({ page, context }) => {
+  await context.addInitScript(() => {
+    const real = window.localStorage;
+    // Except within Pinia's calls: its devtools read it in development builds only, and the app
+    // would not start without. That lets through every store's setup too, so this blocks what is
+    // read later, such as the cache's meta, not the settings the stores start from.
+    Object.defineProperty(window, 'localStorage', {
+      get() {
+        if (new Error().stack?.includes('pinia')) return real;
+        throw new DOMException('The operation is insecure.', 'SecurityError');
+      },
+    });
+  });
+  await page.goto('/');
+  await loadButton(page).click();
+  await logIn(page);
+  await expectAllActivities(page);
+  await waitForCache(page, activityCount(), { finished: true });
+
+  await page.reload();
+  const since = new Date();
+  await loadButton(page).click();
+  await expect(loadButton(page)).toHaveAccessibleName('Reload');
+
+  const requests = await mockRequests(since, '/api/v3/athlete/activities');
+  expect(requests.length).toBeGreaterThan(0);
+  for (const { query } of requests) {
+    expect(Number(query.after) * 1000).toBeGreaterThan(MOCK_NOW - 2 * DAY);
+  }
+});
+
 test('an interrupted load carries on below what it covered', async ({ page }) => {
   await page.goto('/');
   await loadButton(page).click();

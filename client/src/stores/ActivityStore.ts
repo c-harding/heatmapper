@@ -529,7 +529,7 @@ export const useActivityStore = defineStore('activity', () => {
     // cookie's token, which an earlier socket may have closed while waiting on.
     confirmLogin(pendingLogin ?? cookieToken());
 
-    const store = getStoreMeta();
+    const store = await getStoreMeta();
     if (store.version !== serverVersion || store.user !== user) {
       allActivities.value = [];
       allRoutes.value = [];
