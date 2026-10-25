@@ -9,6 +9,14 @@ close_all() {
 escape() {
     printf "%q " "$@"
 }
+# Send each client in a session back to the session it came from, before the session ends: tmux
+# remembers that per client, where its detach-on-destroy is one choice for the whole session. A
+# client with nothing to go back to stays, and is detached as the session ends.
+return_clients() {
+    tmux list-clients -t "$1" -F '#{client_name}' 2>/dev/null | while read -r client; do
+        tmux switch-client -c "$client" -l 2>/dev/null || true
+    done
+}
 wrapper() {
     trap "trap - INT; close_all" INT
     $@
@@ -24,10 +32,13 @@ wrapper() {
         read
         close_all
     )
+    # Every way out of here stops both servers, so the session is about to end
+    return_clients "$(tmux display-message -p -t "$TMUX_PANE" '#{session_id}')"
 }
 wrap() {
     declare -f close_all
     declare -f escape
+    declare -f return_clients
     declare -f wrapper
     escape wrapper "$@"
 }
@@ -131,6 +142,8 @@ fi
 # Stop the servers, failing if none are running. They take a moment to let go of their ports
 # once told to stop.
 stop_servers() {
+    tmux has-session -t "$SESSION_TARGET" 2>/dev/null || return 1
+    return_clients "$SESSION_TARGET"
     tmux kill-session -t "$SESSION_TARGET" 2>/dev/null || return 1
     for _ in 1 2 3 4 5 6 7 8 9 10; do
         port_listening "$SERVER_PORT" || port_listening "$VITE_DEV_PORT" || break
@@ -274,9 +287,5 @@ fi
 )
 
 if [ "$SWITCH" -eq 1 ]; then
-    # Put the client back where it came from once these servers stop. The default,
-    # detach-on-destroy on, would drop it out of tmux altogether instead. Set only on the session
-    # we made, and only when we moved the client, so nothing else changes behaviour.
-    tmux set-option -t "$SESSION_NAME" detach-on-destroy previous
     tmux switch-client -t "$SESSION_TARGET"
 fi
