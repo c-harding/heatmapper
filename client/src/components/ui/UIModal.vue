@@ -90,9 +90,9 @@ dialog.uiModal {
     }
 
     &:focus-visible {
-      color: AccentColor;
+      // The browser's own ring, which all: unset dropped
+      outline: revert;
       border-radius: 50%;
-      outline: 2px solid AccentColor;
       outline-offset: -6px;
     }
   }
