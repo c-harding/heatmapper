@@ -138,6 +138,11 @@ export class Strava {
     return { https, webcal: https.replace(/^\w+(?=:\/\/)/, 'webcal') };
   }
 
+  /** Asks the browser to log in with Strava, keeping this session */
+  logIn(): Promise<void> {
+    return this.rawApi.getAccessTokenFromBrowser();
+  }
+
   createCalendar(): Promise<string> {
     return this.rawApi.createCalendar();
   }

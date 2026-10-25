@@ -262,7 +262,7 @@ export default class RawStravaApi {
     return data;
   }
 
-  private async getAccessTokenFromBrowser(): Promise<void> {
+  async getAccessTokenFromBrowser(): Promise<void> {
     if (!this.loginCallback) throw new CannotLogin('requestLogin is null');
     const athleteInfoPromise = addCallback(this.token, { signal: this.abortSignal }, (oauthResponse) => {
       return this.getStravaToken(oauthResponse.scope, oauthResponse.code);

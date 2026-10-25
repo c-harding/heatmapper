@@ -4,7 +4,7 @@ import express from 'express';
 import ical from 'ical-generator';
 
 import LoginError from './login-error';
-import { extractRequestToken } from './request-utils';
+import { extractRequestToken, sameOrigin } from './request-utils';
 import { getSportIcon } from './sport-icons';
 import { Strava } from './strava';
 import { type SummaryActivity } from './strava/model';
@@ -90,18 +90,13 @@ function vtimezone(zone: string, from: Temporal.Instant, to: Temporal.Instant): 
 
 export default function calendarRouter(domain: string): express.Router {
   const router = express.Router();
-  const { hostname: host, origin } = new URL(domain);
+  const { hostname: host } = new URL(domain);
+  const ownPages = sameOrigin(domain);
 
   /** The browser's own session, if it is signed in */
   const browserSession = async (req: express.Request) => {
     const strava = new Strava(domain, extractRequestToken(req), null);
     return (await strava.hasToken()) ? strava : undefined;
-  };
-
-  // Old cookies have no SameSite, so another site's form would still send them
-  const sameOrigin: express.RequestHandler = (req, res, next) => {
-    if (req.get('origin') === origin) next();
-    else res.status(403).send('Forbidden');
   };
 
   router.get('/', async (req: express.Request, res: express.Response) => {
@@ -130,7 +125,7 @@ export default function calendarRouter(domain: string): express.Router {
     );
   });
 
-  router.post('/', sameOrigin, async (req: express.Request, res: express.Response) => {
+  router.post('/', ownPages, async (req: express.Request, res: express.Response) => {
     const strava = await browserSession(req);
     if (!strava) {
       res.status(403).send('Not signed in');
@@ -152,7 +147,7 @@ export default function calendarRouter(domain: string): express.Router {
     res.redirect(303, req.baseUrl);
   });
 
-  router.post('/delete', sameOrigin, async (req: express.Request, res: express.Response) => {
+  router.post('/delete', ownPages, async (req: express.Request, res: express.Response) => {
     const strava = await browserSession(req);
     if (!strava) {
       res.status(403).send('Not signed in');

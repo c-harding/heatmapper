@@ -1,7 +1,9 @@
 import express from 'express';
 import type * as ws from 'express-ws';
 
+import { sameOrigin } from './request-utils';
 import { ActivitiesHandler } from './routes/activities';
+import { CalendarHandler } from './routes/calendar';
 import { HookHandler } from './routes/hook';
 import { getToken } from './routes/token';
 import { UserHandler } from './routes/user';
@@ -30,6 +32,11 @@ export default function apiRouter(domain: string, wsInstance: ws.Instance, relay
   const userHandler = new UserHandler(domain);
   router.get('/user', userHandler.get);
   router.delete('/user', userHandler.delete);
+
+  const calendarHandler = new CalendarHandler(domain);
+  const ownPages = sameOrigin(domain);
+  router.post('/calendar', ownPages, calendarHandler.post);
+  router.delete('/calendar', ownPages, calendarHandler.delete);
 
   const hookHandler = new HookHandler(domain, relay);
   router.post('/hook/relay/forwarded', hookHandler.forwarded);

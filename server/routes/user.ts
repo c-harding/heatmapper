@@ -1,19 +1,14 @@
 import { type RequestHandler } from 'express';
 
 import { InvalidLogin } from '../login-error';
-import { extractRequestToken } from '../request-utils';
+import { extractRequestToken, requestLogin } from '../request-utils';
 import { Strava } from '../strava';
 
 export class UserHandler {
   constructor(readonly domain: string) {}
 
   readonly get: RequestHandler = async (req, res) => {
-    async function requestLogin(token: string, url: string) {
-      res.status(403).header('location', url).send({ token });
-      return false;
-    }
-
-    const stravaApi = new Strava(this.domain, extractRequestToken(req), requestLogin);
+    const stravaApi = new Strava(this.domain, extractRequestToken(req), requestLogin(res));
     try {
       const athlete = await stravaApi.getUserInfo();
       res.send(athlete);
