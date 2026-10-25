@@ -12,6 +12,7 @@ const {
   pickListId?: string;
   placeholder?: string;
   disabled?: boolean;
+  readonly?: boolean;
   type?: InputTypeHTMLAttribute;
 }>();
 
@@ -74,6 +75,7 @@ const pickListId = computed(() =>
       :list="pickListId"
       :placeholder
       :disabled
+      :readonly
       :type
       @input="onInput"
       @change="onChange"

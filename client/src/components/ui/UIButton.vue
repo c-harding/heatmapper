@@ -16,6 +16,7 @@ const {
   icon,
   loading: loadingProp = false,
   loadingText,
+  loadingDelay = 0,
   invertColor = false,
   disabled = false,
   ghost = false,
@@ -29,6 +30,8 @@ const {
   loading?: boolean;
   invertColor?: boolean;
   loadingText?: string;
+  /** How long a click's handler runs before it shows as loading, so that a quick one doesn't flash */
+  loadingDelay?: number;
   disabled?: boolean;
   light?: boolean;
   ghost?: boolean;
@@ -41,8 +44,9 @@ const {
 const { targetRef: buttonRef, errorMessage, dismissLast, showError } = useErrorTooltip();
 
 const runningClickHandler = ref(false);
+const showClickHandler = ref(false);
 
-const loading = computed(() => loadingProp || runningClickHandler.value);
+const loading = computed(() => loadingProp || showClickHandler.value);
 
 async function clickHandler(e: MouseEvent) {
   let handler = onClick;
@@ -53,6 +57,9 @@ async function clickHandler(e: MouseEvent) {
   }
 
   runningClickHandler.value = true;
+  let delay: ReturnType<typeof setTimeout> | undefined;
+  if (loadingDelay) delay = setTimeout(() => (showClickHandler.value = true), loadingDelay);
+  else showClickHandler.value = true;
   Promise.try(() => handler?.())
     .catch((error: unknown) => {
       if (onRejection) {
@@ -64,7 +71,11 @@ async function clickHandler(e: MouseEvent) {
         console.error('UIButton@click encounted an error:', error);
       }
     })
-    .finally(() => (runningClickHandler.value = false));
+    .finally(() => {
+      clearTimeout(delay);
+      runningClickHandler.value = false;
+      showClickHandler.value = false;
+    });
 }
 </script>
 

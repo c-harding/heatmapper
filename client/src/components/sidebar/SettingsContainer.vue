@@ -14,7 +14,7 @@ const emit = defineEmits<{
 </script>
 <template>
   <UserSettings :user="user" @logout="emit('logout')" />
-  <CalendarSettings />
+  <CalendarSettings :user="user" />
 </template>
 
 <style scoped lang="scss"></style>
