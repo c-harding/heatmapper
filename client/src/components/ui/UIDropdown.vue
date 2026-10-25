@@ -9,16 +9,10 @@ export interface DropdownOption {
   disabled?: boolean;
 }
 
-const {
-  options,
-  blankValue,
-  blankLabel,
-  clearButton = false,
-} = defineProps<{
+const { options, blankValue, blankLabel } = defineProps<{
   options: (DropdownOption | DropdownOption[])[];
   blankValue?: string;
   blankLabel?: string;
-  clearButton?: boolean;
 }>();
 
 const rawModel = defineModel<string | undefined>({ default: undefined });
@@ -58,13 +52,7 @@ const optionsAndGaps = computed(() => {
       </template>
       <slot />
     </select>
-    <UIIcon
-      v-if="clearButton && model !== blankValue"
-      inline
-      icon="close"
-      @click="model = blankValue"
-    />
-    <UIIcon v-else :class="$style.downArrow" inline large icon="expand_more" />
+    <UIIcon :class="$style.downArrow" inline large icon="expand_more" />
   </div>
 </template>
 
