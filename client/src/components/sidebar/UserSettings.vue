@@ -34,6 +34,11 @@ const fullName = computed<string | undefined>(
 const profileLink = computed(() => user && `https://www.strava.com/athletes/${user.id}`);
 
 const otherSessions = computed<number>(() => (user ? Math.max(user.sessionCount - 1, 0) : 0));
+// The calendar counts as a session, but is not somewhere the user is signed in
+const hasCalendar = computed(() => !!user?.calendarUrls);
+const otherBrowsers = computed(() =>
+  Math.max(otherSessions.value - (hasCalendar.value ? 1 : 0), 0),
+);
 
 const logout = async (global = false) => {
   const url = global ? '/api/user?global' : '/api/user';
@@ -57,7 +62,11 @@ const logout = async (global = false) => {
     <UIButton @click="logout(false)"> Sign out </UIButton>
   </div>
   <div :class="$style.flexLine">
-    <p v-if="otherSessions">You are signed in in {{ countOtherSessions(otherSessions) }}.</p>
+    <p v-if="otherBrowsers && hasCalendar">
+      You are signed in in {{ countOtherSessions(otherBrowsers) }} and a calendar.
+    </p>
+    <p v-else-if="otherBrowsers">You are signed in in {{ countOtherSessions(otherBrowsers) }}.</p>
+    <p v-else-if="hasCalendar">Apart from a calendar, you are not signed in anywhere else.</p>
     <p v-else>You are not signed in anywhere else.</p>
     <UIButton danger :disabled="!otherSessions" @click="logout(true)">
       Sign out everywhere
