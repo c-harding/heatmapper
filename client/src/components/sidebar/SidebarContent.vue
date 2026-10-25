@@ -58,14 +58,17 @@ watch(selectionStore.selected, async () => {
       v-if="selectionStore.visibleItems?.length"
       :class="[$style.sidebarTotalsContainer, stickyTotals && $style.stickyTotals]"
     >
-      <a
+      <button
         v-if="expandableGroups.hasGroups.value"
+        type="button"
         :class="$style.controlIconButton"
+        :aria-label="areAllExpanded ? 'Collapse all' : 'Expand all'"
         @click.stop.prevent="
           expandableGroups.setAllExpanded(!expandableGroups.areAllExpanded.value)
         "
-        ><UIIcon icon="keyboard_double_arrow_right" :rotation="areAllExpanded ? 90 : 0"
-      /></a>
+      >
+        <UIIcon icon="keyboard_double_arrow_right" :rotation="areAllExpanded ? 90 : 0" />
+      </button>
       <div :class="$style.sidebarTotals">
         <SidebarItemCount :counts="totals" />
         <SidebarItemStats :item="totals" />
@@ -125,7 +128,13 @@ watch(selectionStore.selected, async () => {
 }
 
 .controlIconButton {
+  all: unset;
+  cursor: pointer;
   margin-block: auto;
   margin-inline-start: -1em;
+
+  &:focus-visible {
+    outline: revert;
+  }
 }
 </style>

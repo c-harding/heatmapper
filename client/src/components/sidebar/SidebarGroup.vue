@@ -92,9 +92,16 @@ function clickGroup(e: MouseEvent) {
       @dblclick="forceSelect()"
     >
       <UIIcon v-if="checkboxIcon" :class="$style.checkbox" :icon="checkboxIcon" inline />
-      <a @click.stop.prevent="toggleExpanded" @dblclick.stop
-        ><UIIcon icon="keyboard_arrow_right" :rotation="isExpanded ? 90 : 0"
-      /></a>
+      <button
+        type="button"
+        :class="$style.expandButton"
+        :aria-labelledby="nameId"
+        :aria-expanded="isExpanded"
+        @click.stop.prevent="toggleExpanded"
+        @dblclick.stop
+      >
+        <UIIcon icon="keyboard_arrow_right" :rotation="isExpanded ? 90 : 0" />
+      </button>
       <div :class="$style.sideBarGroupInfo">
         <div :id="nameId" :class="$style.sidebarGroupHeaderName" v-text="group.date" />
         <SidebarItemCount :counts="group.stats" />
@@ -124,6 +131,15 @@ function clickGroup(e: MouseEvent) {
 
   &.allSelected > .sidebarGroupHeader {
     background-color: var(--background-weak);
+  }
+}
+
+.expandButton {
+  all: unset;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: revert;
   }
 }
 
