@@ -38,6 +38,7 @@ cd "$(dirname "$0")/.."
 
 DETACH_FLAG=''
 MOCK=0
+STOP=0
 
 while (($#)); do
     case $1 in
@@ -50,9 +51,14 @@ while (($#)); do
             MOCK=1
             shift
             ;;
+        --stop)
+            STOP=1
+            shift
+            ;;
         -h | --help)
             cat <<'EOF'
 Usage: yarn serve [-A] [-m]
+       yarn serve --stop
 
 Run the frontend and backend dev servers side by side in a tmux session. Ctrl-C in either pane
 stops both. Detach from the session with ^b d, and come back to it with "tmux attach".
@@ -61,6 +67,7 @@ Options:
   -A, --no-attach  leave the servers running in the background instead of attaching to them
   -m, --mock       serve a mock of Strava from the backend and use it in place of Strava, with
                    its own sessions in server/sessions-mock (also "yarn serve-mock")
+      --stop       stop the servers instead
 EOF
             exit 0
             ;;
@@ -76,7 +83,47 @@ EOF
     esac
 done
 
-# Checked after the arguments, so that --help works whether or not tmux is installed.
+if [ "$STOP" -eq 1 ] && { [ -n "$DETACH_FLAG" ] || [ "$MOCK" -eq 1 ]; }; then
+    echo '--stop cannot be combined with other options.' >&2
+    exit 1
+fi
+
+SERVER_PORT="$(env_value .env SERVER_PORT)"
+SERVER_PORT="${SERVER_PORT:-8080}"
+VITE_DEV_PORT="$(env_value .env VITE_DEV_PORT)"
+VITE_DEV_PORT="${VITE_DEV_PORT:-8081}"
+
+SESSION_NAME="$(session_name)"
+SESSION_TARGET="$(session_target)"
+
+# Where the servers run, as the stop messages name it
+if is_linked_worktree; then
+    PLACE="$(relpath "$(primary_root)" "$PWD")"
+else
+    PLACE='the main checkout'
+fi
+
+# Stop the servers, failing if none are running. They take a moment to let go of their ports
+# once told to stop.
+stop_servers() {
+    tmux kill-session -t "$SESSION_TARGET" 2>/dev/null || return 1
+    for _ in 1 2 3 4 5 6 7 8 9 10; do
+        port_listening "$SERVER_PORT" || port_listening "$VITE_DEV_PORT" || break
+        sleep 0.3
+    done
+}
+
+if [ "$STOP" -eq 1 ]; then
+    if stop_servers; then
+        echo "Stopped the dev servers of $PLACE."
+    else
+        echo "No dev servers are running in $PLACE."
+    fi
+    exit 0
+fi
+
+# Checked after the arguments, so that --help works whether or not tmux is installed, and after
+# --stop, as without tmux there is nothing to stop.
 if ! command -v tmux &> /dev/null
 then
     echo "Please install tmux to continue" >&2
@@ -122,22 +169,8 @@ if ! scripts/load-styles.ts; then
     echo 'Could not load the map styles, so the generated ones will not be available.' >&2
 fi
 
-SERVER_PORT="$(env_value .env SERVER_PORT)"
-SERVER_PORT="${SERVER_PORT:-8080}"
-VITE_DEV_PORT="$(env_value .env VITE_DEV_PORT)"
-VITE_DEV_PORT="${VITE_DEV_PORT:-8081}"
-
-SESSION_NAME="$(session_name)"
-SESSION_TARGET="$(session_target)"
-
-# Stopped before the ports are checked, as its own servers would fail the check. They take a
-# moment to let go of their ports once told to stop.
-if tmux kill-session -t "$SESSION_TARGET" 2>/dev/null; then
-    for _ in 1 2 3 4 5 6 7 8 9 10; do
-        port_listening "$SERVER_PORT" || port_listening "$VITE_DEV_PORT" || break
-        sleep 0.3
-    done
-fi
+# Stopped before the ports are checked, as its own servers would fail the check
+stop_servers || true
 
 # Otherwise the backend fails in its pane, where it is easily missed.
 for port in "$SERVER_PORT" "$VITE_DEV_PORT"; do

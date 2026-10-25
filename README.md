@@ -77,7 +77,7 @@ It is safe to re-run, and does nothing if the worktree is already set up; pass `
 
 ##### yarn worktree serve, list and remove
 
-- `serve` starts a worktree's dev servers in the background, or with `--attach` brings them to the foreground — attaching to servers that are already running rather than restarting them.
+- `serve` starts a worktree's dev servers in the background, or with `--attach` brings them to the foreground — attaching to servers that are already running rather than restarting them; `--stop` stops them.
 - `list` shows every worktree with its ports and whether its servers are up.
 - `remove` stops the servers and deletes the worktree, refusing if anything would be lost — uncommitted changes, or untracked files that are not ignored — unless given `--force`; the branch itself is left alone.
   It mentions any backups the worktree leaves behind, or with `--delete-backups` deletes them, unless another worktree's backups are filed under the same name.
@@ -123,6 +123,7 @@ Run both servers together, using `tmux`.
 Ctrl-C in either one will kill both.
 
 Pass `--no-attach` to leave them running in the background instead of attaching.
+Pass `--stop` to stop them, waiting until they have let go of their ports.
 
 See [`yarn serve`](#yarn-serve-1) below for more information about how these servers work.
 

@@ -16,6 +16,7 @@ PORT=''
 INSTALL=1
 ATTACH=''
 DETACH=0
+STOP=0
 FORCE=0
 UTC=0
 DELETE=0
@@ -75,6 +76,7 @@ Start the dev servers for a worktree, in the background by default. Defaults to 
 Options:
   -a, --attach      attach to the servers; if they are already running, attach without restarting
   -A, --no-attach   stay in the background, cancelling an earlier --attach
+      --stop        stop the servers instead
 EOF
             ;;
         list)
@@ -147,7 +149,7 @@ Usage: yarn worktree <command> [options]
 Commands:
   add, a        <commit-ish> [dir] create a worktree and set it up
   bootstrap, b  [dir]              set up a worktree that already exists
-  serve, s      [dir]              start, or attach to, a worktree's dev servers
+  serve, s      [dir]              start, attach to or stop a worktree's dev servers
   list, l, ls                      show every worktree, its ports and whether it is running
   remove, r, rm [dir]              stop the dev servers and delete a worktree
   backup        <label> [commit]   keep a ref to a commit, such as before a rebase
@@ -282,6 +284,11 @@ parse_args() {
                 DELETE_BACKUPS=1
                 shift
                 ;;
+            --stop)
+                require_option stop "$1"
+                STOP=1
+                shift
+                ;;
             --)
                 shift
                 ARGS=("${ARGS[@]}" "$@")
@@ -392,6 +399,11 @@ do_serve() {
     local root session
     root="$(target_root "$1")"
     session="$(session_target "$root")"
+
+    if [ "$STOP" -eq 1 ]; then
+        (cd "$root" && scripts/serve --stop)
+        return
+    fi
 
     if [ "$ATTACH" = 1 ]; then
         if tmux has-session -t "$session" 2> /dev/null; then
@@ -775,7 +787,7 @@ do_backups() {
 }
 
 do_remove() {
-    local root session dirty branch head name shared refs count them inside=0
+    local root dirty branch head name shared refs count them inside=0
     root="$(target_root "$1")"
     [ "$root" != "$(primary_root)" ] || die "Refusing to remove the main checkout."
     name="$(worktree_name "$root")"
@@ -793,10 +805,11 @@ do_remove() {
         fi
     fi
 
-    session="$(session_target "$root")"
-    if tmux has-session -t "$session" 2> /dev/null; then
-        tmux kill-session -t "$session"
-        echo "Stopped the dev servers."
+    # Stopped by the worktree's own scripts/serve, which knows how its servers run
+    if [ ! -x "$root/scripts/serve" ]; then
+        echo "Did not stop any dev servers, as $(relpath "$(primary_root)" "$root") has no scripts/serve." >&2
+    elif tmux has-session -t "$(session_target "$root")" 2> /dev/null; then
+        (cd "$root" && scripts/serve --stop) || echo 'Could not stop its dev servers.' >&2
     fi
 
     # Containers outlive the worktree they were started from, and compose cannot stop them once
@@ -945,7 +958,10 @@ case $COMMAND in
         ;;
     serve | s)
         COMMAND=serve
-        parse_args "attach" 1 "$@"
+        parse_args "attach stop" 1 "$@"
+        if [ "$STOP" -eq 1 ] && [ -n "$ATTACH" ]; then
+            die "--stop cannot be combined with --attach or --no-attach."
+        fi
         do_serve "${ARGS[0]}"
         ;;
     list | l | ls)
