@@ -21,6 +21,14 @@ function dismiss() {
   onDismiss?.();
 }
 
+// Only the tooltip, not the dialog it may be in as well
+function dismissOnEscape(event: KeyboardEvent) {
+  if (event.key !== 'Escape') return;
+  event.preventDefault();
+  event.stopPropagation();
+  dismiss();
+}
+
 function calculateTooltipPosition(errorMessage: ErrorMessage) {
   const box = errorMessage.targetBox;
   if (!box) return { left: 0, top: 0 };
@@ -60,10 +68,12 @@ watch(
       errorPosition.value = calculateTooltipPosition(errorMessage);
 
       window.addEventListener('click', dismiss, { capture: true, once: true });
+      window.addEventListener('keydown', dismissOnEscape, { capture: true });
 
       nextTick(adjustMargins);
     } else {
       window.removeEventListener('click', dismiss, { capture: true });
+      window.removeEventListener('keydown', dismissOnEscape, { capture: true });
     }
   },
   { immediate: true },
