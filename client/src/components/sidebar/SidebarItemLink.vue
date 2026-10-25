@@ -27,12 +27,14 @@ const useTextLink = !config.USE_STRAVA_ICONS;
     :class="[$style.sidebarItemLink, useTextLink && $style.textLink]"
     @click.stop
   >
-    <template v-if="useTextLink">
-      View on
-      <br />
-      Strava
-    </template>
-    <img v-else src="@/assets/strava.png" />
+    <span :class="$style.mark">
+      <template v-if="useTextLink">
+        View on
+        <br />
+        Strava
+      </template>
+      <img v-else src="@/assets/strava.png" alt="" />
+    </span>
   </a>
 </template>
 
@@ -42,7 +44,6 @@ const useTextLink = !config.USE_STRAVA_ICONS;
   align-self: stretch;
   width: $size;
   display: flex;
-  overflow: hidden;
   flex-direction: column;
   align-items: stretch;
   justify-content: center;
@@ -52,13 +53,33 @@ const useTextLink = !config.USE_STRAVA_ICONS;
   padding-block: var(--row-block-padding, 0px);
   margin-block: calc(-1 * var(--row-block-padding, 0px));
 
-  > img {
-    flex: 0 0 $size;
-    height: $size;
+  .mark {
+    display: block;
+    // On the mark rather than the link, as a rounded link would lose its corners from the target
+    border-radius: var(--control-border-radius);
+
+    > img {
+      display: block;
+      width: $size;
+      height: $size;
+    }
   }
 
-  &:not(:hover) {
+  // In colour when focused too, as the greyscale would also grey its focus ring
+  &:not(:hover, :focus-visible) {
     filter: grayscale(100%);
+  }
+
+  // Around the logo or text, as the link reaches into the row's padding to the sidebar's edge.
+  // Only the style is moved: the colour stays the browser's, which on the mark would be its text's.
+  &:focus-visible {
+    outline-style: none;
+
+    .mark {
+      outline-style: auto;
+      outline-color: inherit;
+      outline-offset: 2px;
+    }
   }
 
   &.textLink {
