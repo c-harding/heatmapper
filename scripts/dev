@@ -278,12 +278,11 @@ fi
 (
     # split-window needs to name the session: with -d there is no current session, so an
     # untargeted split lands in whichever session invoked this one. It takes a target-pane, where
-    # the "=" of session_target is not accepted; the bare name is still safe, because tmux
-    # resolves an exact session name before trying it as a prefix.
+    # the colon makes session_target's exact name a session.
     # The mode is kept on the session, for a later run and yarn worktree list to read
     tmux new-session $DETACH_FLAG -s "$SESSION_NAME" -c "$PWD/client" "$(wrap yarn dev)" \;\
-         split-window -v -t "$SESSION_NAME"          -c "$PWD/server" "$(wrap "${BACKEND[@]}")" \;\
-         set-option -t "$SESSION_NAME" @mock "$MOCK"
+         split-window -v -t "$SESSION_TARGET:"       -c "$PWD/server" "$(wrap "${BACKEND[@]}")" \;\
+         set-option -t "$SESSION_TARGET:" @mock "$MOCK"
 )
 
 if [ "$SWITCH" -eq 1 ]; then
