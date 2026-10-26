@@ -1,5 +1,5 @@
-import { type BrowserContext } from '@playwright/test';
-import { readFile, writeFile } from 'fs/promises';
+import { type BrowserContext, type Page } from '@playwright/test';
+import { readFile, rm, writeFile } from 'fs/promises';
 import { join } from 'path';
 
 import { SESSIONS_DIR } from '../env';
@@ -8,6 +8,7 @@ import { expect, test } from './test';
 
 interface Session {
   stravaAccessToken?: string;
+  stravaRefreshToken?: string;
   stravaExpiry?: number;
   stravaScope?: string[];
 }
@@ -87,4 +88,44 @@ test('an access token Strava has expired means logging in again', async ({ page,
   await page.reload();
   await loadButton(page).click();
   await expect(loginPrompt(page)).toBeVisible();
+});
+
+const loginCookie = async (context: BrowserContext) =>
+  (await context.cookies()).find(({ name }) => name === 'token');
+
+const reconnectPrompt = (page: Page) =>
+  page.getByText('Your connection to Strava has expired, please reconnect.');
+
+test('a session Strava refuses is reconnected, keeping its cookie', async ({ page, context }) => {
+  const cookie = await loginCookie(context);
+  await editSession(context, (session) => {
+    session.stravaRefreshToken = 'not-one-of-the-mock-s';
+    session.stravaExpiry = 1;
+  });
+
+  await page.reload();
+  await loadButton(page).click();
+  await expect(reconnectPrompt(page)).toBeVisible();
+  // Nothing to choose: the cookie stays as it is
+  await expect(page.getByLabel(/Keep me signed in/)).toBeHidden();
+
+  await logIn(page);
+  await expectAllActivities(page);
+  expect(await loginCookie(context)).toEqual(cookie);
+});
+
+test('a session deleted from the server is reconnected under the same ID', async ({
+  page,
+  context,
+}) => {
+  const cookie = await loginCookie(context);
+  await rm(await sessionFile(context));
+
+  await page.reload();
+  await loadButton(page).click();
+  await expect(reconnectPrompt(page)).toBeVisible();
+
+  await logIn(page);
+  await expectAllActivities(page);
+  expect(await loginCookie(context)).toEqual(cookie);
 });

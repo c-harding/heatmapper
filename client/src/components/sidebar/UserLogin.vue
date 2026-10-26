@@ -1,6 +1,11 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 
+const { reconnect = false } = defineProps<{
+  /** Renewing the session this browser already has, whose cookie stays as it is */
+  reconnect?: boolean;
+}>();
+
 const emit = defineEmits<{
   login: [keepSignedIn: boolean];
 }>();
@@ -11,14 +16,15 @@ const keepSignedIn = ref(true);
 <template>
   <div :class="$style.notLoggedInContainer">
     <div :class="$style.notLoggedIn">
-      <p>You are not logged in. Click to continue to log in with Strava.</p>
+      <p v-if="reconnect">Your connection to Strava has expired, please reconnect.</p>
+      <p v-else>You are not logged in. Click to continue to log in with Strava.</p>
       <img
         :class="$style.connectToStrava"
         src="@/assets/connect-to-strava.svg"
         @click="emit('login', keepSignedIn)"
       />
 
-      <label>
+      <label v-if="!reconnect">
         <input v-model="keepSignedIn" type="checkbox" />
         <div>
           <p>Keep me signed in</p>

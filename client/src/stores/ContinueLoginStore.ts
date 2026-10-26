@@ -22,6 +22,9 @@ export const useContinueLoginStore = defineStore('continueLogin', () => {
   /** The token that the login prompt is for */
   let promptToken: string | undefined;
 
+  /** Whether the login prompt renews the session in the cookie, rather than starting one */
+  const reconnecting = ref(false);
+
   const waiting = new Map<string, Wait[]>();
   const messageHandlers = new Map<string, (e: MessageEvent<string>) => void>();
 
@@ -44,6 +47,7 @@ export const useContinueLoginStore = defineStore('continueLogin', () => {
       if (promptToken === token) {
         continueLogin.value = undefined;
         promptToken = undefined;
+        reconnecting.value = false;
       }
     }
 
@@ -52,11 +56,15 @@ export const useContinueLoginStore = defineStore('continueLogin', () => {
 
   function waitForLogin(token: string, location: string, origin: LoginOrigin) {
     promptToken = token;
+    reconnecting.value = token === cookieToken();
     continueLogin.value = (keepSignedIn = true) => {
-      // Without a max-age, the cookie lasts until the browser closes
-      const lifetime = keepSignedIn ? ';max-age=31536000' : '';
-      const secure = window.location.protocol === 'https:' ? ';Secure' : '';
-      document.cookie = `token=${token};SameSite=Lax${secure}${lifetime}`;
+      // A reconnection keeps the cookie it has, and so how long that lasts
+      if (token !== cookieToken()) {
+        // Without a max-age, the cookie lasts until the browser closes
+        const lifetime = keepSignedIn ? ';max-age=31536000' : '';
+        const secure = window.location.protocol === 'https:' ? ';Secure' : '';
+        document.cookie = `token=${token};SameSite=Lax${secure}${lifetime}`;
+      }
       if (!messageHandlers.has(token)) {
         const messageHandler = (e: MessageEvent<string>) => {
           if (e.data === 'heatmapper:logged-in') loggedIn(token);
@@ -74,6 +82,7 @@ export const useContinueLoginStore = defineStore('continueLogin', () => {
 
   return {
     continueLogin,
+    reconnecting,
 
     waitForLogin,
     loggedIn,

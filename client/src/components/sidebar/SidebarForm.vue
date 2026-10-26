@@ -3,6 +3,7 @@ import { computed, ref, watch } from 'vue';
 
 import { useExpandableGroups } from '@/services/useExpandableGroups';
 import { useActivityStore } from '@/stores/ActivityStore';
+import { useContinueLoginStore } from '@/stores/ContinueLoginStore';
 import { useUserStore } from '@/stores/UserStore';
 import { combineCallbacks } from '@/utils/functions';
 import { useResettingRef } from '@/utils/resetting-ref';
@@ -32,6 +33,7 @@ const end = ref<Date>();
 const activityStore = useActivityStore();
 
 const userStore = useUserStore();
+const continueLoginStore = useContinueLoginStore();
 
 const continueLogin = computed(() =>
   combineCallbacks([userStore.continueLogin, activityStore.continueLogin]),
@@ -130,7 +132,11 @@ watch([start, end, () => activityStore.useRoutes], () => {
         <UIButton icon="settings" @click="settingsButton"> User </UIButton>
       </div>
     </div>
-    <UserLogin v-if="continueLogin" @login="continueLogin($event)" />
+    <UserLogin
+      v-if="continueLogin"
+      :reconnect="continueLoginStore.reconnecting"
+      @login="continueLogin($event)"
+    />
     <LoadingStatus v-else :useRoutes="activityStore.useRoutes" :error="activityStore.error" />
     <UIVerticalTabContainer v-slot="{ makeTab }">
       <SidebarDateFilter v-model:start="start" v-model:end="end" :tab="makeTab('dates')" />
