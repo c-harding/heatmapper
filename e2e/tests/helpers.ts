@@ -1,6 +1,8 @@
-import { expect, type Page } from '@playwright/test';
+import { type BrowserContext, expect, type Locator, type Page } from '@playwright/test';
+import { readFile, writeFile } from 'fs/promises';
+import { join } from 'path';
 
-import { DAY, MOCK_NOW, OLDEST_ACTIVITY, SERVER_URL } from '../env';
+import { DAY, MOCK_NOW, OLDEST_ACTIVITY, SERVER_URL, SESSIONS_DIR } from '../env';
 import { mockActivities } from './data';
 
 export interface MockRequest {
@@ -55,19 +57,50 @@ export function activityCount(now = MOCK_NOW): number {
   return today - first + (startedToday ? 1 : 0);
 }
 
-export const loginPrompt = (page: Page) => page.locator('img[src*="connect-to-strava"]');
+/** The sidebar's, as the calendar's reconnect dialog shows the same image */
+export const loginPrompt = (page: Page) => page.locator('aside img[src*="connect-to-strava"]');
+
+export interface Session {
+  stravaAccessToken?: string;
+  stravaRefreshToken?: string;
+  stravaExpiry?: number;
+  stravaScope?: string[];
+}
+
+/** The server's saved session for this browser, found by its login cookie */
+export async function sessionFile(context: BrowserContext) {
+  const token = (await context.cookies()).find(({ name }) => name === 'token')?.value;
+  expect(token).toBeTruthy();
+  return join(SESSIONS_DIR, `${token}.json`);
+}
+
+export async function readSession(context: BrowserContext): Promise<Session> {
+  return JSON.parse(await readFile(await sessionFile(context), 'utf-8')) as Session;
+}
+
+export async function editSession(context: BrowserContext, edit: (session: Session) => void) {
+  const session = await readSession(context);
+  edit(session);
+  await writeFile(await sessionFile(context), JSON.stringify(session));
+}
 
 export const loadButton = (page: Page) => page.getByRole('button', { name: /^(Load|Reload)$/ });
 
 /** The totals above the list, which count up as pages arrive */
 export const totals = (page: Page) => page.getByText(/^[\d,]+ (activit(y|ies)|routes?)$/).first();
 
-/** Open the consent form from the login prompt, leaving it to the caller */
-export async function openConsent(page: Page, { keepSignedIn = true } = {}) {
-  await expect(loginPrompt(page)).toBeVisible();
+/** Open the consent form from a login prompt, the sidebar's unless given, leaving it to the caller */
+export async function openConsent(
+  page: Page,
+  {
+    keepSignedIn = true,
+    prompt = loginPrompt(page),
+  }: { keepSignedIn?: boolean; prompt?: Locator } = {},
+) {
+  await expect(prompt).toBeVisible();
   if (!keepSignedIn) await page.getByLabel(/Keep me signed in/).uncheck();
   const popup = page.waitForEvent('popup');
-  await loginPrompt(page).click();
+  await prompt.click();
   const consent = await popup;
   await expect(consent.getByRole('button', { name: 'Authorize' })).toBeVisible();
   return consent;
@@ -76,7 +109,7 @@ export async function openConsent(page: Page, { keepSignedIn = true } = {}) {
 /** Log in through the popup, as most people do, leaving out any scopes in `untick` */
 export async function logIn(
   page: Page,
-  { untick = [], ...options }: { keepSignedIn?: boolean; untick?: string[] } = {},
+  { untick = [], ...options }: { keepSignedIn?: boolean; prompt?: Locator; untick?: string[] } = {},
 ) {
   const consent = await openConsent(page, options);
   for (const scope of untick) {

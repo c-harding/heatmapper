@@ -1,31 +1,17 @@
 import { type BrowserContext, type Page } from '@playwright/test';
-import { readFile, rm, writeFile } from 'fs/promises';
-import { join } from 'path';
+import { rm } from 'fs/promises';
 
-import { SESSIONS_DIR } from '../env';
-import { expectAllActivities, loadButton, logIn, loginPrompt, mockRequests } from './helpers';
+import {
+  editSession,
+  expectAllActivities,
+  loadButton,
+  logIn,
+  loginPrompt,
+  mockRequests,
+  readSession,
+  sessionFile,
+} from './helpers';
 import { expect, test } from './test';
-
-interface Session {
-  stravaAccessToken?: string;
-  stravaRefreshToken?: string;
-  stravaExpiry?: number;
-  stravaScope?: string[];
-}
-
-/** The server's saved session for this browser, found by its login cookie */
-async function sessionFile(context: BrowserContext) {
-  const token = (await context.cookies()).find(({ name }) => name === 'token')?.value;
-  expect(token).toBeTruthy();
-  return join(SESSIONS_DIR, `${token}.json`);
-}
-
-async function editSession(context: BrowserContext, edit: (session: Session) => void) {
-  const file = await sessionFile(context);
-  const session = JSON.parse(await readFile(file, 'utf-8')) as Session;
-  edit(session);
-  await writeFile(file, JSON.stringify(session));
-}
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/');
@@ -52,7 +38,7 @@ test('an access token past its expiry is refreshed without logging in again', as
   await expect(loginPrompt(page)).toBeHidden();
 
   expect(await mockRequests(since, '/oauth/token')).toHaveLength(1);
-  const session = JSON.parse(await readFile(await sessionFile(context), 'utf-8')) as Session;
+  const session = await readSession(context);
   expect(session.stravaAccessToken).not.toBe(expired);
   expect(session.stravaExpiry).toBeGreaterThan(Date.now() / 1000);
 });

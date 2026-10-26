@@ -4,7 +4,7 @@ import { ref } from 'vue';
 export type ContinueLogin = (keepSignedIn: boolean) => void;
 
 /** What asked for a login: each can only prove its own login has gone through */
-export type LoginOrigin = 'user' | 'socket';
+export type LoginOrigin = 'user' | 'socket' | 'calendar';
 
 /** The token in the login cookie, if there is one */
 export function cookieToken(): string | undefined {
@@ -33,6 +33,16 @@ export const useContinueLoginStore = defineStore('continueLogin', () => {
    * complete, which finishes every wait.
    */
   function loggedIn(token: string, origin?: LoginOrigin) {
+    endWaits(token, origin).forEach((wait) => wait.resolve(token));
+  }
+
+  /** Give up one origin's wait for a login, keeping the prompt for any other still waiting */
+  function cancelLogin(token: string, origin: LoginOrigin) {
+    endWaits(token, origin);
+  }
+
+  /** Take the waits for a token's login, from one origin or all, and the prompt with the last */
+  function endWaits(token: string, origin?: LoginOrigin): Wait[] {
     const waits = waiting.get(token) ?? [];
     const finished = waits.filter((wait) => !origin || wait.origin === origin);
     const remaining = waits.filter((wait) => !finished.includes(wait));
@@ -51,7 +61,7 @@ export const useContinueLoginStore = defineStore('continueLogin', () => {
       }
     }
 
-    finished.forEach((wait) => wait.resolve(token));
+    return finished;
   }
 
   function waitForLogin(token: string, location: string, origin: LoginOrigin) {
@@ -86,5 +96,6 @@ export const useContinueLoginStore = defineStore('continueLogin', () => {
 
     waitForLogin,
     loggedIn,
+    cancelLogin,
   };
 });

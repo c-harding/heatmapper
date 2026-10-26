@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { type UserInfo } from '@strava-heatmapper/shared/interfaces';
 
+import { useCalendarStore } from '@/stores/CalendarStore';
 import { useResettingRef } from '@/utils/resetting-ref';
 
 import { TooltipError } from '../tooltip/TooltipError';
@@ -21,6 +22,8 @@ function subscribe(url: string) {
 
 const copied = useResettingRef(false, 2000);
 
+const calendarStore = useCalendarStore();
+
 async function copy(url: string) {
   try {
     await navigator.clipboard.writeText(url);
@@ -37,7 +40,7 @@ async function copy(url: string) {
       Your activities are available as a calendar. Calendar apps usually check for new ones every
       few hours.
     </p>
-    <div :class="$style.subscribe">
+    <div :class="$style.action">
       <UIButton icon="calendar_today" @click="subscribe(user.calendarUrls.webcal)">
         Subscribe in a calendar app
       </UIButton>
@@ -63,17 +66,22 @@ async function copy(url: string) {
       </UIButton>
     </div>
   </template>
-  <p v-else>
-    See your activities in Apple Calendar, Google Calendar or Outlook, kept up to date. The link is
-    private: anyone who has it can see your activities.
-  </p>
+  <template v-else>
+    <p>
+      See your activities in Apple Calendar, Google Calendar or Outlook, kept up to date. The link
+      is private: anyone who has it can see your activities.
+    </p>
+    <div :class="$style.action">
+      <UIButton @click="calendarStore.create()">Create calendar link</UIButton>
+    </div>
+  </template>
   <p>
     <UIExternalLink href="/calendar">Manage your calendar link</UIExternalLink>
   </p>
 </template>
 
 <style module lang="scss">
-.subscribe {
+.action {
   margin-inline: -0.5rem;
   margin-block: 1rem;
 }

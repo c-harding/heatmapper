@@ -3,6 +3,7 @@ import { computed, ref, watch } from 'vue';
 
 import { useExpandableGroups } from '@/services/useExpandableGroups';
 import { useActivityStore } from '@/stores/ActivityStore';
+import { useCalendarStore } from '@/stores/CalendarStore';
 import { useContinueLoginStore } from '@/stores/ContinueLoginStore';
 import { useUserStore } from '@/stores/UserStore';
 import { combineCallbacks } from '@/utils/functions';
@@ -17,6 +18,7 @@ import UIButtonGroup from '../ui/UIButtonGroup.vue';
 import UILabelledIcon from '../ui/UILabelledIcon.vue';
 import UIModal from '../ui/UIModal.vue';
 import UIMultiText from '../ui/UIMultiText.vue';
+import CalendarReconnect from './CalendarReconnect.vue';
 import controlsStyle from './controls.module.scss';
 import LoadingStatus from './LoadingStatus.vue';
 import SettingsContainer from './SettingsContainer.vue';
@@ -40,6 +42,19 @@ const continueLogin = computed(() =>
 );
 
 const settingsOpen = ref(false);
+
+const calendarStore = useCalendarStore();
+// A calendar link waiting for a reconnection takes the settings' place, which then show it
+watch(
+  () => calendarStore.awaitingReconnect,
+  (awaiting) => {
+    if (awaiting) settingsOpen.value = false;
+  },
+);
+watch(
+  () => calendarStore.reconnected,
+  () => (settingsOpen.value = true),
+);
 
 function onLogout(): void {
   document.cookie = `token=;expires=${new Date(0).toUTCString()}`;
@@ -132,8 +147,9 @@ watch([start, end, () => activityStore.useRoutes], () => {
         <UIButton icon="settings" @click="settingsButton"> Settings </UIButton>
       </div>
     </div>
+    <!-- Not while the calendar's reconnect dialog asks for the same login -->
     <UserLogin
-      v-if="continueLogin"
+      v-if="continueLogin && !calendarStore.awaitingReconnect"
       :reconnect="continueLoginStore.reconnecting"
       @login="continueLogin($event)"
     />
@@ -150,6 +166,7 @@ watch([start, end, () => activityStore.useRoutes], () => {
   <UIModal v-if="userStore.user" v-model="settingsOpen" :class="$style.modal" heading="Settings">
     <SettingsContainer :user="userStore.user" @logout="onLogout" />
   </UIModal>
+  <CalendarReconnect />
 </template>
 
 <style module lang="scss">
