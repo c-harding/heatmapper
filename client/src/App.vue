@@ -127,6 +127,8 @@ a[href] {
   --transition-speed: 0.5s;
   --transition-ease: ease-in-out;
   --bold-color: #fc4c02;
+  --danger-color: #cf222e;
+  --danger-fill: #cf222e;
   --link-color: blue;
   --control-border-radius: 7px;
   --surface-border-radius: 1rem;
@@ -152,6 +154,8 @@ a[href] {
     --background-pure: #000;
     --background-error: hsl(0 90% 30%);
     --bold-color: #fc4c02;
+    --danger-color: #ffa198;
+    --danger-fill: #b62324;
     --link-color: lightblue;
     color-scheme: dark;
   }

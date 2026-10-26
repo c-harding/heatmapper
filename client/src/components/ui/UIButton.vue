@@ -20,6 +20,7 @@ const {
   disabled = false,
   ghost = false,
   light = false,
+  danger = false,
   onClick,
   onDblClick,
   onRejection,
@@ -31,6 +32,7 @@ const {
   disabled?: boolean;
   light?: boolean;
   ghost?: boolean;
+  danger?: boolean;
   onClick?: () => void | Promise<void>;
   onDblClick?: () => void | Promise<void>;
   onRejection?: (value: ButtonError) => string | void;
@@ -74,6 +76,7 @@ async function clickHandler(e: MouseEvent) {
       invertColor && $style.invertColor,
       ghost && $style.ghost,
       light && !invertColor && $style.light,
+      danger && $style.danger,
     ]"
     :disabled="loading || disabled"
     :loading
@@ -155,6 +158,21 @@ button.button {
 
       .buttonContents {
         background-color: unset;
+      }
+    }
+  }
+
+  // Red text and border, filled red on hover
+  &.danger:not(:disabled) {
+    color: var(--danger-color);
+    border-color: var(--danger-color);
+
+    &:hover {
+      border-color: var(--danger-fill);
+
+      .buttonContents {
+        background-color: var(--danger-fill);
+        color: white;
       }
     }
   }

@@ -59,7 +59,9 @@ const logout = async (global = false) => {
   <div :class="$style.flexLine">
     <p v-if="otherSessions">You are signed in in {{ countOtherSessions(otherSessions) }}.</p>
     <p v-else>You are not signed in anywhere else.</p>
-    <UIButton :disabled="!otherSessions" @click="logout(true)"> Sign out everywhere </UIButton>
+    <UIButton danger :disabled="!otherSessions" @click="logout(true)">
+      Sign out everywhere
+    </UIButton>
   </div>
 </template>
 
