@@ -50,8 +50,8 @@ export async function contextWithAllFilters(browser: Browser, options?: BrowserC
   return context;
 }
 
-/** A token for the mock's API with every scope, got the way the app gets one, minus the browser */
-async function token(): Promise<string> {
+/** Tokens for the mock's API with every scope, got the way the app gets them, minus the browser */
+export async function mockTokens(): Promise<{ access: string; refresh: string }> {
   const form = new URLSearchParams({
     redirect_uri: `${CLIENT_URL}/api/token`,
     state: 'e2e',
@@ -70,8 +70,11 @@ async function token(): Promise<string> {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ grant_type: 'authorization_code', code }),
   });
-  return ((await response.json()) as { access_token: string }).access_token;
+  const tokens = (await response.json()) as { access_token: string; refresh_token: string };
+  return { access: tokens.access_token, refresh: tokens.refresh_token };
 }
+
+const token = async () => (await mockTokens()).access;
 
 /** One request to the mock's API, as the backend would make it */
 export async function mockApi<T>(path: string, query: Record<string, string | number>): Promise<T> {

@@ -7,6 +7,7 @@ import {
 } from '@strava-heatmapper/shared/config/dotenv';
 import { randomBytes } from 'crypto';
 import express, { type Request, type RequestHandler, type Response } from 'express';
+import { STATUS_CODES } from 'http';
 
 import { allActivities, allGear, allRoutes, ATHLETE } from './data';
 
@@ -166,6 +167,72 @@ export default function mockStravaRouter(): express.Router {
 
   router.get('/_log', (_req, res) => {
     res.json(log);
+  });
+
+  /**
+   * Failures tests asked for, each for a token of the session it set them up for, so that tests
+   * running alongside are unaffected, and optionally only on some paths. The first that matches a
+   * request is used, so several for one token play out in the order they were asked for.
+   */
+  const failures: { token: string; paths?: string[]; status: number | 'drop'; times: number }[] = [];
+
+  /** A path or paths, as given in a request to /_fail */
+  const pathsOf = (path: unknown) =>
+    typeof path === 'string'
+      ? [path]
+      : Array.isArray(path) && path.every((p) => typeof p === 'string')
+        ? path
+        : undefined;
+
+  router.post('/_fail', (req, res) => {
+    const { token, path, status, times = 1 } = req.body as Record<string, unknown>;
+    const paths = pathsOf(path);
+    const valid =
+      typeof token === 'string' &&
+      (path === undefined || paths) &&
+      (status === 'drop' || Number.isInteger(status)) &&
+      Number.isInteger(times);
+    if (!valid) {
+      res.status(400).send('Send a token, optionally a path or paths, a status (or "drop") and how many times');
+      return;
+    }
+    failures.push({ token, paths, status: status as number | 'drop', times: times as number });
+    res.status(204).send();
+  });
+
+  // Every failure for the token given, and naming one of the paths given; all of them without either
+  router.delete('/_fail', (req, res) => {
+    const { token, path } = (req.body ?? {}) as Record<string, unknown>;
+    const paths = pathsOf(path);
+    if ((token !== undefined && typeof token !== 'string') || (path !== undefined && !paths)) {
+      res.status(400).send('Send a token, a path or paths, or neither');
+      return;
+    }
+    const removed = (failure: (typeof failures)[number]) =>
+      (token === undefined || failure.token === token) &&
+      (!paths || failure.paths?.some((failing) => paths.includes(failing)) === true);
+    failures.splice(0, failures.length, ...failures.filter((failure) => !removed(failure)));
+    res.status(204).send();
+  });
+
+  // A refresh sends its refresh token, and every other request its access token
+  router.use((req, res, next) => {
+    const body = req.body as { refresh_token?: unknown } | undefined;
+    const token =
+      req.headers.authorization?.match(/^Bearer\s+(\S+)$/i)?.[1] ??
+      (typeof body?.refresh_token === 'string' ? body.refresh_token : undefined);
+    const index = failures.findIndex(
+      (failure) => failure.token === token && (!failure.paths || failure.paths.includes(req.path)),
+    );
+    if (index === -1) {
+      next();
+      return;
+    }
+    const failure = failures[index];
+    if (--failure.times <= 0) failures.splice(index, 1);
+    // Unanswered, as when Strava can't be reached
+    if (failure.status === 'drop') req.socket.destroy();
+    else res.status(failure.status).json({ message: STATUS_CODES[failure.status] ?? 'Error', errors: [] });
   });
 
   router.get('/avatar.svg', (_req, res) => {

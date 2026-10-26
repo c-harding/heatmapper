@@ -139,6 +139,12 @@ It can then be reentered with `yarn dev`, or `tmux attach`.
 Run the Playwright tests in `e2e/` against the mock of Strava, on servers of their own (ports 18080 and 18081, or `E2E_SERVER_PORT` and `E2E_CLIENT_PORT`).
 They need Chromium, downloaded once per machine with `yarn --cwd=e2e playwright install chromium`.
 
+For the tests, the mock also answers two routes of its own.
+`GET /mock-strava/_log` lists the requests it has had (`mockRequests()` in `e2e/tests/helpers.ts`).
+`POST /mock-strava/_fail` with `{ token, path?, status, times? }` makes the next `times` requests (1 by default) sent with that refresh or access token, on that path or those paths if given, answer `status`, or go unanswered with `"drop"`; several for one token play out in order.
+`DELETE /mock-strava/_fail` with `{ token?, path? }` withdraws those for that token and naming those paths, or all of them (`failMock()` and `clearMockFailures()`).
+Keyed to one session's token, a failure leaves tests running alongside unaffected.
+
 #### Scripts to be run inside each project
 
 The following scripts can be run in either the frontend or the backend projects.

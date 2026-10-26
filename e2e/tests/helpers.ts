@@ -10,6 +10,34 @@ export interface MockRequest {
   query: Record<string, string>;
 }
 
+/**
+ * Make the mock fail the next requests sent with a token, optionally only on some paths, as a
+ * status or by dropping the connection. Scoped to one session's token, so that other tests are
+ * unaffected; several for one token play out in the order asked for.
+ */
+export async function failMock(
+  token: string,
+  status: number | 'drop',
+  { times = 1, path }: { times?: number; path?: string | string[] } = {},
+) {
+  const response = await fetch(`${SERVER_URL}/mock-strava/_fail`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ token, path, status, times }),
+  });
+  expect(response.status).toBe(204);
+}
+
+/** Withdraw the mock's failures for a token and the paths given, or all of them */
+export async function clearMockFailures(only: { token?: string; path?: string | string[] } = {}) {
+  const response = await fetch(`${SERVER_URL}/mock-strava/_fail`, {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(only),
+  });
+  expect(response.status).toBe(204);
+}
+
 /** The requests the mock of Strava has had since a time */
 export async function mockRequests(since: Date, path?: string): Promise<MockRequest[]> {
   const response = await fetch(`${SERVER_URL}/mock-strava/_log`);
