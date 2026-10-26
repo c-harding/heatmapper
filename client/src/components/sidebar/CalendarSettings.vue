@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { type UserInfo } from '@strava-heatmapper/shared/interfaces';
+import { ref } from 'vue';
 
 import { useCalendarStore } from '@/stores/CalendarStore';
 import { useResettingRef } from '@/utils/resetting-ref';
@@ -8,6 +9,7 @@ import { TooltipError } from '../tooltip/TooltipError';
 import UIButton from '../ui/UIButton.vue';
 import UIExternalLink from '../ui/UIExternalLink.vue';
 import UILabelledIcon from '../ui/UILabelledIcon.vue';
+import UIModal from '../ui/UIModal.vue';
 import UIMultiText from '../ui/UIMultiText.vue';
 import UITextField from '../ui/UITextField.vue';
 
@@ -23,6 +25,17 @@ function subscribe(url: string) {
 const copied = useResettingRef(false, 2000);
 
 const calendarStore = useCalendarStore();
+
+const confirmingDelete = ref(false);
+
+function confirmDelete(open: boolean) {
+  confirmingDelete.value = open;
+}
+
+async function deleteCalendar() {
+  await calendarStore.deleteCalendar();
+  confirmingDelete.value = false;
+}
 
 async function copy(url: string) {
   try {
@@ -65,6 +78,10 @@ async function copy(url: string) {
         </UIMultiText>
       </UIButton>
     </div>
+    <div :class="$style.deleteLine">
+      <div>Deleting the link stops every calendar subscribed to it.</div>
+      <UIButton danger @click="confirmDelete(true)">Delete link</UIButton>
+    </div>
   </template>
   <template v-else>
     <p>
@@ -78,9 +95,37 @@ async function copy(url: string) {
   <p>
     <UIExternalLink href="/calendar">Manage your calendar link</UIExternalLink>
   </p>
+  <UIModal v-model="confirmingDelete" heading="Delete this calendar link?">
+    <p>
+      Calendars subscribed to it will stop updating. You can create a new link at any time, at a new
+      address.
+    </p>
+    <div :class="$style.confirmButtons">
+      <UIButton @click="confirmDelete(false)">Cancel</UIButton>
+      <UIButton danger @click="deleteCalendar">Delete link</UIButton>
+    </div>
+  </UIModal>
 </template>
 
 <style module lang="scss">
+// As the user settings' rows: the sentence, then its button at the end
+.deleteLine {
+  margin-inline-end: -0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+
+  > button {
+    margin-inline-start: auto;
+  }
+}
+
+.confirmButtons {
+  display: flex;
+  justify-content: flex-end;
+  margin-inline-end: -0.5rem;
+}
+
 .action {
   margin-inline: -0.5rem;
   margin-block: 1rem;

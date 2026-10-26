@@ -13,11 +13,9 @@ import {
 import { expect, test } from './test';
 
 const settingsButton = (page: Page) => page.getByRole('button', { name: 'Settings' });
-/** A dialog by its heading, which doesn't name it */
+/** A dialog by its own heading, which doesn't name it, and not one it holds */
 const dialog = (page: Page, heading: string) =>
-  page
-    .getByRole('dialog')
-    .filter({ has: page.getByRole('heading', { name: heading, exact: true }) });
+  page.locator('dialog').filter({ has: page.locator(':scope > h2', { hasText: heading }) });
 const settings = (page: Page) => dialog(page, 'Settings');
 const reconnect = (page: Page) => dialog(page, 'Reconnect to Strava');
 const createButton = (page: Page) =>
@@ -109,4 +107,46 @@ test('dismissing the reconnection gives it up, and creates nothing', async ({ pa
 
   await settingsButton(page).click();
   await expect(createButton(page)).toBeVisible();
+});
+
+const confirmation = (page: Page) => dialog(page, 'Delete this calendar link?');
+
+test.describe('with a link', () => {
+  test.beforeEach(async ({ page }) => {
+    await createButton(page).click();
+    await expect(settings(page).getByRole('button', { name: 'Delete link' })).toBeVisible();
+    await settings(page).getByRole('button', { name: 'Delete link' }).click();
+    await expect(confirmation(page)).toContainText(
+      'Calendars subscribed to it will stop updating.',
+    );
+  });
+
+  test('deleting it after confirming offers to create one again', async ({ page }) => {
+    await confirmation(page).getByRole('button', { name: 'Delete link' }).click();
+    await expect(confirmation(page)).toBeHidden();
+    await expect(createButton(page)).toBeVisible();
+  });
+
+  test('cancelling keeps it', async ({ page }) => {
+    await confirmation(page).getByRole('button', { name: 'Cancel' }).click();
+    await expect(confirmation(page)).toBeHidden();
+    await expect(
+      settings(page).getByRole('button', { name: 'Subscribe in a calendar app' }),
+    ).toBeVisible();
+  });
+
+  test('a failed delete says so on the button, keeps it, and can be retried', async ({ page }) => {
+    await page.route('/api/calendar', (route) =>
+      route.request().method() === 'DELETE' ? route.fulfill({ status: 500 }) : route.fallback(),
+    );
+    await confirmation(page).getByRole('button', { name: 'Delete link' }).click();
+    await expect(page.getByRole('alert')).toMatchAriaSnapshot(
+      '- alert: Cannot delete the link, please try again later',
+    );
+    await expect(confirmation(page)).toBeVisible();
+
+    await page.unroute('/api/calendar');
+    await confirmation(page).getByRole('button', { name: 'Delete link' }).click();
+    await expect(createButton(page)).toBeVisible();
+  });
 });

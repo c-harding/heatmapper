@@ -60,6 +60,24 @@ export const useCalendarStore = defineStore('calendar', () => {
     await userStore.getUser();
   }
 
+  /** Deletes the calendar link, so that calendars subscribed to it stop updating */
+  async function deleteCalendar(): Promise<void> {
+    let response: Response;
+    try {
+      response = await fetch('/api/calendar', { method: 'DELETE' });
+    } catch (cause) {
+      throw new TooltipError('Cannot reach Heatmapper, please check your connection', {
+        timeout: 0,
+        cause,
+      });
+    }
+    // Without a session there is no calendar either, and fetching the user asks for a login
+    if (!response.ok && response.status !== 401) {
+      throw new TooltipError('Cannot delete the link, please try again later', { timeout: 0 });
+    }
+    await userStore.getUser();
+  }
+
   /** Gives up on the link and its login, which nothing else then asks for */
   function dismissReconnect() {
     if (waiting) continueLoginStore.cancelLogin(waiting.token, 'calendar');
@@ -71,6 +89,7 @@ export const useCalendarStore = defineStore('calendar', () => {
     awaitingReconnect,
     reconnected,
     create,
+    deleteCalendar,
     dismissReconnect,
   };
 });
