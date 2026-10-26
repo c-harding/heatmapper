@@ -123,12 +123,14 @@ a[href] {
   --background-strong: #eee;
   --background-full: #fff;
   --background-pure: #fff;
-  --background-error: hsl(0 90% 90%);
+  --background-error: #ffebe9;
   --transition-speed: 0.5s;
   --transition-ease: ease-in-out;
   --bold-color: #fc4c02;
   --danger-color: #cf222e;
   --danger-fill: #cf222e;
+  --backdrop-color: rgb(0 0 0 / 25%);
+  --shadow-color: rgb(0 0 0 / 10%);
   --link-color: blue;
   --control-border-radius: 7px;
   --surface-border-radius: 1rem;
@@ -156,6 +158,9 @@ a[href] {
     --bold-color: #fc4c02;
     --danger-color: #ffa198;
     --danger-fill: #b62324;
+    /* Darker, as the page behind is dark already */
+    --backdrop-color: rgb(0 0 0 / 50%);
+    --shadow-color: rgb(0 0 0 / 60%);
     --link-color: lightblue;
     color-scheme: dark;
   }

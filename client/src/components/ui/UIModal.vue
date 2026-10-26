@@ -73,10 +73,10 @@ dialog.uiModal {
   color: var(--color-full);
   overflow: visible;
 
-  filter: drop-shadow(0 1em 2em color-mix(in srgb, var(--color-full) 10%, transparent));
+  filter: drop-shadow(0 1em 2em var(--shadow-color));
 
   &::backdrop {
-    background-color: color-mix(in srgb, var(--color-full) 10%, transparent);
+    background-color: var(--backdrop-color);
   }
 
   .closeButton {

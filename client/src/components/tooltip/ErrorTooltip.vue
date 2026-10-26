@@ -92,7 +92,7 @@ const cssVars = computed(() => ({
     <Transition>
       <div v-if="errorMessage" :class="$style.errorContainer" :style="cssVars">
         <div ref="tooltipRef" role="alert" :class="$style.errorTooltip" :style="marginAdjustments">
-          <UIIcon inline icon="warning" />
+          <UIIcon inline icon="warning" :class="$style.icon" />
           {{ errorMessage.message }}
         </div>
         <div :class="$style.tail" />
@@ -109,7 +109,7 @@ $arrow-height: 8px;
   display: flex;
   flex-direction: column;
   transform: translate(-50%, -100%);
-  filter: drop-shadow(0 0.5em 1em color-mix(in srgb, var(--color-full) 50%, transparent));
+  filter: drop-shadow(0 0.5em 1em rgb(0 0 0 / 50%));
 
   align-items: center;
 
@@ -134,6 +134,7 @@ $arrow-height: 8px;
 
 .errorTooltip {
   background: var(--background-error);
+  color: var(--color-full);
   border-radius: 0.5em;
   padding: 0.5em;
   box-sizing: border-box;
@@ -144,6 +145,10 @@ $arrow-height: 8px;
 
   max-width: max-content;
   width: min(20em, 100vw - 2 * var(--min-padding) * 1px);
+}
+
+.icon {
+  color: var(--danger-color);
 }
 
 .tail {
