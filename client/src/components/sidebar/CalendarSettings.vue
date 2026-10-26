@@ -7,7 +7,6 @@ import { useResettingRef } from '@/utils/resetting-ref';
 
 import { TooltipError } from '../tooltip/TooltipError';
 import UIButton from '../ui/UIButton.vue';
-import UIExternalLink from '../ui/UIExternalLink.vue';
 import UILabelledIcon from '../ui/UILabelledIcon.vue';
 import UIModal from '../ui/UIModal.vue';
 import UIMultiText from '../ui/UIMultiText.vue';
@@ -92,9 +91,6 @@ async function copy(url: string) {
       <UIButton @click="calendarStore.create()">Create calendar link</UIButton>
     </div>
   </template>
-  <p>
-    <UIExternalLink href="/calendar">Manage your calendar link</UIExternalLink>
-  </p>
   <UIModal v-model="confirmingDelete" heading="Delete this calendar link?">
     <p>
       Calendars subscribed to it will stop updating. You can create a new link at any time, at a new
