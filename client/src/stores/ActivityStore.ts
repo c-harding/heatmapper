@@ -555,6 +555,27 @@ export const useActivityStore = defineStore('activity', () => {
     await socket.completion();
   }
 
+  if (config.VALIDATE_USER_BEFORE_CACHE) {
+    // A login asked for means the cache may no longer be the user's to see
+    watch(
+      () => continueLoginStore.continueLogin,
+      async (pending) => {
+        const { version, user } = await getStoreMeta();
+        // Nothing cached, as on a first visit, whose login then carries on into its load
+        if (!pending || user === -1) return;
+        // Not cancelling the load that asked: the server would stop waiting for its login. Its
+        // ranges are recorded as it stores them, so the next load fills in the rest.
+        allActivities.value = [];
+        allRoutes.value = [];
+        gear.clear();
+        activityStats.value = { cleared: true, inCache: false };
+        routeStats.value = { cleared: true, inCache: false };
+        // Keeps the version and user, which the handshake after the login checks
+        await resetStore(version, user);
+      },
+    );
+  }
+
   async function load(partial: boolean, start?: Date, end?: Date): Promise<void> {
     await sockets({ partial, routes: useRoutes.value, activities: !useRoutes.value, start, end });
   }
