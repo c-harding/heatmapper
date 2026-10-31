@@ -27,11 +27,12 @@
   "sources": {
     "pois": null,
     "networks": null,
-    "mapbox-dem": {
-      "url": "mapbox://mapbox.mapbox-terrain-dem-v1",
+    "mapterhorn": {
       "type": "raster-dem",
-      "tileSize": 256,
-      "maxzoom": 14
+      "tiles": ["https://tiles.mapterhorn.com/{z}/{x}/{y}.webp"],
+      "tileSize": 512,
+      "encoding": "terrarium",
+      "attribution": "<a href=\"https://mapterhorn.com/attribution\">© Mapterhorn</a>"
     }
   },
   "layers": {
@@ -43,7 +44,7 @@
     },
     "hillshade": {
       "type": "hillshade",
-      "source": "mapbox-dem",
+      "source": "mapterhorn",
       "source-layer": null,
       "paint": {
         "fill-color": null,

@@ -1375,6 +1375,7 @@ __metadata:
     express: "npm:^5.2.1"
     express-ws: "npm:^5.0.2"
     globals: "npm:^17.3.0"
+    ical-generator: "npm:^11.1.2"
     node-fetch: "npm:^2.7.0"
     nodemon: "npm:^3.1.7"
     prettier: "npm:^3.8.1"
@@ -4847,6 +4848,41 @@ __metadata:
     agent-base: "npm:^7.1.2"
     debug: "npm:4"
   checksum: 10c0/f729219bc735edb621fa30e6e84e60ee5d00802b8247aac0d7b79b0bd6d4b3294737a337b93b86a0bd9e68099d031858a39260c976dc14cdbba238ba1f8779ac
+  languageName: node
+  linkType: hard
+
+"ical-generator@npm:^11.1.2":
+  version: 11.1.2
+  resolution: "ical-generator@npm:11.1.2"
+  peerDependencies:
+    "@touch4it/ical-timezones": ">=1.6.0"
+    "@types/luxon": ">= 1.26.0"
+    "@types/mocha": ">= 8.2.1"
+    dayjs: ">= 1.10.0"
+    luxon: ">= 1.26.0"
+    moment: ">= 2.29.0"
+    moment-timezone: ">= 0.5.33"
+    rrule: ">= 2.6.8"
+  peerDependenciesMeta:
+    "@touch4it/ical-timezones":
+      optional: true
+    "@types/luxon":
+      optional: true
+    "@types/mocha":
+      optional: true
+    "@types/node":
+      optional: true
+    dayjs:
+      optional: true
+    luxon:
+      optional: true
+    moment:
+      optional: true
+    moment-timezone:
+      optional: true
+    rrule:
+      optional: true
+  checksum: 10c0/a8d039077d66bf444712502cc0cb2bee32b071947c108bc21108a573a18e388d350d18ca75e549b4f3f3509dff968440499baa32d465f451f89525d544d29405
   languageName: node
   linkType: hard
 

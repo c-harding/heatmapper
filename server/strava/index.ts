@@ -1,18 +1,19 @@
 import { userCacheToUserInfo, type UserInfo } from '@strava-heatmapper/shared/interfaces';
 
 import { type DetailedGear, type SummaryActivity, type SummaryRoute } from './model';
-import RawStravaApi from './raw-api';
+import RawStravaApi, { type SessionType } from './raw-api';
 
 export class Strava {
   private rawApi: RawStravaApi;
 
   constructor(
-    domain: string,
+    private readonly domain: string,
     requestToken: string | undefined,
     loginCallback: ((token: string, url: string) => Promise<boolean>) | null,
     abortSignal?: AbortSignal,
+    sessionType?: SessionType,
   ) {
-    this.rawApi = new RawStravaApi(domain, requestToken, loginCallback, abortSignal);
+    this.rawApi = new RawStravaApi(domain, requestToken, loginCallback, abortSignal, sessionType);
   }
 
   private async getActivitiesPage(
@@ -43,23 +44,42 @@ export class Strava {
 
   /**
    * Fetches your data from the Strava API
+   *
+   * @param inFlight How many pages to ask for at once. Up to this many, less one, are wasted past
+   *   the end, which isn't known until a page comes back short.
    */
-  async *getStravaActivitiesPages(start?: number, end?: number): AsyncGenerator<SummaryActivity[], void, undefined> {
+  async *getStravaActivitiesPages(
+    start?: number,
+    end?: number,
+    inFlight = 1,
+  ): AsyncGenerator<SummaryActivity[], void, undefined> {
     const pageSize = 200;
-    let i = 1;
-    while (true) {
-      const page = await this.getActivitiesPage(i, pageSize, start, end);
+    const pages: Promise<SummaryActivity[]>[] = [];
+    const request = () => {
+      const page = this.getActivitiesPage(pages.length + 1, pageSize, start, end);
+      // One still running after the loop has stopped would otherwise fail unhandled
+      page.catch(() => undefined);
+      pages.push(page);
+    };
+    for (let i = 0; i < inFlight; i++) request();
+
+    for (let i = 0; ; i++) {
+      const page = await pages[i];
       if (page.length) yield page;
       if (page.length < pageSize) break;
-      i += 1;
+      request();
     }
   }
 
   /**
    * Fetches your data from the Strava API
    */
-  async *getStravaActivities(start?: number, end?: number): AsyncGenerator<unknown, void, undefined> {
-    for await (const page of this.getStravaActivitiesPages(start, end)) {
+  async *getStravaActivities(
+    start?: number,
+    end?: number,
+    inFlight?: number,
+  ): AsyncGenerator<SummaryActivity, void, undefined> {
+    for await (const page of this.getStravaActivitiesPages(start, end, inFlight)) {
       yield* page;
     }
   }
@@ -101,6 +121,25 @@ export class Strava {
 
   static isDeauthorised(domain: string, athlete: number): Promise<boolean> {
     return RawStravaApi.isDeauthorised(domain, athlete);
+  }
+
+  hasToken(): Promise<boolean> {
+    return this.rawApi.hasToken();
+  }
+
+  async getCalendarUrls(): Promise<{ https: string; webcal: string } | undefined> {
+    const calendarSession = await this.rawApi.getCalendar();
+    if (!calendarSession) return undefined;
+    const https = `${this.domain}/calendar/${calendarSession}.ics`;
+    return { https, webcal: https.replace(/^\w+(?=:\/\/)/, 'webcal') };
+  }
+
+  createCalendar(): Promise<string> {
+    return this.rawApi.createCalendar();
+  }
+
+  deleteCalendar(): Promise<void> {
+    return this.rawApi.deleteCalendar();
   }
 
   async logout(global?: boolean);
